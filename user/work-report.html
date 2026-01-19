@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Report - Sales Ops</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Sidebar will be inserted here -->
+
+        <div class="main-content">
+            <div class="page-header">
+                <h2>Work Report</h2>
+            </div>
+
+            <div class="content-card">
+                <!-- Date Selector -->
+                <div class="mb-4">
+                    <label for="report-date" class="form-label">Select Date</label>
+                    <input type="date" class="form-control" id="report-date" style="max-width: 200px;">
+                </div>
+
+                <form id="work-report-form">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="total-calls" class="form-label">Total Calls</label>
+                            <input type="number" class="form-control" id="total-calls-input" placeholder="0" min="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="total-meetings" class="form-label">Total Meetings</label>
+                            <input type="number" class="form-control" id="total-meetings-input" placeholder="0" min="0">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="total-leads" class="form-label">Total Leads</label>
+                            <input type="number" class="form-control" id="total-leads-input" placeholder="0" min="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="new-leads-generated" class="form-label">New Leads Generated</label>
+                            <input type="number" class="form-control" id="new-leads-generated" placeholder="0" min="0">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="leads-in-pipeline" class="form-label">Leads In Pipeline</label>
+                        <input type="number" class="form-control" id="leads-in-pipeline" placeholder="0" min="0">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="save-btn">
+                        <i class="fas fa-check"></i> Save Report
+                        <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                    </button>
+                </form>
+
+                <hr class="my-4">
+
+                <h5>Report Summary</h5>
+                <div id="work-report-display" class="report-card">
+                    <p class="text-muted">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        // Check authentication
+        if (!initAuthCheck('user')) {
+            window.location.href = '../index.html'
+        }
+
+        // Insert navigation
+        insertNav('user', 'work-report')
+
+        // Get session
+        const session = getCurrentSession()
+        let workReport = null
+
+        // Set default date to today
+        const dateInput = document.getElementById('report-date')
+        dateInput.value = new Date().toISOString().split('T')[0]
+
+        // Load work report from Supabase
+        async function loadWorkReport() {
+            const selectedDate = dateInput.value
+
+            try {
+                workReport = await getWorkReport(session.userId, selectedDate)
+
+                if (workReport) {
+                    document.getElementById('total-calls-input').value = workReport.total_calls || 0
+                    document.getElementById('total-meetings-input').value = workReport.total_meetings || 0
+                    document.getElementById('total-leads-input').value = workReport.total_leads || 0
+                    document.getElementById('new-leads-generated').value = workReport.new_leads_generated || 0
+                    document.getElementById('leads-in-pipeline').value = workReport.leads_in_pipeline || 0
+                } else {
+                    // Clear form for new date
+                    document.getElementById('total-calls-input').value = 0
+                    document.getElementById('total-meetings-input').value = 0
+                    document.getElementById('total-leads-input').value = 0
+                    document.getElementById('new-leads-generated').value = 0
+                    document.getElementById('leads-in-pipeline').value = 0
+                }
+
+                displayWorkReport()
+            } catch (error) {
+                console.error('Error loading work report:', error)
+                displayWorkReport()
+            }
+        }
+
+        // Display work report
+        function displayWorkReport() {
+            const displayContainer = document.getElementById('work-report-display')
+
+            if (!workReport) {
+                displayContainer.innerHTML = '<p class="text-muted">No data entered for this date.</p>'
+                return
+            }
+
+            displayContainer.innerHTML = `
+                <div class="report-item">
+                    <span class="report-item-label">Total Calls</span>
+                    <span class="report-item-value">${workReport.total_calls || 0}</span>
+                </div>
+                <div class="report-item">
+                    <span class="report-item-label">Total Meetings</span>
+                    <span class="report-item-value">${workReport.total_meetings || 0}</span>
+                </div>
+                <div class="report-item">
+                    <span class="report-item-label">Total Leads</span>
+                    <span class="report-item-value">${workReport.total_leads || 0}</span>
+                </div>
+                <div class="report-item">
+                    <span class="report-item-label">New Leads Generated</span>
+                    <span class="report-item-value">${workReport.new_leads_generated || 0}</span>
+                </div>
+                <div class="report-item">
+                    <span class="report-item-label">Leads In Pipeline</span>
+                    <span class="report-item-value">${workReport.leads_in_pipeline || 0}</span>
+                </div>
+            `
+        }
+
+        // Handle date change
+        dateInput.addEventListener('change', loadWorkReport)
+
+        // Handle form submission
+        document.getElementById('work-report-form').addEventListener('submit', async function (e) {
+            e.preventDefault()
+
+            const saveBtn = document.getElementById('save-btn')
+            const spinner = saveBtn.querySelector('.spinner-border')
+
+            saveBtn.disabled = true
+            spinner.classList.remove('d-none')
+
+            try {
+                const report = {
+                    date: dateInput.value,
+                    totalCalls: parseInt(document.getElementById('total-calls-input').value) || 0,
+                    totalMeetings: parseInt(document.getElementById('total-meetings-input').value) || 0,
+                    totalLeads: parseInt(document.getElementById('total-leads-input').value) || 0,
+                    newLeadsGenerated: parseInt(document.getElementById('new-leads-generated').value) || 0,
+                    leadsInPipeline: parseInt(document.getElementById('leads-in-pipeline').value) || 0
+                }
+
+                workReport = await saveWorkReport(session.userId, report)
+
+                // Update display with new format
+                workReport = {
+                    total_calls: report.totalCalls,
+                    total_meetings: report.totalMeetings,
+                    total_leads: report.totalLeads,
+                    new_leads_generated: report.newLeadsGenerated,
+                    leads_in_pipeline: report.leadsInPipeline
+                }
+
+                displayWorkReport()
+                showToast('Work report saved successfully!', 'success')
+            } catch (error) {
+                console.error('Error saving work report:', error)
+                showToast('Failed to save work report', 'error')
+            } finally {
+                saveBtn.disabled = false
+                spinner.classList.add('d-none')
+            }
+        })
+
+        // Initialize
+        loadWorkReport()
+    </script>
+</body>
+
+</html>

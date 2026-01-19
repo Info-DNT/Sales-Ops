@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Users - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="main-content">
+            <div class="page-header">
+                <h2>All Users</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    <i class="fas fa-plus"></i> Add User
+                </button>
+            </div>
+            <div class="content-card">
+                <h5 class="mb-3">Registered Users</h5>
+                <div id="users-list">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        To create a new user, go to <strong>Supabase Dashboard → Authentication → Users</strong> and
+                        click "Add User".
+                        The user will automatically appear here after creation.
+                    </div>
+                    <p>Steps:</p>
+                    <ol>
+                        <li>Open <a href="https://supabase.com/dashboard" target="_blank">Supabase Dashboard</a></li>
+                        <li>Go to Authentication → Users</li>
+                        <li>Click "Add User" → "Create New User"</li>
+                        <li>Enter email and password</li>
+                        <li>Check "Auto Confirm User"</li>
+                        <li>Click "Create User"</li>
+                    </ol>
+                    <button class="btn btn-primary w-100" onclick="loadUsers()">
+                        <i class="fas fa-sync"></i> Refresh User List
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        if (!initAuthCheck('admin')) window.location.href = '../index.html'
+        insertNav('admin', 'users')
+
+        async function loadUsers() {
+            const usersList = document.getElementById('users-list')
+            usersList.innerHTML = '<p class="text-muted">Loading...</p>'
+
+            try {
+                const users = await getAllUsers()
+
+                if (!users || users.length === 0) {
+                    usersList.innerHTML = '<p class="text-muted">No users found.</p>'
+                    return
+                }
+
+                // Get leads and quotation counts for each user
+                const leadsData = await getAllLeadsAdmin()
+                const quotationsData = await getAllQuotationsAdmin()
+                const attendanceData = await getAllAttendanceAdmin()
+
+                // Count per user
+                const userStats = {}
+                users.forEach(user => {
+                    userStats[user.id] = {
+                        leads: 0,
+                        quotations: 0,
+                        attendance: 0
+                    }
+                })
+
+                leadsData.forEach(lead => {
+                    if (userStats[lead.user_id]) {
+                        userStats[lead.user_id].leads++
+                    }
+                })
+
+                quotationsData.forEach(q => {
+                    if (userStats[q.user_id]) {
+                        userStats[q.user_id].quotations++
+                    }
+                })
+
+                attendanceData.forEach(a => {
+                    if (userStats[a.user_id]) {
+                        userStats[a.user_id].attendance++
+                    }
+                })
+
+                usersList.innerHTML = users.map(user => `
+                    <div class="user-info-card mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6>${user.name || 'Unnamed User'}</h6>
+                                <p class="text-muted small mb-1">${user.email}</p>
+                                <span class="badge ${user.role === 'admin' ? 'bg-danger' : 'bg-primary'}">${user.role}</span>
+                            </div>
+                            <small class="text-muted">Joined: ${new Date(user.created_at).toLocaleDateString()}</small>
+                        </div>
+                        <hr>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <strong>${userStats[user.id]?.leads || 0}</strong>
+                                <p class="small text-muted mb-0">Leads</p>
+                            </div>
+                            <div class="col-4">
+                                <strong>${userStats[user.id]?.quotations || 0}</strong>
+                                <p class="small text-muted mb-0">Quotations</p>
+                            </div>
+                            <div class="col-4">
+                                <strong>${userStats[user.id]?.attendance || 0}</strong>
+                                <p class="small text-muted mb-0">Attendance</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')
+
+            } catch (error) {
+                console.error('Error loading users:', error)
+                usersList.innerHTML = '<p class="text-danger">Error loading users. Please try again.</p>'
+            }
+        }
+
+        // Initialize
+        loadUsers()
+    </script>
+</body>
+
+</html>

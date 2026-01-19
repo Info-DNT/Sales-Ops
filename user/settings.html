@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Sales Ops</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Sidebar will be inserted here -->
+
+        <div class="main-content">
+            <div class="page-header">
+                <h2>Settings</h2>
+            </div>
+
+            <div class="content-card mb-4">
+                <h5 class="mb-3"><i class="fas fa-user-circle me-2"></i>Account Information</h5>
+                <div id="account-info">
+                    <p><strong>Name:</strong> <span id="user-name-display">Loading...</span></p>
+                    <p><strong>Email:</strong> <span id="user-email-display">Loading...</span></p>
+                    <p><strong>Role:</strong> <span class="badge bg-primary" id="user-role-display">User</span></p>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <h5 class="mb-3"><i class="fas fa-download me-2"></i>Data Management</h5>
+                <p class="text-muted">Export your personal data as a JSON file.</p>
+                <button class="btn btn-primary" id="export-btn" onclick="exportMyData()">
+                    <i class="fas fa-file-export"></i> Export My Data
+                    <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                </button>
+            </div>
+
+            <div class="content-card">
+                <h5 class="mb-3"><i class="fas fa-sign-out-alt me-2"></i>Session</h5>
+                <p class="text-muted">Sign out of your account.</p>
+                <button class="btn btn-danger" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        // Check authentication
+        if (!initAuthCheck('user')) {
+            window.location.href = '../index.html'
+        }
+
+        // Insert navigation
+        insertNav('user', 'settings')
+
+        // Display user info
+        const session = getCurrentSession()
+        if (session) {
+            document.getElementById('user-name-display').textContent = session.name || 'Not set'
+            document.getElementById('user-email-display').textContent = session.email
+            document.getElementById('user-role-display').textContent = session.role
+        }
+
+        // Export user data
+        async function exportMyData() {
+            const btn = document.getElementById('export-btn')
+            const spinner = btn.querySelector('.spinner-border')
+
+            btn.disabled = true
+            spinner.classList.remove('d-none')
+
+            try {
+                const [userDetails, workReports, leads, quotations, attendance] = await Promise.all([
+                    getUserDetails(session.userId),
+                    getAllWorkReports(session.userId),
+                    getLeads(session.userId),
+                    getQuotations(session.userId),
+                    getAllAttendance(session.userId)
+                ])
+
+                const myData = {
+                    userDetails: userDetails,
+                    workReports: workReports,
+                    leads: leads,
+                    quotations: quotations,
+                    attendance: attendance,
+                    exportDate: new Date().toISOString(),
+                    email: session.email
+                }
+
+                const dataStr = JSON.stringify(myData, null, 2)
+                const dataBlob = new Blob([dataStr], { type: 'application/json' })
+                const url = URL.createObjectURL(dataBlob)
+                const link = document.createElement('a')
+                link.href = url
+                link.download = `sales-ops-my-data-${getCurrentDateString()}.json`
+                link.click()
+
+                showToast('Data exported successfully!', 'success')
+            } catch (error) {
+                console.error('Export error:', error)
+                showToast('Failed to export data', 'error')
+            } finally {
+                btn.disabled = false
+                spinner.classList.add('d-none')
+            }
+        }
+    </script>
+</body>
+
+</html>

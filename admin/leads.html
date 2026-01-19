@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Leads - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="main-content">
+            <div class="page-header">
+                <h2>All Leads</h2>
+            </div>
+
+            <!-- Filter -->
+            <div class="content-card mb-3">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Filter by Status</label>
+                        <select class="form-control" id="filter-status">
+                            <option value="">All Statuses</option>
+                            <option value="New">New</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Qualified">Qualified</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-secondary me-2" onclick="applyFilter()">
+                            <i class="fas fa-search"></i> Filter
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearFilter()">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h5 class="mb-3">All Lead Records</h5>
+                <div id="leads-list">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        if (!initAuthCheck('admin')) window.location.href = '../index.html'
+        insertNav('admin', 'leads')
+
+        let allLeads = []
+
+        async function loadLeads() {
+            const container = document.getElementById('leads-list')
+            container.innerHTML = '<p class="text-muted">Loading...</p>'
+
+            try {
+                allLeads = await getAllLeadsAdmin()
+                displayLeads(allLeads)
+            } catch (error) {
+                console.error('Error loading leads:', error)
+                container.innerHTML = '<p class="text-danger">Error loading leads.</p>'
+            }
+        }
+
+        function displayLeads(leads) {
+            const container = document.getElementById('leads-list')
+
+            if (!leads || leads.length === 0) {
+                container.innerHTML = '<p class="text-muted">No leads found.</p>'
+                return
+            }
+
+            container.innerHTML = leads.map(lead => `
+                <div class="lead-card mb-3">
+                    <div class="lead-header">
+                        <div class="lead-title">
+                            <h6>${lead.name}</h6>
+                            <p class="text-muted small mb-0">
+                                <strong>User:</strong> ${lead.users?.name || lead.users?.email || 'Unknown'} | 
+                                <strong>Account:</strong> ${lead.account_name || 'N/A'}
+                            </p>
+                        </div>
+                        <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>
+                    </div>
+                    <div class="lead-details mt-2">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <small><strong>Contact:</strong> ${lead.contact || 'N/A'}</small>
+                            </div>
+                            <div class="col-md-4">
+                                <small><strong>Email:</strong> ${lead.email || 'N/A'}</small>
+                            </div>
+                            <div class="col-md-4">
+                                <small><strong>Created:</strong> ${new Date(lead.created_at).toLocaleDateString()}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')
+        }
+
+        function applyFilter() {
+            const status = document.getElementById('filter-status').value
+            if (status) {
+                const filtered = allLeads.filter(l => l.status === status)
+                displayLeads(filtered)
+            } else {
+                displayLeads(allLeads)
+            }
+        }
+
+        function clearFilter() {
+            document.getElementById('filter-status').value = ''
+            displayLeads(allLeads)
+        }
+
+        loadLeads()
+    </script>
+</body>
+
+</html>

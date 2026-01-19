@@ -1,8 +1,17 @@
 {
-  "name": "my-v0-project",
-  "version": "0.1.0",
+  "name": "sales-team-app",
+  "version": "1.0.0",
   "private": true,
+  "description": "Sales Team Dashboard Application",
   "scripts": {
-    "build": "echo 'no build script'"
-  }
+    "start": "npx -y http-server -p 8080 -c-1 --cors -o",
+    "dev": "npx -y http-server -p 8080 -c-1 --cors",
+    "build": "echo 'No build required - static HTML application'"
+  },
+  "keywords": [
+    "sales",
+    "dashboard"
+  ],
+  "author": "",
+  "license": "MIT"
 }

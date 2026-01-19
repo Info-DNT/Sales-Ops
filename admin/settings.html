@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="main-content">
+            <div class="page-header">
+                <h2>Admin Settings</h2>
+            </div>
+
+            <div class="content-card mb-4">
+                <h5 class="mb-3"><i class="fas fa-database me-2"></i>Database Management</h5>
+                <p class="text-muted">Manage your Supabase database and export data.</p>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6><i class="fas fa-download me-2"></i>Export Data</h6>
+                                <p class="small text-muted">Download all data as JSON file</p>
+                                <button class="btn btn-primary" onclick="exportAllData()">
+                                    <i class="fas fa-file-export"></i> Export All Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6><i class="fas fa-external-link-alt me-2"></i>Supabase Dashboard</h6>
+                                <p class="small text-muted">Access your Supabase project directly</p>
+                                <a href="https://supabase.com/dashboard" target="_blank"
+                                    class="btn btn-outline-primary">
+                                    <i class="fas fa-external-link-alt"></i> Open Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <h5 class="mb-3"><i class="fas fa-user-shield me-2"></i>Admin Information</h5>
+                <div id="admin-info">
+                    <p><strong>Email:</strong> <span id="admin-email">Loading...</span></p>
+                    <p><strong>Role:</strong> <span class="badge bg-danger">Admin</span></p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i>System Information</h5>
+                <p><strong>Application:</strong> Sales Ops Dashboard</p>
+                <p><strong>Backend:</strong> Supabase</p>
+                <p><strong>Version:</strong> 2.0.0</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script>
+        if (!initAuthCheck('admin')) window.location.href = '../index.html'
+        insertNav('admin', 'settings')
+
+        // Display admin info
+        const session = getCurrentSession()
+        if (session) {
+            document.getElementById('admin-email').textContent = session.email
+        }
+    </script>
+</body>
+
+</html>

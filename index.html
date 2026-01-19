@@ -1,385 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Operations Dashboard</title>
+    <title>Sales Ops - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveBackground 20s linear infinite;
+        }
+
+        @keyframes moveBackground {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            max-width: 450px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-logo i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .login-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            height: calc(3.5rem + 2px);
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-floating label {
+            padding: 1rem;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            animation: shake 0.5s;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-5px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(5px);
+            }
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <div id="app">
-        <!-- Navigation Sidebar -->
-        <nav class="sidebar">
-            <div class="sidebar-header">
-                <h4 class="text-white mb-4">Sales Ops</h4>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="#" data-page="home" class="nav-link active"><i class="fas fa-home"></i> Home</a></li>
-                <li><a href="#" data-page="attendance" class="nav-link"><i class="fas fa-clock"></i> Attendance</a></li>
-                <li><a href="#" data-page="user-details" class="nav-link"><i class="fas fa-user"></i> User Details</a></li>
-                <li><a href="#" data-page="work-report" class="nav-link"><i class="fas fa-chart-bar"></i> Work Report</a></li>
-                <li><a href="#" data-page="leads" class="nav-link"><i class="fas fa-bullseye"></i> Leads</a></li>
-                <li><a href="#" data-page="settings" class="nav-link"><i class="fas fa-cog"></i> Settings</a></li>
-            </ul>
-        </nav>
-
-        <!-- Main Content Area -->
-        <div class="main-content">
-            <!-- Home Page -->
-            <div id="home-page" class="page-container active">
-                <div class="page-header">
-                    <h2>Home Dashboard</h2>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quotationModal">
-                        <i class="fas fa-file-invoice-dollar"></i> Create Quotation
-                    </button>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">
+                    <i class="fas fa-chart-line"></i>
                 </div>
-
-                <div class="dashboard-grid">
-                    <!-- Stats Cards -->
-                    <div class="stat-card">
-                        <div class="stat-icon attendance">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h6>Today's Status</h6>
-                            <p id="attendance-status">Not Clocked In</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon leads">
-                            <i class="fas fa-bullseye"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h6>Total Leads</h6>
-                            <p id="total-leads">0</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon calls">
-                            <i class="fas fa-phone"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h6>Total Calls</h6>
-                            <p id="total-calls">0</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon meetings">
-                            <i class="fas fa-video"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h6>Total Meetings</h6>
-                            <p id="total-meetings">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Quotations -->
-                <div class="recent-section">
-                    <h5 class="mb-3">Recent Quotations</h5>
-                    <div id="recent-quotations" class="quotation-list">
-                        <p class="text-muted">No quotations yet. Create one to get started.</p>
-                    </div>
-                </div>
+                <h1 class="login-title">Sales Ops</h1>
+                <p class="login-subtitle">Sign in to your account</p>
             </div>
 
-            <!-- Attendance Page -->
-            <div id="attendance-page" class="page-container">
-                <div class="page-header">
-                    <h2>Attendance Tracking</h2>
+            <div id="error-message" class="error-message"></div>
+
+            <form id="login-form">
+                <div class="form-floating">
+                    <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                    <label for="email"><i class="fas fa-envelope me-2"></i>Email address</label>
                 </div>
 
-                <div class="content-card">
-                    <div class="attendance-section">
-                        <div class="clock-display">
-                            <h4 id="current-time">00:00:00</h4>
-                            <p id="current-date"></p>
-                        </div>
-
-                        <div class="clock-buttons">
-                            <button id="clock-in-btn" class="btn btn-success btn-lg">
-                                <i class="fas fa-sign-in-alt"></i> Clock In
-                            </button>
-                            <button id="clock-out-btn" class="btn btn-danger btn-lg" disabled>
-                                <i class="fas fa-sign-out-alt"></i> Clock Out
-                            </button>
-                        </div>
-
-                        <div class="status-info mt-4">
-                            <p><strong>Status:</strong> <span id="attendance-time-status">Not Started</span></p>
-                            <p><strong>Clock In Time:</strong> <span id="clock-in-time">--</span></p>
-                            <p><strong>Clock Out Time:</strong> <span id="clock-out-time">--</span></p>
-                            <p><strong>Hours Worked:</strong> <span id="hours-worked">0h 0m</span></p>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    <h5 class="mt-4 mb-3">Attendance History</h5>
-                    <div id="attendance-history" class="history-list">
-                        <p class="text-muted">No records yet.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- User Details Page -->
-            <div id="user-details-page" class="page-container">
-                <div class="page-header">
-                    <h2>User Details</h2>
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                    <label for="password"><i class="fas fa-lock me-2"></i>Password</label>
                 </div>
 
-                <div class="content-card">
-                    <form id="user-details-form">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="user-name" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="user-name" placeholder="Enter your name" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="user-designation" class="form-label">Designation</label>
-                                <input type="text" class="form-control" id="user-designation" placeholder="e.g., Sales Executive">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="user-contact" class="form-label">Contact Number</label>
-                                <input type="tel" class="form-control" id="user-contact" placeholder="Enter contact number">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="user-email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="user-email" placeholder="Enter email address">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Save Details
-                        </button>
-                    </form>
-
-                    <hr class="my-4">
-
-                    <h5>Saved Information</h5>
-                    <div id="user-details-display" class="user-info-card">
-                        <p class="text-muted">No details saved yet.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Work Report Page -->
-            <div id="work-report-page" class="page-container">
-                <div class="page-header">
-                    <h2>Work Report</h2>
-                </div>
-
-                <div class="content-card">
-                    <form id="work-report-form">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="total-calls" class="form-label">Total Calls</label>
-                                <input type="number" class="form-control" id="total-calls-input" placeholder="0" min="0">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="total-meetings" class="form-label">Total Meetings</label>
-                                <input type="number" class="form-control" id="total-meetings-input" placeholder="0" min="0">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="total-leads" class="form-label">Total Leads</label>
-                                <input type="number" class="form-control" id="total-leads-input" placeholder="0" min="0">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="new-leads-generated" class="form-label">New Leads Generated</label>
-                                <input type="number" class="form-control" id="new-leads-generated" placeholder="0" min="0">
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="leads-in-pipeline" class="form-label">Leads In Pipeline</label>
-                            <input type="number" class="form-control" id="leads-in-pipeline" placeholder="0" min="0">
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-check"></i> Save Report
-                        </button>
-                    </form>
-
-                    <hr class="my-4">
-
-                    <h5>Today's Summary</h5>
-                    <div id="work-report-display" class="report-card">
-                        <p class="text-muted">No data entered yet.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Leads Page -->
-            <div id="leads-page" class="page-container">
-                <div class="page-header">
-                    <h2>Leads Management</h2>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLeadModal">
-                        <i class="fas fa-plus"></i> Add Lead
-                    </button>
-                </div>
-
-                <div class="content-card">
-                    <h5 class="mb-3">Lead Details</h5>
-                    <div id="leads-list" class="leads-container">
-                        <p class="text-muted">No leads added yet. Create one to get started.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Settings Page -->
-            <div id="settings-page" class="page-container">
-                <div class="page-header">
-                    <h2>Settings</h2>
-                </div>
-
-                <div class="content-card">
-                    <h5 class="mb-4">Data Management</h5>
-
-                    <div class="settings-section">
-                        <h6>Export Data</h6>
-                        <p class="text-muted small">Download all your data as a JSON file</p>
-                        <button id="export-btn" class="btn btn-info">
-                            <i class="fas fa-download"></i> Export All Data
-                        </button>
-                    </div>
-
-                    <hr>
-
-                    <div class="settings-section">
-                        <h6>Clear Data</h6>
-                        <p class="text-muted small">This will permanently delete all stored data</p>
-                        <button id="clear-btn" class="btn btn-danger" onclick="if(confirm('Are you sure? This cannot be undone.')) { clearAllData(); }">
-                            <i class="fas fa-trash"></i> Clear All Data
-                        </button>
-                    </div>
-
-                    <hr>
-
-                    <div class="settings-section">
-                        <h6>About</h6>
-                        <p class="text-muted">Sales Operations Dashboard v1.0</p>
-                        <p class="small">Built for efficient sales team management</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Create Quotation Modal -->
-    <div class="modal fade" id="quotationModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Create Quotation</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="quotation-form">
-                        <div class="mb-3">
-                            <label for="quotation-client" class="form-label">Client Name</label>
-                            <input type="text" class="form-control" id="quotation-client" placeholder="Enter client name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="quotation-amount" class="form-label">Quotation Amount</label>
-                            <input type="number" class="form-control" id="quotation-amount" placeholder="Enter amount" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="quotation-description" class="form-label">Description</label>
-                            <textarea class="form-control" id="quotation-description" rows="3" placeholder="Enter quotation details"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-save"></i> Save Quotation
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Lead Modal -->
-    <div class="modal fade" id="addLeadModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New Lead</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="add-lead-form">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="lead-name" class="form-label">Lead Name</label>
-                                <input type="text" class="form-control" id="lead-name" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="lead-contact" class="form-label">Contact Number</label>
-                                <input type="tel" class="form-control" id="lead-contact" required>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="lead-email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="lead-email" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="lead-owner" class="form-label">Lead Owner</label>
-                                <input type="text" class="form-control" id="lead-owner">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="lead-status" class="form-label">Lead Status</label>
-                                <select class="form-control" id="lead-status" required>
-                                    <option value="New">New</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Qualified">Qualified</option>
-                                    <option value="Closed">Closed</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="lead-account" class="form-label">Account Name</label>
-                                <input type="text" class="form-control" id="lead-account">
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="follow-up-date" class="form-label">Follow-up Date</label>
-                            <input type="date" class="form-control" id="follow-up-date" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="next-action" class="form-label">Next Action</label>
-                            <textarea class="form-control" id="next-action" rows="2" placeholder="Describe next action"></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="expected-close" class="form-label">Expected Close Date</label>
-                            <input type="date" class="form-control" id="expected-close">
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-check"></i> Save Lead
-                        </button>
-                    </form>
-                </div>
-            </div>
+                <button type="submit" class="btn btn-login">
+                    Sign In
+                    <span class="loading-spinner"></span>
+                </button>
+            </form>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="script.js"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // Check if already logged in
+        if (typeof isLoggedIn === 'function' && isLoggedIn()) {
+            redirectToDashboard()
+        }
+
+        // Handle login form submission
+        document.getElementById('login-form').addEventListener('submit', async function (e) {
+            e.preventDefault()
+
+            const email = document.getElementById('email').value
+            const password = document.getElementById('password').value
+            const errorMsg = document.getElementById('error-message')
+            const submitBtn = this.querySelector('.btn-login')
+            const spinner = submitBtn.querySelector('.loading-spinner')
+
+            // Show loading state
+            submitBtn.disabled = true
+            spinner.style.display = 'inline-block'
+            errorMsg.classList.remove('show')
+
+            try {
+                // Login with Supabase
+                const userData = await loginWithSupabase(email, password)
+
+                // Redirect based on role
+                if (userData.role === 'admin') {
+                    window.location.href = 'admin/dashboard.html'
+                } else {
+                    window.location.href = 'user/dashboard.html'
+                }
+            } catch (error) {
+                console.error('Login error:', error)
+                errorMsg.textContent = error.message || 'Invalid email or password'
+                errorMsg.classList.add('show')
+                submitBtn.disabled = false
+                spinner.style.display = 'none'
+            }
+        })
+    </script>
 </body>
+
 </html>

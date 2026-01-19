@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sales Ops</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Sidebar will be inserted here -->
+
+        <div class="main-content">
+            <div class="page-header">
+                <h2>Home Dashboard</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quotationModal">
+                    <i class="fas fa-file-invoice-dollar"></i> Create Quotation
+                </button>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Stats Cards -->
+                <div class="stat-card">
+                    <div class="stat-icon attendance">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Today's Status</h6>
+                        <p id="attendance-status">Loading...</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon leads">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Total Leads</h6>
+                        <p id="total-leads">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon calls">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Total Calls</h6>
+                        <p id="total-calls">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon meetings">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Total Meetings</h6>
+                        <p id="total-meetings">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Quotations -->
+            <div class="recent-section">
+                <h5 class="mb-3">Recent Quotations</h5>
+                <div id="recent-quotations" class="quotation-list">
+                    <p class="text-muted">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Quotation Modal -->
+    <div class="modal fade" id="quotationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Quotation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="quotation-form">
+                        <div class="mb-3">
+                            <label for="quotation-client" class="form-label">Client Name</label>
+                            <input type="text" class="form-control" id="quotation-client"
+                                placeholder="Enter client name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quotation-amount" class="form-label">Quotation Amount</label>
+                            <input type="number" class="form-control" id="quotation-amount" placeholder="Enter amount"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quotation-description" class="form-label">Description</label>
+                            <textarea class="form-control" id="quotation-description" rows="3"
+                                placeholder="Enter quotation details"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="save-quotation-btn">
+                            <i class="fas fa-save"></i> Save Quotation
+                            <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        // Check authentication
+        if (!initAuthCheck('user')) {
+            window.location.href = '../index.html'
+        }
+
+        // Insert navigation
+        insertNav('user', 'dashboard')
+
+        // Get session
+        const session = getCurrentSession()
+        let quotations = []
+
+        // Load dashboard data
+        async function updateDashboard() {
+            try {
+                // Load attendance
+                const today = new Date().toISOString().split('T')[0]
+                const attendance = await getAttendance(session.userId, today)
+
+                if (attendance && attendance.clock_in && !attendance.clock_out) {
+                    document.getElementById('attendance-status').textContent = 'Clocked In'
+                } else if (attendance && attendance.clock_out) {
+                    document.getElementById('attendance-status').textContent = 'Clocked Out'
+                } else {
+                    document.getElementById('attendance-status').textContent = 'Not Clocked In'
+                }
+
+                // Load leads count
+                const leads = await getLeads(session.userId)
+                document.getElementById('total-leads').textContent = leads.length
+
+                // Load work report
+                const workReport = await getWorkReport(session.userId, today)
+                document.getElementById('total-calls').textContent = workReport?.total_calls || 0
+                document.getElementById('total-meetings').textContent = workReport?.total_meetings || 0
+
+                // Load quotations
+                quotations = await getQuotations(session.userId)
+                displayRecentQuotations()
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error)
+            }
+        }
+
+        function displayRecentQuotations() {
+            const quotationContainer = document.getElementById('recent-quotations')
+
+            if (!quotations || quotations.length === 0) {
+                quotationContainer.innerHTML = '<p class="text-muted">No quotations yet. Create one to get started.</p>'
+                return
+            }
+
+            const recentQuotations = quotations.slice(0, 5)
+
+            quotationContainer.innerHTML = recentQuotations
+                .map(quotation => `
+                    <div class="quotation-item">
+                        <div class="quotation-info">
+                            <h6>${quotation.client_name}</h6>
+                            <p>${quotation.description || 'No description'}</p>
+                            <p class="small text-muted">Created: ${new Date(quotation.created_at).toLocaleDateString()}</p>
+                        </div>
+                        <div class="quotation-amount">₹${parseFloat(quotation.amount).toLocaleString('en-IN')}</div>
+                    </div>
+                `)
+                .join('')
+        }
+
+        // Handle quotation form submission
+        document.getElementById('quotation-form').addEventListener('submit', async function (e) {
+            e.preventDefault()
+
+            const saveBtn = document.getElementById('save-quotation-btn')
+            const spinner = saveBtn.querySelector('.spinner-border')
+
+            saveBtn.disabled = true
+            spinner.classList.remove('d-none')
+
+            try {
+                const quotation = {
+                    clientName: document.getElementById('quotation-client').value,
+                    amount: parseFloat(document.getElementById('quotation-amount').value),
+                    description: document.getElementById('quotation-description').value
+                }
+
+                const newQuotation = await createQuotation(session.userId, quotation)
+                quotations.unshift(newQuotation)
+                displayRecentQuotations()
+
+                // Reset form and close modal
+                this.reset()
+                bootstrap.Modal.getInstance(document.getElementById('quotationModal')).hide()
+
+                showToast('Quotation created successfully!', 'success')
+            } catch (error) {
+                console.error('Error creating quotation:', error)
+                showToast('Failed to create quotation', 'error')
+            } finally {
+                saveBtn.disabled = false
+                spinner.classList.add('d-none')
+            }
+        })
+
+        // Initialize dashboard
+        updateDashboard()
+    </script>
+</body>
+
+</html>

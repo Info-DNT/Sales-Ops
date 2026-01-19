@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Details - Sales Ops</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Sidebar will be inserted here -->
+
+        <div class="main-content">
+            <div class="page-header">
+                <h2>User Details</h2>
+            </div>
+
+            <div class="content-card">
+                <form id="user-details-form">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="user-name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="user-name" placeholder="Enter your name"
+                                required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="user-designation" class="form-label">Designation</label>
+                            <input type="text" class="form-control" id="user-designation"
+                                placeholder="e.g., Sales Executive">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="user-contact" class="form-label">Contact Number</label>
+                            <input type="tel" class="form-control" id="user-contact" placeholder="Enter contact number">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="user-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="user-email" placeholder="Enter email address">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="save-btn">
+                        <i class="fas fa-save"></i> Save Details
+                        <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                    </button>
+                </form>
+
+                <hr class="my-4">
+
+                <h5>Saved Information</h5>
+                <div id="user-details-display" class="user-info-card">
+                    <p class="text-muted">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        // Check authentication
+        if (!initAuthCheck('user')) {
+            window.location.href = '../index.html'
+        }
+
+        // Insert navigation
+        insertNav('user', 'user-details')
+
+        // Get session
+        const session = getCurrentSession()
+        let userDetails = null
+
+        // Load existing user details from Supabase
+        async function loadUserDetails() {
+            try {
+                userDetails = await getUserDetails(session.userId)
+
+                if (userDetails) {
+                    document.getElementById('user-name').value = userDetails.name || ''
+                    document.getElementById('user-designation').value = userDetails.designation || ''
+                    document.getElementById('user-contact').value = userDetails.contact || ''
+                    document.getElementById('user-email').value = userDetails.email || ''
+                }
+
+                displayUserDetails()
+            } catch (error) {
+                console.error('Error loading user details:', error)
+                displayUserDetails()
+            }
+        }
+
+        // Display saved user details
+        function displayUserDetails() {
+            const displayContainer = document.getElementById('user-details-display')
+
+            if (!userDetails || !userDetails.name) {
+                displayContainer.innerHTML = '<p class="text-muted">No details saved yet.</p>'
+                return
+            }
+
+            displayContainer.innerHTML = `
+                <div class="user-info-card">
+                    <p><strong>Name:</strong> ${userDetails.name}</p>
+                    <p><strong>Designation:</strong> ${userDetails.designation || 'Not specified'}</p>
+                    <p><strong>Contact Number:</strong> ${userDetails.contact || 'Not specified'}</p>
+                    <p><strong>Email:</strong> ${userDetails.email || 'Not specified'}</p>
+                </div>
+            `
+        }
+
+        // Handle form submission
+        document.getElementById('user-details-form').addEventListener('submit', async function (e) {
+            e.preventDefault()
+
+            const saveBtn = document.getElementById('save-btn')
+            const spinner = saveBtn.querySelector('.spinner-border')
+
+            saveBtn.disabled = true
+            spinner.classList.remove('d-none')
+
+            try {
+                const details = {
+                    name: document.getElementById('user-name').value,
+                    designation: document.getElementById('user-designation').value,
+                    contact: document.getElementById('user-contact').value,
+                    email: document.getElementById('user-email').value
+                }
+
+                userDetails = await saveUserDetails(session.userId, details)
+                displayUserDetails()
+                showToast('User details saved successfully!', 'success')
+            } catch (error) {
+                console.error('Error saving user details:', error)
+                showToast('Failed to save user details', 'error')
+            } finally {
+                saveBtn.disabled = false
+                spinner.classList.add('d-none')
+            }
+        })
+
+        // Initialize
+        loadUserDetails()
+    </script>
+</body>
+
+</html>

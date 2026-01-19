@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leads - Sales Ops</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Sidebar will be inserted here -->
+
+        <div class="main-content">
+            <div class="page-header">
+                <h2>Leads Management</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLeadModal">
+                    <i class="fas fa-plus"></i> Add Lead
+                </button>
+            </div>
+
+            <!-- Search/Filter -->
+            <div class="content-card mb-3">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Filter by Date</label>
+                        <input type="date" class="form-control" id="filter-date">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Filter by Status</label>
+                        <select class="form-control" id="filter-status">
+                            <option value="">All Statuses</option>
+                            <option value="New">New</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Qualified">Qualified</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-secondary me-2" onclick="applyFilters()">
+                            <i class="fas fa-search"></i> Filter
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h5 class="mb-3">Lead Details</h5>
+                <div id="leads-list" class="leads-container">
+                    <p class="text-muted">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Lead Modal -->
+    <div class="modal fade" id="addLeadModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Lead</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-lead-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-name" class="form-label">Lead Name</label>
+                                <input type="text" class="form-control" id="lead-name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-contact" class="form-label">Contact Number</label>
+                                <input type="tel" class="form-control" id="lead-contact" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="lead-email" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-owner" class="form-label">Lead Owner</label>
+                                <input type="text" class="form-control" id="lead-owner">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-status" class="form-label">Lead Status</label>
+                                <select class="form-control" id="lead-status" required>
+                                    <option value="New">New</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Qualified">Qualified</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-account" class="form-label">Account Name</label>
+                                <input type="text" class="form-control" id="lead-account">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="follow-up-date" class="form-label">Follow-up Date</label>
+                            <input type="date" class="form-control" id="follow-up-date" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="next-action" class="form-label">Next Action</label>
+                            <textarea class="form-control" id="next-action" rows="2"
+                                placeholder="Describe next action"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="expected-close" class="form-label">Expected Close Date</label>
+                            <input type="date" class="form-control" id="expected-close">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" id="add-lead-btn">
+                            <i class="fas fa-check"></i> Save Lead
+                            <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        // Check authentication
+        if (!initAuthCheck('user')) {
+            window.location.href = '../index.html'
+        }
+
+        // Insert navigation
+        insertNav('user', 'leads')
+
+        // Get session
+        const session = getCurrentSession()
+        let leads = []
+
+        // Load leads from Supabase
+        async function loadLeads(filters = {}) {
+            try {
+                leads = await getLeads(session.userId, filters)
+                displayLeads()
+            } catch (error) {
+                console.error('Error loading leads:', error)
+                document.getElementById('leads-list').innerHTML =
+                    '<p class="text-danger">Error loading leads. Please try again.</p>'
+            }
+        }
+
+        // Display leads
+        function displayLeads() {
+            const leadsContainer = document.getElementById('leads-list')
+
+            if (!leads || leads.length === 0) {
+                leadsContainer.innerHTML = '<p class="text-muted">No leads found. Create one to get started.</p>'
+                return
+            }
+
+            leadsContainer.innerHTML = leads
+                .map(lead => `
+                    <div class="lead-card">
+                        <div class="lead-header">
+                            <div class="lead-title">
+                                <h6>${lead.name}</h6>
+                                <p class="text-muted small">${lead.account_name || 'No account specified'}</p>
+                            </div>
+                            <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>
+                        </div>
+
+                        <div class="lead-details">
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Contact Number</span>
+                                <span class="lead-detail-value">${lead.contact}</span>
+                            </div>
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Email</span>
+                                <span class="lead-detail-value">${lead.email}</span>
+                            </div>
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Lead Owner</span>
+                                <span class="lead-detail-value">${lead.owner || 'Not assigned'}</span>
+                            </div>
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Follow-up Date</span>
+                                <span class="lead-detail-value">${lead.follow_up_date || 'Not set'}</span>
+                            </div>
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Expected Close</span>
+                                <span class="lead-detail-value">${lead.expected_close || 'Not specified'}</span>
+                            </div>
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Created</span>
+                                <span class="lead-detail-value">${new Date(lead.created_at).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 p-2 bg-light rounded">
+                            <p class="mb-0 text-muted small"><strong>Next Action:</strong> ${lead.next_action || 'No action specified'}</p>
+                        </div>
+
+                        <div class="lead-actions mt-3">
+                            <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteLead('${lead.id}')">Delete</button>
+                        </div>
+                    </div>
+                `)
+                .join('')
+        }
+
+        // Delete lead
+        async function handleDeleteLead(leadId) {
+            if (!confirm('Are you sure you want to delete this lead?')) {
+                return
+            }
+
+            try {
+                await deleteLead(leadId)
+                leads = leads.filter(lead => lead.id !== leadId)
+                displayLeads()
+                showToast('Lead deleted successfully!', 'success')
+            } catch (error) {
+                console.error('Error deleting lead:', error)
+                showToast('Failed to delete lead', 'error')
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const filters = {}
+            const filterDate = document.getElementById('filter-date').value
+            const filterStatus = document.getElementById('filter-status').value
+
+            if (filterStatus) {
+                filters.status = filterStatus
+            }
+
+            loadLeads(filters)
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('filter-date').value = ''
+            document.getElementById('filter-status').value = ''
+            loadLeads()
+        }
+
+        // Handle add lead form submission
+        document.getElementById('add-lead-form').addEventListener('submit', async function (e) {
+            e.preventDefault()
+
+            const addBtn = document.getElementById('add-lead-btn')
+            const spinner = addBtn.querySelector('.spinner-border')
+
+            addBtn.disabled = true
+            spinner.classList.remove('d-none')
+
+            try {
+                const lead = {
+                    name: document.getElementById('lead-name').value,
+                    contact: document.getElementById('lead-contact').value,
+                    email: document.getElementById('lead-email').value,
+                    owner: document.getElementById('lead-owner').value,
+                    status: document.getElementById('lead-status').value,
+                    accountName: document.getElementById('lead-account').value,
+                    followUpDate: document.getElementById('follow-up-date').value,
+                    nextAction: document.getElementById('next-action').value,
+                    expectedClose: document.getElementById('expected-close').value
+                }
+
+                const newLead = await createLead(session.userId, lead)
+                leads.unshift(newLead)
+                displayLeads()
+
+                // Reset form and close modal
+                this.reset()
+                bootstrap.Modal.getInstance(document.getElementById('addLeadModal')).hide()
+
+                showToast('Lead added successfully!', 'success')
+            } catch (error) {
+                console.error('Error adding lead:', error)
+                showToast('Failed to add lead', 'error')
+            } finally {
+                addBtn.disabled = false
+                spinner.classList.add('d-none')
+            }
+        })
+
+        // Initialize
+        loadLeads()
+    </script>
+</body>
+
+</html>

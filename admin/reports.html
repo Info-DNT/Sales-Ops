@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="main-content">
+            <div class="page-header">
+                <h2>Reports & Analytics</h2>
+                <button class="btn btn-primary" onclick="exportAllData()">
+                    <i class="fas fa-download"></i> Export All Data
+                </button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="dashboard-grid mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Total Users</h6>
+                        <p id="total-users">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon leads">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Total Leads</h6>
+                        <p id="total-leads">0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Total Quotation Value</h6>
+                        <p id="total-value">₹0</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon calls">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h6>Total Calls</h6>
+                        <p id="total-calls">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Reports Table -->
+            <div class="content-card">
+                <h5 class="mb-3">All Work Reports</h5>
+                <div id="work-reports-list">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script>
+        if (!initAuthCheck('admin')) window.location.href = '../index.html'
+        insertNav('admin', 'reports')
+
+        async function loadReports() {
+            try {
+                // Get stats
+                const stats = await getAdminDashboardStats()
+                document.getElementById('total-users').textContent = stats.totalUsers
+                document.getElementById('total-leads').textContent = stats.totalLeads
+                document.getElementById('total-calls').textContent = stats.totalCalls
+
+                // Get quotations for total value
+                const quotations = await getAllQuotationsAdmin()
+                const totalValue = quotations.reduce((sum, q) => sum + parseFloat(q.amount || 0), 0)
+                document.getElementById('total-value').textContent = '₹' + totalValue.toLocaleString('en-IN')
+
+                // Get work reports
+                const workReports = await getAllWorkReportsAdmin()
+                displayWorkReports(workReports)
+
+            } catch (error) {
+                console.error('Error loading reports:', error)
+            }
+        }
+
+        function displayWorkReports(reports) {
+            const container = document.getElementById('work-reports-list')
+
+            if (!reports || reports.length === 0) {
+                container.innerHTML = '<p class="text-muted">No work reports found.</p>'
+                return
+            }
+
+            container.innerHTML = `
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Date</th>
+                                <th>Calls</th>
+                                <th>Meetings</th>
+                                <th>Leads</th>
+                                <th>New Leads</th>
+                                <th>Pipeline</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${reports.map(report => `
+                                <tr>
+                                    <td>${report.users?.name || report.users?.email || 'Unknown'}</td>
+                                    <td>${new Date(report.report_date).toLocaleDateString()}</td>
+                                    <td>${report.total_calls || 0}</td>
+                                    <td>${report.total_meetings || 0}</td>
+                                    <td>${report.total_leads || 0}</td>
+                                    <td>${report.new_leads_generated || 0}</td>
+                                    <td>${report.leads_in_pipeline || 0}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `
+        }
+
+        loadReports()
+    </script>
+</body>
+
+</html>
