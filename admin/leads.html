@@ -21,6 +21,11 @@
             <div class="content-card mb-3">
                 <div class="row g-3">
                     <div class="col-md-4">
+                        <label class="form-label">Search</label>
+                        <input type="text" class="form-control" id="search-query"
+                            placeholder="Search by name, email, account...">
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label">Filter by Status</label>
                         <select class="form-control" id="filter-status">
                             <option value="">All Statuses</option>
@@ -32,7 +37,7 @@
                     </div>
                     <div class="col-md-4 d-flex align-items-end">
                         <button class="btn btn-secondary me-2" onclick="applyFilter()">
-                            <i class="fas fa-search"></i> Filter
+                            <i class="fas fa-search"></i> Search & Filter
                         </button>
                         <button class="btn btn-outline-secondary" onclick="clearFilter()">
                             Clear
@@ -111,16 +116,40 @@
 
         function applyFilter() {
             const status = document.getElementById('filter-status').value
+            const searchQuery = document.getElementById('search-query').value.toLowerCase()
+
+            let filtered = allLeads
+
+            // Filter by status
             if (status) {
-                const filtered = allLeads.filter(l => l.status === status)
-                displayLeads(filtered)
-            } else {
-                displayLeads(allLeads)
+                filtered = filtered.filter(l => l.status === status)
             }
+
+            // Filter by search query
+            if (searchQuery) {
+                filtered = filtered.filter(l => {
+                    const name = (l.name || '').toLowerCase()
+                    const email = (l.email || '').toLowerCase()
+                    const account = (l.account_name || '').toLowerCase()
+                    const owner = (l.owner || '').toLowerCase()
+                    const userName = (l.users?.name || '').toLowerCase()
+                    const userEmail = (l.users?.email || '').toLowerCase()
+
+                    return name.includes(searchQuery) ||
+                        email.includes(searchQuery) ||
+                        account.includes(searchQuery) ||
+                        owner.includes(searchQuery) ||
+                        userName.includes(searchQuery) ||
+                        userEmail.includes(searchQuery)
+                })
+            }
+
+            displayLeads(filtered)
         }
 
         function clearFilter() {
             document.getElementById('filter-status').value = ''
+            document.getElementById('search-query').value = ''
             displayLeads(allLeads)
         }
 
