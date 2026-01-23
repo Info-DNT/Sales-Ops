@@ -24,8 +24,14 @@ async function syncCRMLeads() {
 
         showToast('Fetching leads from Zoho CRM...', 'info')
 
-        // 1. Fetch ALL leads from Zoho via Zoho Flow
-        const response = await fetch(ZOHO_WEBHOOKS.fetchLeads)
+        // 1. Fetch ALL leads from Zoho via Netlify proxy function
+        const response = await fetch('/.netlify/functions/zoho-proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                webhookUrl: ZOHO_WEBHOOKS.fetchLeads
+            })
+        })
 
         if (!response.ok) {
             throw new Error(`Failed to fetch: ${response.statusText}`)
