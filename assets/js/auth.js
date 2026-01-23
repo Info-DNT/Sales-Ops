@@ -53,7 +53,13 @@ async function logout() {
 // Check authentication and redirect if needed
 function requireAuth(requiredRole = null) {
     if (!isLoggedIn()) {
-        window.location.href = '/index.html'
+        // Use relative path that works from subdirectories
+        const currentPath = window.location.pathname
+        if (currentPath.includes('/user/') || currentPath.includes('/admin/')) {
+            window.location.href = '../index.html'
+        } else {
+            window.location.href = 'index.html'
+        }
         return false
     }
 
@@ -61,7 +67,12 @@ function requireAuth(requiredRole = null) {
 
     // Check role if specified
     if (requiredRole && session.role !== requiredRole) {
-        window.location.href = '/index.html'
+        const currentPath = window.location.pathname
+        if (currentPath.includes('/user/') || currentPath.includes('/admin/')) {
+            window.location.href = '../index.html'
+        } else {
+            window.location.href = 'index.html'
+        }
         return false
     }
 
@@ -72,14 +83,14 @@ function requireAuth(requiredRole = null) {
 function redirectToDashboard() {
     const session = getCurrentSession()
     if (!session) {
-        window.location.href = '/index.html'
+        window.location.href = 'index.html'
         return
     }
 
     if (session.role === 'admin') {
-        window.location.href = '/admin/dashboard.html'
+        window.location.href = 'admin/dashboard.html'
     } else {
-        window.location.href = '/user/dashboard.html'
+        window.location.href = 'user/dashboard.html'
     }
 }
 
