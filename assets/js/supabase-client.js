@@ -670,6 +670,230 @@ async function createUserByAdmin(email, name, role = 'user') {
     return data;
 }
 
+// =============================================
+// CALLS FUNCTIONS
+// =============================================
+
+/**
+ * Get all calls for a user
+ * @param {string} userId 
+ * @param {object} filters - Optional filters
+ */
+async function getCalls(userId, filters = {}) {
+    const client = initSupabase();
+
+    let query = client
+        .from('calls')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+    // Apply date filter if provided
+    if (filters.date) {
+        query = query.eq('created_at::date', filters.date);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Create a new call
+ * @param {string} userId 
+ * @param {object} call 
+ */
+async function createCall(userId, call) {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('calls')
+        .insert({
+            user_id: userId,
+            name: call.name,
+            phone: call.phone,
+            designation: call.designation,
+            hospital_name: call.hospitalName,
+            call_date: call.callDate || new Date().toISOString().split('T')[0]
+        })
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Update a call
+ * @param {string} callId 
+ * @param {object} updates 
+ */
+async function updateCall(callId, updates) {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('calls')
+        .update({
+            name: updates.name,
+            phone: updates.phone,
+            designation: updates.designation,
+            hospital_name: updates.hospitalName
+        })
+        .eq('id', callId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Delete a call
+ * @param {string} callId 
+ */
+async function deleteCall(callId) {
+    const client = initSupabase();
+
+    const { error } = await client
+        .from('calls')
+        .delete()
+        .eq('id', callId);
+
+    if (error) throw error;
+    return true;
+}
+
+/**
+ * Get all calls (admin only)
+ */
+async function getAllCallsAdmin() {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('calls')
+        .select(`
+            *,
+            users (name, email)
+        `)
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+}
+
+// =============================================
+// MEETINGS FUNCTIONS
+// =============================================
+
+/**
+ * Get all meetings for a user
+ * @param {string} userId 
+ * @param {object} filters - Optional filters
+ */
+async function getMeetings(userId, filters = {}) {
+    const client = initSupabase();
+
+    let query = client
+        .from('meetings')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+    // Apply date filter if provided
+    if (filters.date) {
+        query = query.eq('created_at::date', filters.date);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Create a new meeting
+ * @param {string} userId 
+ * @param {object} meeting 
+ */
+async function createMeeting(userId, meeting) {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('meetings')
+        .insert({
+            user_id: userId,
+            meeting_with: meeting.meetingWith,
+            client_name: meeting.clientName,
+            agenda: meeting.agenda,
+            outcome: meeting.outcome || '',
+            meeting_date: meeting.meetingDate || new Date().toISOString().split('T')[0]
+        })
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Update a meeting
+ * @param {string} meetingId 
+ * @param {object} updates 
+ */
+async function updateMeeting(meetingId, updates) {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('meetings')
+        .update({
+            meeting_with: updates.meetingWith,
+            client_name: updates.clientName,
+            agenda: updates.agenda,
+            outcome: updates.outcome
+        })
+        .eq('id', meetingId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Delete a meeting
+ * @param {string} meetingId 
+ */
+async function deleteMeeting(meetingId) {
+    const client = initSupabase();
+
+    const { error } = await client
+        .from('meetings')
+        .delete()
+        .eq('id', meetingId);
+
+    if (error) throw error;
+    return true;
+}
+
+/**
+ * Get all meetings (admin only)
+ */
+async function getAllMeetingsAdmin() {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('meetings')
+        .select(`
+            *,
+            users (name, email)
+        `)
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     initSupabase();

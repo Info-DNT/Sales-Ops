@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/crm-styles.css">
 </head>
 
 <body>
@@ -16,10 +17,22 @@
 
         <div class="main-content">
             <div class="page-header">
-                <h2>Leads Management</h2>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLeadModal">
-                    <i class="fas fa-plus"></i> Add Lead
-                </button>
+                <h2>Leads</h2>
+                <div class="d-flex gap-2">
+                    <input type="date" class="form-control" id="search-date" style="width: 200px;"
+                        placeholder="Search by date">
+                    <input type="tel" class="form-control" id="search-contact" style="width: 200px;"
+                        placeholder="Search by contact number">
+                    <button class="btn btn-secondary" onclick="searchLeads()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="clearSearch()">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLeadModal">
+                        <i class="fas fa-plus"></i> Add Lead
+                    </button>
+                </div>
             </div>
 
             <!-- Search/Filter -->
@@ -102,8 +115,33 @@
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
+                                <label for="lead-source" class="form-label">Lead Source</label>
+                                <select class="form-control" id="lead-source">
+                                    <option value="">Select Source</option>
+                                    <option value="WhatsApp">WhatsApp</option>
+                                    <option value="Hospital">Hospital</option>
+                                    <option value="Ads">Ads</option>
+                                    <option value="Reference">Reference</option>
+                                    <option value="SEO">SEO</option>
+                                    <option value="Social Media">Social Media</option>
+                                    <option value="Consulates">Consulates</option>
+                                    <option value="Embassy">Embassy</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
                                 <label for="lead-account" class="form-label">Account Name</label>
                                 <input type="text" class="form-control" id="lead-account">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-field" class="form-label">Field</label>
+                                <select class="form-control" id="lead-field">
+                                    <option value="">Select Field</option>
+                                    <option value="Medical Tourism">Medical Tourism</option>
+                                    <option value="Medical Evacuation">Medical Evacuation</option>
+                                </select>
                             </div>
                         </div>
 
@@ -138,6 +176,7 @@
     <script src="../assets/js/supabase-client.js"></script>
     <script src="../assets/js/auth.js"></script>
     <script src="../assets/js/common.js"></script>
+    <script src="../assets/js/zoho-integration.js"></script>
     <script>
         // Check authentication
         if (!initAuthCheck('user')) {
@@ -150,17 +189,71 @@
         // Get session
         const session = getCurrentSession()
         let leads = []
+        let allLeads = []
+        let editingLeadId = null
 
-        // Load leads from Supabase
-        async function loadLeads(filters = {}) {
+        // Load leads
+        async function loadLeads() {
             try {
-                leads = await getLeads(session.userId, filters)
+                allLeads = await getLeads(session.userId)
+                leads = allLeads
                 displayLeads()
             } catch (error) {
                 console.error('Error loading leads:', error)
-                document.getElementById('leads-list').innerHTML =
-                    '<p class="text-danger">Error loading leads. Please try again.</p>'
+                showToast('Failed to load leads', 'error')
             }
+        }
+
+        // Search by date and/or contact number
+        async function searchLeads() {
+            const searchDate = document.getElementById('search-date').value
+            const searchContact = document.getElementById('search-contact').value
+
+            if (!searchDate && !searchContact) {
+                showToast('Please enter a date or contact number to search', 'error')
+                return
+            }
+
+            let filtered = allLeads
+
+            // Filter by date if provided
+            if (searchDate) {
+                filtered = filtered.filter(lead => {
+                    // Check lead_date first
+                    if (lead.lead_date && lead.lead_date === searchDate) {
+                        return true
+                    }
+                    // Check follow_up_date
+                    if (lead.follow_up_date && lead.follow_up_date === searchDate) {
+                        return true
+                    }
+                    // Fall back to created_at
+                    const createdDate = lead.created_at.split('T')[0]
+                    return createdDate === searchDate
+                })
+            }
+
+            // Filter by contact if provided
+            if (searchContact) {
+                filtered = filtered.filter(lead => {
+                    return lead.contact.includes(searchContact)
+                })
+            }
+
+            leads = filtered
+            displayLeads()
+
+            if (leads.length === 0) {
+                showToast('No leads found matching your search criteria', 'info')
+            }
+        }
+
+        // Clear search
+        function clearSearch() {
+            document.getElementById('search-date').value = ''
+            document.getElementById('search-contact').value = ''
+            leads = allLeads
+            displayLeads()
         }
 
         // Display leads

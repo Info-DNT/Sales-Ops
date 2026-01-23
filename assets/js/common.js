@@ -53,7 +53,16 @@ function generateUserNav(currentPage) {
     { page: 'attendance', icon: 'fa-clock', label: 'Attendance' },
     { page: 'user-details', icon: 'fa-user', label: 'User Details' },
     { page: 'work-report', icon: 'fa-chart-bar', label: 'Work Report' },
-    { page: 'leads', icon: 'fa-bullseye', label: 'Leads' },
+    {
+      page: 'leads',
+      icon: 'fa-bullseye',
+      label: 'Leads',
+      hasDropdown: true,
+      dropdownItems: [
+        { page: 'calls', icon: 'fa-phone', label: 'Calls' },
+        { page: 'meetings', icon: 'fa-video', label: 'Meetings' }
+      ]
+    },
     { page: 'settings', icon: 'fa-cog', label: 'Settings' }
   ]
 
@@ -72,13 +81,33 @@ function generateUserNav(currentPage) {
         <p class="text-white-50 small mb-0 user-name"></p>
       </div>
       <ul class="nav-menu">
-        ${navItems.map(item => `
-          <li>
-            <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
-              <i class="fas ${item.icon}"></i> ${item.label}
-            </a>
-          </li>
-        `).join('')}
+        ${navItems.map(item => {
+    if (item.hasDropdown) {
+      const isActive = currentPage === item.page || item.dropdownItems.some(sub => sub.page === currentPage);
+      return `
+              <li class="nav-item-dropdown">
+                <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
+                  <i class="fas ${item.icon}"></i> ${item.label}
+                </a>
+                <div class="nav-dropdown">
+                  ${item.dropdownItems.map(subItem => `
+                    <a href="${subItem.page}.html" class="nav-dropdown-link ${currentPage === subItem.page ? 'active' : ''}">
+                      <i class="fas ${subItem.icon}"></i> ${subItem.label}
+                    </a>
+                  `).join('')}
+                </div>
+              </li>
+            `;
+    } else {
+      return `
+              <li>
+                <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
+                  <i class="fas ${item.icon}"></i> ${item.label}
+                </a>
+              </li>
+            `;
+    }
+  }).join('')}
         <li>
           <a href="#" onclick="logout(); return false;" class="nav-link">
             <i class="fas fa-sign-out-alt"></i> Logout
@@ -95,7 +124,16 @@ function generateAdminNav(currentPage) {
     { page: 'dashboard', icon: 'fa-tachometer-alt', label: 'Dashboard' },
     { page: 'users', icon: 'fa-users', label: 'Users' },
     { page: 'attendance', icon: 'fa-clock', label: 'Attendance' },
-    { page: 'leads', icon: 'fa-bullseye', label: 'Leads' },
+    {
+      page: 'leads',
+      icon: 'fa-bullseye',
+      label: 'Leads',
+      hasDropdown: true,
+      dropdownItems: [
+        { page: 'calls', icon: 'fa-phone', label: 'Calls' },
+        { page: 'meetings', icon: 'fa-video', label: 'Meetings' }
+      ]
+    },
     { page: 'quotations', icon: 'fa-file-invoice-dollar', label: 'Quotations' },
     { page: 'reports', icon: 'fa-chart-line', label: 'Reports' },
     { page: 'settings', icon: 'fa-cog', label: 'Settings' }
@@ -116,13 +154,33 @@ function generateAdminNav(currentPage) {
         <p class="text-white-50 small mb-0 user-name"></p>
       </div>
       <ul class="nav-menu">
-        ${navItems.map(item => `
-          <li>
-            <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
-              <i class="fas ${item.icon}"></i> ${item.label}
-            </a>
-          </li>
-        `).join('')}
+        ${navItems.map(item => {
+    if (item.hasDropdown) {
+      const isActive = currentPage === item.page || item.dropdownItems.some(sub => sub.page === currentPage);
+      return `
+              <li class="nav-item-dropdown">
+                <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
+                  <i class="fas ${item.icon}"></i> ${item.label}
+                </a>
+                <div class="nav-dropdown">
+                  ${item.dropdownItems.map(subItem => `
+                    <a href="${subItem.page}.html" class="nav-dropdown-link ${currentPage === subItem.page ? 'active' : ''}">
+                      <i class="fas ${subItem.icon}"></i> ${subItem.label}
+                    </a>
+                  `).join('')}
+                </div>
+              </li>
+            `;
+    } else {
+      return `
+              <li>
+                <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
+                  <i class="fas ${item.icon}"></i> ${item.label}
+                </a>
+              </li>
+            `;
+    }
+  }).join('')}
         <li>
           <a href="#" onclick="logout(); return false;" class="nav-link">
             <i class="fas fa-sign-out-alt"></i> Logout

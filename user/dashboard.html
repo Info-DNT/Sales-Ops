@@ -18,7 +18,7 @@
             <div class="page-header">
                 <h2>Home Dashboard</h2>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quotationModal">
-                    <i class="fas fa-file-invoice-dollar"></i> Create Quotation
+                    <i class="fas fa-file-invoice-dollar"></i> Request Quotation
                 </button>
             </div>
 
@@ -75,36 +75,19 @@
         </div>
     </div>
 
-    <!-- Create Quotation Modal -->
+    <!-- Request Quotation Modal -->
     <div class="modal fade" id="quotationModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Create Quotation</h5>
+                    <h5 class="modal-title">Request Quotation</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="quotation-form">
-                        <div class="mb-3">
-                            <label for="quotation-client" class="form-label">Client Name</label>
-                            <input type="text" class="form-control" id="quotation-client"
-                                placeholder="Enter client name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="quotation-amount" class="form-label">Quotation Amount</label>
-                            <input type="number" class="form-control" id="quotation-amount" placeholder="Enter amount"
-                                required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="quotation-description" class="form-label">Description</label>
-                            <textarea class="form-control" id="quotation-description" rows="3"
-                                placeholder="Enter quotation details"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100" id="save-quotation-btn">
-                            <i class="fas fa-save"></i> Save Quotation
-                            <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
-                        </button>
-                    </form>
+                    <!-- Embedded Zoho Form -->
+                    <iframe src="https://zfrmz.in/KYafI4HZrgOZRwy4zKaU"
+                        style="width: 100%; min-height: 600px; border: none;" frameborder="0" allowfullscreen>
+                    </iframe>
                 </div>
             </div>
         </div>
@@ -184,41 +167,6 @@
                 `)
                 .join('')
         }
-
-        // Handle quotation form submission
-        document.getElementById('quotation-form').addEventListener('submit', async function (e) {
-            e.preventDefault()
-
-            const saveBtn = document.getElementById('save-quotation-btn')
-            const spinner = saveBtn.querySelector('.spinner-border')
-
-            saveBtn.disabled = true
-            spinner.classList.remove('d-none')
-
-            try {
-                const quotation = {
-                    clientName: document.getElementById('quotation-client').value,
-                    amount: parseFloat(document.getElementById('quotation-amount').value),
-                    description: document.getElementById('quotation-description').value
-                }
-
-                const newQuotation = await createQuotation(session.userId, quotation)
-                quotations.unshift(newQuotation)
-                displayRecentQuotations()
-
-                // Reset form and close modal
-                this.reset()
-                bootstrap.Modal.getInstance(document.getElementById('quotationModal')).hide()
-
-                showToast('Quotation created successfully!', 'success')
-            } catch (error) {
-                console.error('Error creating quotation:', error)
-                showToast('Failed to create quotation', 'error')
-            } finally {
-                saveBtn.disabled = false
-                spinner.classList.add('d-none')
-            }
-        })
 
         // Initialize dashboard
         updateDashboard()

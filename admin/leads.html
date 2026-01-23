@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/crm-styles.css">
 </head>
 
 <body>
@@ -15,6 +16,20 @@
         <div class="main-content">
             <div class="page-header">
                 <h2>All Leads</h2>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success" onclick="handleSyncCRM()" id="sync-crm-btn">
+                        <i class="fas fa-sync"></i> Sync Zoho CRM
+                    </button>
+                    <input type="date" class="form-control" id="search-date" style="width: 200px;">
+                    <input type="tel" class="form-control" id="search-contact" style="width: 200px;"
+                        placeholder="Search by contact">
+                    <button class="btn btn-secondary" onclick="searchLeads()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="clearSearch()">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
             </div>
 
             <!-- Filter -->
@@ -58,26 +73,114 @@
     <script src="../assets/js/supabase-client.js"></script>
     <script src="../assets/js/auth.js"></script>
     <script src="../assets/js/common.js"></script>
+    <script src="../assets/js/zoho-integration.js"></script>
     <script>
         if (!initAuthCheck('admin')) window.location.href = '../index.html'
         insertNav('admin', 'leads')
 
+        let leads = []
         let allLeads = []
 
+        // Load all leads
         async function loadLeads() {
             const container = document.getElementById('leads-list')
             container.innerHTML = '<p class="text-muted">Loading...</p>'
 
             try {
                 allLeads = await getAllLeadsAdmin()
-                displayLeads(allLeads)
+                leads = allLeads
+                displayLeads()
             } catch (error) {
                 console.error('Error loading leads:', error)
+                showToast('Failed to load leads', 'error')
                 container.innerHTML = '<p class="text-danger">Error loading leads.</p>'
             }
         }
 
-        function displayLeads(leads) {
+        // Handle Sync CRM button click
+        async function handleSyncCRM() {
+            const btn = document.getElementById('sync-crm-btn')
+            const icon = btn.querySelector('i')
+
+            // Show syncing state
+            btn.classList.add('syncing')
+            btn.disabled = true
+            icon.classList.add('fa-spin')
+
+            try {
+                const result = await syncCRMLeads()
+
+                if (result.success) {
+                    showToast(`Synced ${result.totalLeads} CRM leads (${result.newLeads} new)`, 'success')
+                    // Reload leads to include CRM leads
+                    await loadLeads()
+                } else {
+                    showToast('Failed to sync CRM leads', 'error')
+                }
+            } catch (error) {
+                console.error('Error syncing CRM:', error)
+                showToast('Error: ' + error.message, 'error')
+            } finally {
+                // Remove syncing state
+                btn.classList.remove('syncing')
+                btn.disabled = false
+                icon.classList.remove('fa-spin')
+            }
+        }
+
+        // Search by date and/or contact number
+        async function searchLeads() {
+            const searchDate = document.getElementById('search-date').value
+            const searchContact = document.getElementById('search-contact').value
+
+            if (!searchDate && !searchContact) {
+                showToast('Please enter a date or contact number to search', 'error')
+                return
+            }
+
+            let filtered = allLeads
+
+            // Filter by date if provided
+            if (searchDate) {
+                filtered = filtered.filter(lead => {
+                    // Check lead_date first
+                    if (lead.lead_date && lead.lead_date === searchDate) {
+                        return true
+                    }
+                    // Check follow_up_date
+                    if (lead.follow_up_date && lead.follow_up_date === searchDate) {
+                        return true
+                    }
+                    // Fall back to created_at
+                    const createdDate = lead.created_at.split('T')[0]
+                    return createdDate === searchDate
+                })
+            }
+
+            // Filter by contact if provided
+            if (searchContact) {
+                filtered = filtered.filter(lead => {
+                    return lead.contact && lead.contact.includes(searchContact)
+                })
+            }
+
+            leads = filtered
+            displayLeads()
+
+            if (leads.length === 0) {
+                showToast('No leads found matching your search criteria', 'info')
+            }
+        }
+
+        // Clear search
+        function clearSearch() {
+            document.getElementById('search-date').value = ''
+            document.getElementById('search-contact').value = ''
+            leads = allLeads
+            displayLeads()
+        }
+
+        function displayLeads() {
             const container = document.getElementById('leads-list')
 
             if (!leads || leads.length === 0) {
@@ -86,13 +189,18 @@
             }
 
             container.innerHTML = leads.map(lead => `
-                <div class="lead-card mb-3">
+                <div class="lead-card mb-3 ${lead.source === 'crm' ? 'crm-lead' : ''}">
                     <div class="lead-header">
                         <div class="lead-title">
-                            <h6>${lead.name}</h6>
+                            <h6>
+                                ${lead.name}
+                                ${lead.source === 'crm' ? '<span class="crm-badge">CRM</span>' : ''}
+                            </h6>
                             <p class="text-muted small mb-0">
                                 <strong>User:</strong> ${lead.users?.name || lead.users?.email || 'Unknown'} | 
                                 <strong>Account:</strong> ${lead.account_name || 'N/A'}
+                                ${lead.field ? ` | <strong>Field:</strong> ${lead.field}` : ''}
+                                ${lead.lead_source ? ` | <strong>Source:</strong> ${lead.lead_source}` : ''}
                             </p>
                         </div>
                         <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>

@@ -8,6 +8,68 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .report-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .report-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+            border: 2px solid transparent;
+        }
+
+        .report-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .report-card-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .report-card-icon.calls {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .report-card-icon.meetings {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .report-card-icon.leads {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .report-card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .report-card-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 0;
+        }
+    </style>
 </head>
 
 <body>
@@ -17,54 +79,202 @@
         <div class="main-content">
             <div class="page-header">
                 <h2>Work Report</h2>
+                <p class="text-muted mb-0">Track your daily activities</p>
             </div>
 
-            <div class="content-card">
-                <!-- Date Selector -->
-                <div class="mb-4">
-                    <label for="report-date" class="form-label">Select Date</label>
-                    <input type="date" class="form-control" id="report-date" style="max-width: 200px;">
+            <div class="report-cards-grid">
+                <!-- Calls Card -->
+                <div class="report-card" data-bs-toggle="modal" data-bs-target="#callModal">
+                    <div class="report-card-icon calls">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h3 class="report-card-title">Calls</h3>
+                    <p class="report-card-description">Record and manage your call activities</p>
                 </div>
 
-                <form id="work-report-form">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="total-calls" class="form-label">Total Calls</label>
-                            <input type="number" class="form-control" id="total-calls-input" placeholder="0" min="0">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="total-meetings" class="form-label">Total Meetings</label>
-                            <input type="number" class="form-control" id="total-meetings-input" placeholder="0" min="0">
-                        </div>
+                <!-- Meetings Card -->
+                <div class="report-card" data-bs-toggle="modal" data-bs-target="#meetingModal">
+                    <div class="report-card-icon meetings">
+                        <i class="fas fa-video"></i>
                     </div>
+                    <h3 class="report-card-title">Meetings</h3>
+                    <p class="report-card-description">Track your meetings and outcomes</p>
+                </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="total-leads" class="form-label">Total Leads</label>
-                            <input type="number" class="form-control" id="total-leads-input" placeholder="0" min="0">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="new-leads-generated" class="form-label">New Leads Generated</label>
-                            <input type="number" class="form-control" id="new-leads-generated" placeholder="0" min="0">
-                        </div>
+                <!-- Leads Card -->
+                <div class="report-card" data-bs-toggle="modal" data-bs-target="#leadModal">
+                    <div class="report-card-icon leads">
+                        <i class="fas fa-bullseye"></i>
                     </div>
+                    <h3 class="report-card-title">Leads</h3>
+                    <p class="report-card-description">Manage your leads and opportunities</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <div class="mb-3">
-                        <label for="leads-in-pipeline" class="form-label">Leads In Pipeline</label>
-                        <input type="number" class="form-control" id="leads-in-pipeline" placeholder="0" min="0">
-                    </div>
+    <!-- Call Modal -->
+    <div class="modal fade" id="callModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Call</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="call-form">
+                        <div class="mb-3">
+                            <label for="call-name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="call-name" placeholder="Enter name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="call-phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="call-phone" placeholder="Enter phone number"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="call-designation" class="form-label">Designation</label>
+                            <input type="text" class="form-control" id="call-designation"
+                                placeholder="Enter designation" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="call-hospital" class="form-label">Hospital Name</label>
+                            <input type="text" class="form-control" id="call-hospital" placeholder="Enter hospital name"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="call-date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="call-date" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="save-call-btn">
+                            <i class="fas fa-save"></i> Save Call
+                            <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <button type="submit" class="btn btn-primary" id="save-btn">
-                        <i class="fas fa-check"></i> Save Report
-                        <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
-                    </button>
-                </form>
+    <!-- Meeting Modal -->
+    <div class="modal fade" id="meetingModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Meeting</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="meeting-form">
+                        <div class="mb-3">
+                            <label for="meeting-with" class="form-label">Meeting with whom</label>
+                            <input type="text" class="form-control" id="meeting-with" placeholder="Enter person's name"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="meeting-client" class="form-label">Name of the client</label>
+                            <input type="text" class="form-control" id="meeting-client" placeholder="Enter client name"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="meeting-agenda" class="form-label">Agenda</label>
+                            <textarea class="form-control" id="meeting-agenda" rows="3"
+                                placeholder="Enter meeting agenda" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="meeting-outcome" class="form-label">Outcome</label>
+                            <textarea class="form-control" id="meeting-outcome" rows="3"
+                                placeholder="Enter meeting outcome"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="meeting-date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="meeting-date" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="save-meeting-btn">
+                            <i class="fas fa-save"></i> Save Meeting
+                            <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <hr class="my-4">
-
-                <h5>Report Summary</h5>
-                <div id="work-report-display" class="report-card">
-                    <p class="text-muted">Loading...</p>
+    <!-- Lead Modal -->
+    <div class="modal fade" id="leadModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Lead</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="lead-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-name" class="form-label">Lead Name</label>
+                                <input type="text" class="form-control" id="lead-name" placeholder="Enter lead name"
+                                    required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-contact" class="form-label">Contact Number</label>
+                                <input type="tel" class="form-control" id="lead-contact"
+                                    placeholder="Enter contact number" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="lead-email" placeholder="Enter email"
+                                    required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-owner" class="form-label">Lead Owner</label>
+                                <input type="text" class="form-control" id="lead-owner" placeholder="Enter lead owner"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-status" class="form-label">Status</label>
+                                <select class="form-select" id="lead-status" required>
+                                    <option value="">Select status</option>
+                                    <option value="New">New</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Qualified">Qualified</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-account" class="form-label">Account Name</label>
+                                <input type="text" class="form-control" id="lead-account"
+                                    placeholder="Enter account name" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-followup" class="form-label">Follow-up Date</label>
+                                <input type="date" class="form-control" id="lead-followup" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-expected" class="form-label">Expected Close</label>
+                                <input type="date" class="form-control" id="lead-expected">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lead-action" class="form-label">Next Action</label>
+                            <textarea class="form-control" id="lead-action" rows="2" placeholder="Enter next action"
+                                required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lead-date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="lead-date" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="save-lead-btn">
+                            <i class="fas fa-save"></i> Save Lead
+                            <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -75,6 +285,7 @@
     <script src="../assets/js/supabase-client.js"></script>
     <script src="../assets/js/auth.js"></script>
     <script src="../assets/js/common.js"></script>
+    <script src="../assets/js/auto-date.js"></script>
     <script>
         // Check authentication
         if (!initAuthCheck('user')) {
@@ -86,121 +297,112 @@
 
         // Get session
         const session = getCurrentSession()
-        let workReport = null
 
-        // Set default date to today
-        const dateInput = document.getElementById('report-date')
-        dateInput.value = new Date().toISOString().split('T')[0]
-
-        // Load work report from Supabase
-        async function loadWorkReport() {
-            const selectedDate = dateInput.value
-
-            try {
-                workReport = await getWorkReport(session.userId, selectedDate)
-
-                if (workReport) {
-                    document.getElementById('total-calls-input').value = workReport.total_calls || 0
-                    document.getElementById('total-meetings-input').value = workReport.total_meetings || 0
-                    document.getElementById('total-leads-input').value = workReport.total_leads || 0
-                    document.getElementById('new-leads-generated').value = workReport.new_leads_generated || 0
-                    document.getElementById('leads-in-pipeline').value = workReport.leads_in_pipeline || 0
-                } else {
-                    // Clear form for new date
-                    document.getElementById('total-calls-input').value = 0
-                    document.getElementById('total-meetings-input').value = 0
-                    document.getElementById('total-leads-input').value = 0
-                    document.getElementById('new-leads-generated').value = 0
-                    document.getElementById('leads-in-pipeline').value = 0
-                }
-
-                displayWorkReport()
-            } catch (error) {
-                console.error('Error loading work report:', error)
-                displayWorkReport()
-            }
-        }
-
-        // Display work report
-        function displayWorkReport() {
-            const displayContainer = document.getElementById('work-report-display')
-
-            if (!workReport) {
-                displayContainer.innerHTML = '<p class="text-muted">No data entered for this date.</p>'
-                return
-            }
-
-            displayContainer.innerHTML = `
-                <div class="report-item">
-                    <span class="report-item-label">Total Calls</span>
-                    <span class="report-item-value">${workReport.total_calls || 0}</span>
-                </div>
-                <div class="report-item">
-                    <span class="report-item-label">Total Meetings</span>
-                    <span class="report-item-value">${workReport.total_meetings || 0}</span>
-                </div>
-                <div class="report-item">
-                    <span class="report-item-label">Total Leads</span>
-                    <span class="report-item-value">${workReport.total_leads || 0}</span>
-                </div>
-                <div class="report-item">
-                    <span class="report-item-label">New Leads Generated</span>
-                    <span class="report-item-value">${workReport.new_leads_generated || 0}</span>
-                </div>
-                <div class="report-item">
-                    <span class="report-item-label">Leads In Pipeline</span>
-                    <span class="report-item-value">${workReport.leads_in_pipeline || 0}</span>
-                </div>
-            `
-        }
-
-        // Handle date change
-        dateInput.addEventListener('change', loadWorkReport)
-
-        // Handle form submission
-        document.getElementById('work-report-form').addEventListener('submit', async function (e) {
+        // Handle Call Form Submission
+        document.getElementById('call-form').addEventListener('submit', async function (e) {
             e.preventDefault()
 
-            const saveBtn = document.getElementById('save-btn')
+            const saveBtn = document.getElementById('save-call-btn')
             const spinner = saveBtn.querySelector('.spinner-border')
 
             saveBtn.disabled = true
             spinner.classList.remove('d-none')
 
             try {
-                const report = {
-                    date: dateInput.value,
-                    totalCalls: parseInt(document.getElementById('total-calls-input').value) || 0,
-                    totalMeetings: parseInt(document.getElementById('total-meetings-input').value) || 0,
-                    totalLeads: parseInt(document.getElementById('total-leads-input').value) || 0,
-                    newLeadsGenerated: parseInt(document.getElementById('new-leads-generated').value) || 0,
-                    leadsInPipeline: parseInt(document.getElementById('leads-in-pipeline').value) || 0
+                const callData = {
+                    name: document.getElementById('call-name').value,
+                    phone: document.getElementById('call-phone').value,
+                    designation: document.getElementById('call-designation').value,
+                    hospitalName: document.getElementById('call-hospital').value,
+                    callDate: document.getElementById('call-date').value
                 }
 
-                workReport = await saveWorkReport(session.userId, report)
+                await createCall(session.userId, callData)
+                showToast('Call added successfully!', 'success')
 
-                // Update display with new format
-                workReport = {
-                    total_calls: report.totalCalls,
-                    total_meetings: report.totalMeetings,
-                    total_leads: report.totalLeads,
-                    new_leads_generated: report.newLeadsGenerated,
-                    leads_in_pipeline: report.leadsInPipeline
-                }
-
-                displayWorkReport()
-                showToast('Work report saved successfully!', 'success')
+                // Reset form and close modal
+                this.reset()
+                bootstrap.Modal.getInstance(document.getElementById('callModal')).hide()
             } catch (error) {
-                console.error('Error saving work report:', error)
-                showToast('Failed to save work report', 'error')
+                console.error('Error saving call:', error)
+                showToast('Failed to save call', 'error')
             } finally {
                 saveBtn.disabled = false
                 spinner.classList.add('d-none')
             }
         })
 
-        // Initialize
-        loadWorkReport()
+        // Handle Meeting Form Submission
+        document.getElementById('meeting-form').addEventListener('submit', async function (e) {
+            e.preventDefault()
+
+            const saveBtn = document.getElementById('save-meeting-btn')
+            const spinner = saveBtn.querySelector('.spinner-border')
+
+            saveBtn.disabled = true
+            spinner.classList.remove('d-none')
+
+            try {
+                const meetingData = {
+                    meetingWith: document.getElementById('meeting-with').value,
+                    clientName: document.getElementById('meeting-client').value,
+                    agenda: document.getElementById('meeting-agenda').value,
+                    outcome: document.getElementById('meeting-outcome').value,
+                    meetingDate: document.getElementById('meeting-date').value
+                }
+
+                await createMeeting(session.userId, meetingData)
+                showToast('Meeting added successfully!', 'success')
+
+                // Reset form and close modal
+                this.reset()
+                bootstrap.Modal.getInstance(document.getElementById('meetingModal')).hide()
+            } catch (error) {
+                console.error('Error saving meeting:', error)
+                showToast('Failed to save meeting', 'error')
+            } finally {
+                saveBtn.disabled = false
+                spinner.classList.add('d-none')
+            }
+        })
+
+        // Handle Lead Form Submission
+        document.getElementById('lead-form').addEventListener('submit', async function (e) {
+            e.preventDefault()
+
+            const saveBtn = document.getElementById('save-lead-btn')
+            const spinner = saveBtn.querySelector('.spinner-border')
+
+            saveBtn.disabled = true
+            spinner.classList.remove('d-none')
+
+            try {
+                const leadData = {
+                    name: document.getElementById('lead-name').value,
+                    contact: document.getElementById('lead-contact').value,
+                    email: document.getElementById('lead-email').value,
+                    owner: document.getElementById('lead-owner').value,
+                    status: document.getElementById('lead-status').value,
+                    accountName: document.getElementById('lead-account').value,
+                    followUpDate: document.getElementById('lead-followup').value,
+                    nextAction: document.getElementById('lead-action').value,
+                    expectedClose: document.getElementById('lead-expected').value
+                }
+
+                await createLead(session.userId, leadData)
+                showToast('Lead added successfully!', 'success')
+
+                // Reset form and close modal
+                this.reset()
+                bootstrap.Modal.getInstance(document.getElementById('leadModal')).hide()
+            } catch (error) {
+                console.error('Error saving lead:', error)
+                showToast('Failed to save lead', 'error')
+            } finally {
+                saveBtn.disabled = false
+                spinner.classList.add('d-none')
+            }
+        })
     </script>
 </body>
 

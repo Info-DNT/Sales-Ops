@@ -24,6 +24,10 @@
                         <label class="form-label">Filter by Date</label>
                         <input type="date" class="form-control" id="filter-date">
                     </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Filter by Email</label>
+                        <input type="email" class="form-control" id="filter-email" placeholder="Enter user email">
+                    </div>
                     <div class="col-md-4 d-flex align-items-end">
                         <button class="btn btn-secondary me-2" onclick="applyFilter()">
                             <i class="fas fa-search"></i> Filter
@@ -104,16 +108,34 @@
 
         function applyFilter() {
             const filterDate = document.getElementById('filter-date').value
+            const filterEmail = document.getElementById('filter-email').value.toLowerCase()
+
+            let filtered = allAttendance
+
+            // Filter by date if provided
             if (filterDate) {
-                const filtered = allAttendance.filter(a => a.date === filterDate)
-                displayAttendance(filtered)
-            } else {
-                displayAttendance(allAttendance)
+                filtered = filtered.filter(a => a.date === filterDate)
+            }
+
+            // Filter by email if provided
+            if (filterEmail) {
+                filtered = filtered.filter(a => {
+                    const userEmail = (a.users?.email || '').toLowerCase()
+                    return userEmail.includes(filterEmail)
+                })
+            }
+
+            displayAttendance(filtered)
+
+            // Show message if no results
+            if (filtered.length === 0 && (filterDate || filterEmail)) {
+                showToast('No attendance records found matching your filters', 'info')
             }
         }
 
         function clearFilter() {
             document.getElementById('filter-date').value = ''
+            document.getElementById('filter-email').value = ''
             displayAttendance(allAttendance)
         }
 

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meetings - Sales Ops</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Sidebar will be inserted here -->
+
+        <div class="main-content">
+            <div class="page-header">
+                <h2>Meetings</h2>
+                <div class="d-flex gap-2">
+                    <input type="date" class="form-control" id="search-date" style="width: 200px;"
+                        placeholder="Search by date">
+                    <button class="btn btn-secondary" onclick="searchByDate()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="clearSearch()">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMeetingModal">
+                        <i class="fas fa-plus"></i> Add Meeting
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div id="meetings-list" class="leads-container">
+                    <p class="text-muted">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Meeting Modal -->
+    <div class="modal fade" id="addMeetingModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="meetingModalTitle">Add Meeting</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="meeting-form">
+                        <input type="hidden" id="meeting-id">
+
+                        <div class="mb-3">
+                            <label for="meeting-with" class="form-label">Meeting with whom</label>
+                            <input type="text" class="form-control" id="meeting-with" placeholder="Enter person's name"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="meeting-client" class="form-label">Name of the client</label>
+                            <input type="text" class="form-control" id="meeting-client" placeholder="Enter client name"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="meeting-agenda" class="form-label">Agenda</label>
+                            <textarea class="form-control" id="meeting-agenda" rows="3"
+                                placeholder="Enter meeting agenda" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="meeting-outcome" class="form-label">Outcome</label>
+                            <textarea class="form-control" id="meeting-outcome" rows="3"
+                                placeholder="Enter meeting outcome"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" id="save-meeting-btn">
+                            <i class="fas fa-save"></i> Save Meeting
+                            <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        // Check authentication
+        if (!initAuthCheck('user')) {
+            window.location.href = '../index.html'
+        }
+
+        // Insert navigation
+        insertNav('user', 'meetings')
+
+        // Get session
+        const session = getCurrentSession()
+        let meetings = []
+        let allMeetings = []
+        let editingMeetingId = null
+
+        // Load meetings
+        async function loadMeetings() {
+            try {
+                allMeetings = await getMeetings(session.userId)
+                meetings = allMeetings
+                displayMeetings()
+            } catch (error) {
+                console.error('Error loading meetings:', error)
+                showToast('Failed to load meetings', 'error')
+            }
+        }
+
+        // Search by date
+        async function searchByDate() {
+            const searchDate = document.getElementById('search-date').value
+            if (!searchDate) {
+                showToast('Please select a date', 'error')
+                return
+            }
+
+            const filtered = allMeetings.filter(meeting => {
+                const meetingDate = meeting.meeting_date || meeting.created_at.split('T')[0]
+                return meetingDate === searchDate
+            })
+
+            meetings = filtered
+            displayMeetings()
+        }
+
+        // Clear search
+        function clearSearch() {
+            document.getElementById('search-date').value = ''
+            meetings = allMeetings
+            displayMeetings()
+        }
+
+        // Display meetings
+        function displayMeetings() {
+            const meetingsList = document.getElementById('meetings-list')
+
+            if (!meetings || meetings.length === 0) {
+                meetingsList.innerHTML = '<p class="text-muted">No meetings yet. Add one to get started.</p>'
+                return
+            }
+
+            meetingsList.innerHTML = meetings
+                .map(meeting => `
+                    <div class="lead-card">
+                        <div class="lead-header">
+                            <div class="lead-title">
+                                <h6>${meeting.meeting_with}</h6>
+                                <p class="text-muted small mb-0">${meeting.client_name}</p>
+                            </div>
+                            <span class="badge bg-success">
+                                <i class="fas fa-calendar"></i> ${meeting.meeting_date || new Date(meeting.created_at).toLocaleDateString()}
+                            </span>
+                        </div>
+
+                        <div class="mt-3 p-3 bg-light rounded">
+                            <p class="mb-2"><strong>Agenda:</strong></p>
+                            <p class="mb-0 text-muted">${meeting.agenda}</p>
+                        </div>
+
+                        ${meeting.outcome ? `
+                            <div class="mt-2 p-3 bg-light rounded">
+                                <p class="mb-2"><strong>Outcome:</strong></p>
+                                <p class="mb-0 text-muted">${meeting.outcome}</p>
+                            </div>
+                        ` : ''}
+
+                        <div class="lead-actions mt-3">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editMeeting('${meeting.id}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMeeting('${meeting.id}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                `)
+                .join('')
+        }
+
+        // Handle form submission
+        document.getElementById('meeting-form').addEventListener('submit', async function (e) {
+            e.preventDefault()
+
+            const saveBtn = document.getElementById('save-meeting-btn')
+            const spinner = saveBtn.querySelector('.spinner-border')
+
+            saveBtn.disabled = true
+            spinner.classList.remove('d-none')
+
+            try {
+                const meetingData = {
+                    meetingWith: document.getElementById('meeting-with').value,
+                    clientName: document.getElementById('meeting-client').value,
+                    agenda: document.getElementById('meeting-agenda').value,
+                    outcome: document.getElementById('meeting-outcome').value
+                }
+
+                if (editingMeetingId) {
+                    // Update existing meeting
+                    await updateMeeting(editingMeetingId, meetingData)
+                    showToast('Meeting updated successfully!', 'success')
+                } else {
+                    // Create new meeting
+                    await createMeeting(session.userId, meetingData)
+                    showToast('Meeting added successfully!', 'success')
+                }
+
+                // Reset form and close modal
+                this.reset()
+                editingMeetingId = null
+                document.getElementById('meetingModalTitle').textContent = 'Add Meeting'
+                bootstrap.Modal.getInstance(document.getElementById('addMeetingModal')).hide()
+
+                // Reload meetings
+                await loadMeetings()
+            } catch (error) {
+                console.error('Error saving meeting:', error)
+                showToast('Failed to save meeting', 'error')
+            } finally {
+                saveBtn.disabled = false
+                spinner.classList.add('d-none')
+            }
+        })
+
+        // Edit meeting
+        window.editMeeting = async function (meetingId) {
+            const meeting = meetings.find(m => m.id === meetingId)
+            if (!meeting) return
+
+            editingMeetingId = meetingId
+            document.getElementById('meetingModalTitle').textContent = 'Edit Meeting'
+            document.getElementById('meeting-with').value = meeting.meeting_with
+            document.getElementById('meeting-client').value = meeting.client_name
+            document.getElementById('meeting-agenda').value = meeting.agenda
+            document.getElementById('meeting-outcome').value = meeting.outcome || ''
+
+            new bootstrap.Modal(document.getElementById('addMeetingModal')).show()
+        }
+
+        // Delete meeting
+        window.deleteMeeting = async function (meetingId) {
+            if (!confirm('Are you sure you want to delete this meeting?')) return
+
+            try {
+                await deleteMeeting(meetingId)
+                showToast('Meeting deleted successfully!', 'success')
+                await loadMeetings()
+            } catch (error) {
+                console.error('Error deleting meeting:', error)
+                showToast('Failed to delete meeting', 'error')
+            }
+        }
+
+        // Reset form when modal is closed
+        document.getElementById('addMeetingModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('meeting-form').reset()
+            editingMeetingId = null
+            document.getElementById('meetingModalTitle').textContent = 'Add Meeting'
+        })
+
+        // Initialize
+        loadMeetings()
+    </script>
+</body>
+
+</html>

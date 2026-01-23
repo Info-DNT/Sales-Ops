@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calls - Sales Ops</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Sidebar will be inserted here -->
+
+        <div class="main-content">
+            <div class="page-header">
+                <h2>Calls</h2>
+                <div class="d-flex gap-2">
+                    <input type="date" class="form-control" id="search-date" style="width: 200px;"
+                        placeholder="Search by date">
+                    <input type="tel" class="form-control" id="search-phone" style="width: 200px;"
+                        placeholder="Search by phone number">
+                    <button class="btn btn-secondary" onclick="searchCalls()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="clearSearch()">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCallModal">
+                        <i class="fas fa-plus"></i> Add Call
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div id="calls-list" class="leads-container">
+                    <p class="text-muted">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Call Modal -->
+    <div class="modal fade" id="addCallModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="callModalTitle">Add Call</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="call-form">
+                        <input type="hidden" id="call-id">
+
+                        <div class="mb-3">
+                            <label for="call-name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="call-name" placeholder="Enter name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="call-phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="call-phone" placeholder="Enter phone number"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="call-designation" class="form-label">Designation</label>
+                            <input type="text" class="form-control" id="call-designation"
+                                placeholder="Enter designation" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="call-hospital" class="form-label">Hospital Name</label>
+                            <input type="text" class="form-control" id="call-hospital" placeholder="Enter hospital name"
+                                required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" id="save-call-btn">
+                            <i class="fas fa-save"></i> Save Call
+                            <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        // Check authentication
+        if (!initAuthCheck('user')) {
+            window.location.href = '../index.html'
+        }
+
+        // Insert navigation
+        insertNav('user', 'calls')
+
+        // Get session
+        const session = getCurrentSession()
+        let calls = []
+        let allCalls = []
+        let editingCallId = null
+
+        // Load calls
+        async function loadCalls() {
+            try {
+                allCalls = await getCalls(session.userId)
+                calls = allCalls
+                displayCalls()
+            } catch (error) {
+                console.error('Error loading calls:', error)
+                showToast('Failed to load calls', 'error')
+            }
+        }
+
+        // Search by date and/or phone
+        async function searchCalls() {
+            const searchDate = document.getElementById('search-date').value
+            const searchPhone = document.getElementById('search-phone').value
+
+            if (!searchDate && !searchPhone) {
+                showToast('Please enter a date or phone number to search', 'error')
+                return
+            }
+
+            let filtered = allCalls
+
+            // Filter by date if provided
+            if (searchDate) {
+                filtered = filtered.filter(call => {
+                    const callDate = call.call_date || call.created_at.split('T')[0]
+                    return callDate === searchDate
+                })
+            }
+
+            // Filter by phone if provided
+            if (searchPhone) {
+                filtered = filtered.filter(call => {
+                    return call.phone.includes(searchPhone)
+                })
+            }
+
+            calls = filtered
+            displayCalls()
+
+            if (calls.length === 0) {
+                showToast('No calls found matching your search criteria', 'info')
+            }
+        }
+
+        // Clear search
+        function clearSearch() {
+            document.getElementById('search-date').value = ''
+            document.getElementById('search-phone').value = ''
+            calls = allCalls
+            displayCalls()
+        }
+
+        // Display calls
+        function displayCalls() {
+            const callsList = document.getElementById('calls-list')
+
+            if (!calls || calls.length === 0) {
+                callsList.innerHTML = '<p class="text-muted">No calls yet. Add one to get started.</p>'
+                return
+            }
+
+            callsList.innerHTML = calls
+                .map(call => `
+                    <div class="lead-card">
+                        <div class="lead-header">
+                            <div class="lead-title">
+                                <h6>${call.name}</h6>
+                                <p class="text-muted small mb-0">${call.hospital_name}</p>
+                            </div>
+                            <span class="badge bg-primary">${call.designation}</span>
+                        </div>
+
+                        <div class="lead-details mt-3">
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Phone</span>
+                                <span class="lead-detail-value">${call.phone}</span>
+                            </div>
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Date</span>
+                                <span class="lead-detail-value">${call.call_date || new Date(call.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Created</span>
+                                <span class="lead-detail-value">${new Date(call.created_at).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+
+                        <div class="lead-actions mt-3">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editCall('${call.id}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteCall('${call.id}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                `)
+                .join('')
+        }
+
+        // Handle form submission
+        document.getElementById('call-form').addEventListener('submit', async function (e) {
+            e.preventDefault()
+
+            const saveBtn = document.getElementById('save-call-btn')
+            const spinner = saveBtn.querySelector('.spinner-border')
+
+            saveBtn.disabled = true
+            spinner.classList.remove('d-none')
+
+            try {
+                const callData = {
+                    name: document.getElementById('call-name').value,
+                    phone: document.getElementById('call-phone').value,
+                    designation: document.getElementById('call-designation').value,
+                    hospitalName: document.getElementById('call-hospital').value
+                }
+
+                if (editingCallId) {
+                    // Update existing call
+                    await updateCall(editingCallId, callData)
+                    showToast('Call updated successfully!', 'success')
+                } else {
+                    // Create new call
+                    await createCall(session.userId, callData)
+                    showToast('Call added successfully!', 'success')
+                }
+
+                // Reset form and close modal
+                this.reset()
+                editingCallId = null
+                document.getElementById('callModalTitle').textContent = 'Add Call'
+                bootstrap.Modal.getInstance(document.getElementById('addCallModal')).hide()
+
+                // Reload calls
+                await loadCalls()
+            } catch (error) {
+                console.error('Error saving call:', error)
+                showToast('Failed to save call', 'error')
+            } finally {
+                saveBtn.disabled = false
+                spinner.classList.add('d-none')
+            }
+        })
+
+        // Edit call
+        window.editCall = async function (callId) {
+            const call = calls.find(c => c.id === callId)
+            if (!call) return
+
+            editingCallId = callId
+            document.getElementById('callModalTitle').textContent = 'Edit Call'
+            document.getElementById('call-name').value = call.name
+            document.getElementById('call-phone').value = call.phone
+            document.getElementById('call-designation').value = call.designation
+            document.getElementById('call-hospital').value = call.hospital_name
+
+            new bootstrap.Modal(document.getElementById('addCallModal')).show()
+        }
+
+        // Delete call
+        window.deleteCall = async function (callId) {
+            if (!confirm('Are you sure you want to delete this call?')) return
+
+            try {
+                await deleteCall(callId)
+                showToast('Call deleted successfully!', 'success')
+                await loadCalls()
+            } catch (error) {
+                console.error('Error deleting call:', error)
+                showToast('Failed to delete call', 'error')
+            }
+        }
+
+        // Reset form when modal is closed
+        document.getElementById('addCallModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('call-form').reset()
+            editingCallId = null
+            document.getElementById('callModalTitle').textContent = 'Add Call'
+        })
+
+        // Initialize
+        loadCalls()
+    </script>
+</body>
+
+</html>
