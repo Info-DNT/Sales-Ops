@@ -606,35 +606,23 @@ async function getAdminDashboardStats() {
     const client = initSupabase();
     const today = new Date().toISOString().split('T')[0];
 
-    // Get counts
-    const [usersRes, leadsRes, quotationsRes, attendanceRes] = await Promise.all([
+    // Get counts from actual tables
+    const [usersRes, leadsRes, quotationsRes, attendanceRes, callsRes, meetingsRes] = await Promise.all([
         client.from('users').select('id', { count: 'exact' }),
         client.from('leads').select('id', { count: 'exact' }),
         client.from('quotations').select('id', { count: 'exact' }),
-        client.from('attendance').select('id', { count: 'exact' }).eq('date', today)
+        client.from('attendance').select('id', { count: 'exact' }).eq('date', today),
+        client.from('calls').select('id', { count: 'exact' }),
+        client.from('meetings').select('id', { count: 'exact' })
     ]);
-
-    // Get work report totals
-    const { data: workReports } = await client
-        .from('work_reports')
-        .select('total_calls, total_meetings');
-
-    let totalCalls = 0;
-    let totalMeetings = 0;
-    if (workReports) {
-        workReports.forEach(report => {
-            totalCalls += report.total_calls || 0;
-            totalMeetings += report.total_meetings || 0;
-        });
-    }
 
     return {
         totalUsers: usersRes.count || 0,
         totalLeads: leadsRes.count || 0,
         totalQuotations: quotationsRes.count || 0,
         activeToday: attendanceRes.count || 0,
-        totalCalls: totalCalls,
-        totalMeetings: totalMeetings
+        totalCalls: callsRes.count || 0,
+        totalMeetings: meetingsRes.count || 0
     };
 }
 
