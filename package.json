@@ -6,6 +6,7 @@
   "scripts": {
     "start": "npx -y http-server -p 8080 -c-1 --cors -o",
     "dev": "npx -y http-server -p 8080 -c-1 --cors",
+    "dev:local": "node dev-server.js",
     "build": "echo 'No build required - static HTML application'"
   },
   "keywords": [

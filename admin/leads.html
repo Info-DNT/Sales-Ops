@@ -115,7 +115,7 @@
                     // Reload leads to include CRM leads
                     await loadLeads()
                 } else {
-                    showToast('Failed to sync CRM leads', 'error')
+                    showToast(result.error || 'Failed to sync CRM leads', 'error')
                 }
             } catch (error) {
                 console.error('Error syncing CRM:', error)

@@ -3,12 +3,12 @@
  * Handles bi-directional sync between app and Zoho CRM
  */
 
-// Zoho Flow Webhook URLs
-// These will be configured after creating flows in Zoho Flow
-const ZOHO_WEBHOOKS = {
-    fetchLeads: 'https://flow.zoho.in/60058359930/flow/webhook/incoming?zapikey=1001.f48987ca0423bfb479496cfdba9451d1.7ff7e7f752debd8ebba83209c11544d9&isdebug=false', // ✅ Flow 1: Fetch Leads
-    updateLead: 'https://flow.zoho.in/60058359930/flow/webhook/incoming?zapikey=1001.488751e647a5a09c7f1bf8f62ab55a3e.2ace7dac95fab5246e87808e8940ecef&isdebug=false', // ✅ Flow 2: Update Lead
-    assignLead: 'https://flow.zoho.in/60058359930/flow/webhook/incoming?zapikey=1001.dc18940a48cc645f6cb40ec749f495cc.348be6a2e7e6615425e50f05c0cb660e&isdebug=false'  // ✅ Flow 3: Assign Lead
+// Make.com Webhook URLs
+// Replace these with your scenario URLs from Make.com
+const MAKE_WEBHOOKS = {
+    fetchLeads: 'https://hook.eu1.make.com/7ljqht2ikevvjymtsxvbcuef8gb5bly3', // ✅ Scenario 1: Fetch Leads
+    updateLead: '', // ⚠️ TODO: Add Scenario 2 URL
+    assignLead: ''  // ⚠️ TODO: Add Scenario 3 URL
 }
 
 /**
@@ -17,55 +17,94 @@ const ZOHO_WEBHOOKS = {
  */
 async function syncCRMLeads() {
     try {
-        if (!ZOHO_WEBHOOKS.fetchLeads) {
-            showToast('Zoho Flow webhook not configured', 'error')
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'D', location: 'assets/js/zoho-integration.js:syncCRMLeads:entry', message: 'syncCRMLeads entry', data: { hasFetchWebhook: !!MAKE_WEBHOOKS.fetchLeads, proxyPath: '/.netlify/functions/zoho-proxy' }, timestamp: Date.now() }) }).catch(() => { });
+        // #endregion agent log
+        if (!MAKE_WEBHOOKS.fetchLeads) {
+            showToast('Make.com webhook not configured', 'error')
             return
         }
 
-        showToast('Fetching leads from Zoho CRM...', 'info')
+        showToast('Fetching leads from CRM...', 'info')
 
         // 1. Fetch ALL leads from Zoho via Netlify proxy function
         const response = await fetch('/.netlify/functions/zoho-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                webhookUrl: ZOHO_WEBHOOKS.fetchLeads
+                webhookUrl: MAKE_WEBHOOKS.fetchLeads
             })
         })
 
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'A', location: 'assets/js/zoho-integration.js:syncCRMLeads:proxyResponse', message: 'zoho-proxy response received', data: { ok: response.ok, status: response.status, statusText: response.statusText }, timestamp: Date.now() }) }).catch(() => { });
+        // #endregion agent log
+
         if (!response.ok) {
-            throw new Error(`Failed to fetch: ${response.statusText}`)
+            let errDetail = ''
+            try {
+                const ct = response.headers.get('content-type') || ''
+                if (ct.includes('application/json')) {
+                    const j = await response.json()
+                    errDetail = j?.error ? ` - ${j.error}` : ''
+                } else {
+                    const t = await response.text()
+                    errDetail = t ? ` - ${t.slice(0, 140)}` : ''
+                }
+            } catch (e) {
+                errDetail = ''
+            }
+            throw new Error(`Failed to fetch: ${response.statusText}${errDetail}`)
         }
 
         const data = await response.json()
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'C', location: 'assets/js/zoho-integration.js:syncCRMLeads:proxyJson', message: 'zoho-proxy JSON parsed', data: { success: data?.success, leadsIsArray: Array.isArray(data?.leads), leadsLen: Array.isArray(data?.leads) ? data.leads.length : null, keys: data && typeof data === 'object' ? Object.keys(data).slice(0, 15) : null }, timestamp: Date.now() }) }).catch(() => { });
+        // #endregion agent log
+        console.log('Zoho Proxy Response:', data)
 
-        if (!data.success || !data.leads) {
-            throw new Error('Invalid response from Zoho Flow')
+        // 2. Extract leads (handle different response formats)
+        let rawLeads = []
+        if (Array.isArray(data)) {
+            rawLeads = data
+        } else if (data.leads && Array.isArray(data.leads)) {
+            rawLeads = data.leads
+        } else if (data.data && Array.isArray(data.data)) {
+            rawLeads = data.data
+        } else if (data.records && Array.isArray(data.records)) {
+            rawLeads = data.records
+        } else {
+            console.error('Unexpected Zoho response format:', data)
+            throw new Error('Could not find leads array in Zoho response')
         }
 
-        console.log(`Fetched ${data.leads.length} leads from Zoho CRM`)
+        console.log(`Processing ${rawLeads.length} leads from Zoho CRM`)
 
-        // 2. Get existing lead IDs from registry (duplicate prevention)
+        // 3. Get existing lead IDs from registry (duplicate prevention)
         const existingIDs = await getExistingCRMLeadIDs()
 
-        // 3. Process and transform leads
+        // 4. Process and transform leads
         const crmLeads = []
         const newLeadIDs = []
 
-        for (const zohoLead of data.leads) {
-            const isNew = !existingIDs.includes(zohoLead.id)
+        for (const zohoLead of rawLeads) {
+            // Zoho IDs can be strings or numbers
+            const leadId = zohoLead.id || zohoLead.ID || zohoLead.zoho_id
+            if (!leadId) continue
 
-            // Transform Zoho lead format to app format
+            const isNew = !existingIDs.includes(String(leadId))
+
+            // Transform Zoho lead format to app format (handle various Zoho field names)
             const lead = {
-                zoho_lead_id: zohoLead.id,
-                name: zohoLead.Last_Name || '',
-                contact: zohoLead.Phone || '',
+                zoho_lead_id: String(leadId),
+                name: zohoLead.Last_Name || zohoLead.Full_Name || zohoLead.Name || 'Unknown',
+                contact: zohoLead.Phone || zohoLead.Mobile || '',
                 email: zohoLead.Email || '',
-                owner: zohoLead.Lead_Owner?.email || '',
-                status: zohoLead.Lead_Status || 'New',
-                account_name: zohoLead.Company || '',
+                owner: zohoLead.Lead_Owner?.email || zohoLead.Owner || '',
+                status: zohoLead.Lead_Status || zohoLead.Status || 'New',
+                account_name: zohoLead.Company || zohoLead.Account_Name || 'N/A',
                 field: zohoLead.Field || '',
-                lead_source: zohoLead.Lead_Source || '',
+                lead_source: zohoLead.Lead_Source || zohoLead.Source || '',
                 follow_up_date: zohoLead.Follow_Up_Date || '',
                 next_action: zohoLead.Next_Action || '',
                 expected_close: zohoLead.Expected_Close || '',
@@ -77,17 +116,23 @@ async function syncCRMLeads() {
             crmLeads.push(lead)
 
             if (isNew) {
-                newLeadIDs.push(zohoLead.id)
+                newLeadIDs.push(String(leadId))
             }
         }
 
-        // 4. Register new leads in Supabase (for duplicate tracking)
+        // 5. Register new leads in Supabase (for duplicate tracking)
         if (newLeadIDs.length > 0) {
             await registerNewCRMLeads(newLeadIDs)
             console.log(`Registered ${newLeadIDs.length} new CRM leads`)
         }
 
         // 5. Return result object
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'D', location: 'assets/js/zoho-integration.js:syncCRMLeads:beforeReturn', message: 'about to return sync result', data: { crmLeadsLen: crmLeads.length, newLeadIDsLen: newLeadIDs.length, totalCountType: typeof totalCount, newCountType: typeof newCount }, timestamp: Date.now() }) }).catch(() => { });
+        // #endregion agent log
+        const totalCount = crmLeads.length
+        const newCount = newLeadIDs.length
+
         return {
             success: true,
             totalLeads: totalCount,
@@ -96,10 +141,13 @@ async function syncCRMLeads() {
         }
 
     } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'D', location: 'assets/js/zoho-integration.js:syncCRMLeads:catch', message: 'syncCRMLeads caught error', data: { name: error?.name, message: error?.message, stackTop: (error?.stack || '').split('\n').slice(0, 3).join(' | ') }, timestamp: Date.now() }) }).catch(() => { });
+        // #endregion agent log
         console.error('Sync error:', error)
-        showToast(`Failed to sync: ${error.message}`, 'error')
         return {
             success: false,
+            error: error.message,
             totalLeads: 0,
             newLeads: 0,
             leads: []
@@ -158,7 +206,7 @@ async function registerNewCRMLeads(zohoLeadIDs) {
  */
 async function getAssignedCRMLeads(userId) {
     try {
-        if (!ZOHO_WEBHOOKS.fetchLeads) {
+        if (!MAKE_WEBHOOKS.fetchLeads) {
             return []
         }
 
@@ -176,8 +224,14 @@ async function getAssignedCRMLeads(userId) {
             return []
         }
 
-        // 2. Fetch fresh data from Zoho
-        const response = await fetch(ZOHO_WEBHOOKS.fetchLeads)
+        // 2. Fetch fresh data via proxy (avoid CORS)
+        const response = await fetch('/.netlify/functions/zoho-proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                webhookUrl: MAKE_WEBHOOKS.fetchLeads
+            })
+        })
         const data = await response.json()
 
         if (!data.success || !data.leads) {
@@ -217,8 +271,8 @@ async function getAssignedCRMLeads(userId) {
  */
 async function updateCRMLead(leadData) {
     try {
-        if (!ZOHO_WEBHOOKS.updateLead) {
-            showToast('Zoho Flow webhook not configured', 'error')
+        if (!MAKE_WEBHOOKS.updateLead) {
+            showToast('Make.com update webhook not configured', 'error')
             return false
         }
 
@@ -238,10 +292,13 @@ async function updateCRMLead(leadData) {
             timestamp: new Date().toISOString()
         }
 
-        const response = await fetch(ZOHO_WEBHOOKS.updateLead, {
+        const response = await fetch('/.netlify/functions/zoho-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                webhookUrl: MAKE_WEBHOOKS.updateLead,
+                payload: payload
+            })
         })
 
         if (!response.ok) {
@@ -264,14 +321,14 @@ async function updateCRMLead(leadData) {
  */
 async function assignCRMLeadToUser(zohoLeadId, userId, userEmail) {
     try {
-        if (!ZOHO_WEBHOOKS.assignLead) {
-            showToast('Zoho Flow webhook not configured', 'error')
+        if (!MAKE_WEBHOOKS.assignLead) {
+            showToast('Make.com assignment webhook not configured', 'error')
             return false
         }
 
         showToast('Assigning lead...', 'info')
 
-        // 1. Update App_Assigned_To field in Zoho via webhook
+        // 1. Update assignment via Make.com webhook
         const payload = {
             zoho_lead_id: zohoLeadId,
             app_assigned_to: userEmail,
@@ -279,10 +336,13 @@ async function assignCRMLeadToUser(zohoLeadId, userId, userEmail) {
             timestamp: new Date().toISOString()
         }
 
-        const response = await fetch(ZOHO_WEBHOOKS.assignLead, {
+        const response = await fetch('/.netlify/functions/zoho-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                webhookUrl: MAKE_WEBHOOKS.assignLead,
+                payload: payload
+            })
         })
 
         if (!response.ok) {
@@ -319,26 +379,25 @@ function getCurrentUser() {
 }
 
 /**
- * Configure Zoho webhooks
- * Call this after creating flows in Zoho Flow
+ * Configure Make.com webhooks
  */
-function configureZohoWebhooks(fetchUrl, updateUrl, assignUrl) {
-    ZOHO_WEBHOOKS.fetchLeads = fetchUrl
-    ZOHO_WEBHOOKS.updateLead = updateUrl
-    ZOHO_WEBHOOKS.assignLead = assignUrl
+function configureMakeWebhooks(fetchUrl, updateUrl, assignUrl) {
+    MAKE_WEBHOOKS.fetchLeads = fetchUrl
+    MAKE_WEBHOOKS.updateLead = updateUrl
+    MAKE_WEBHOOKS.assignLead = assignUrl
 
     // Save to localStorage for persistence
-    localStorage.setItem('zohoWebhooks', JSON.stringify(ZOHO_WEBHOOKS))
+    localStorage.setItem('makeWebhooks', JSON.stringify(MAKE_WEBHOOKS))
 
-    console.log('Zoho webhooks configured:', ZOHO_WEBHOOKS)
+    console.log('Make.com webhooks configured:', MAKE_WEBHOOKS)
 }
 
 // Load saved webhooks on page load
-(function loadZohoWebhooks() {
-    const saved = localStorage.getItem('zohoWebhooks')
+(function loadMakeWebhooks() {
+    const saved = localStorage.getItem('makeWebhooks')
     if (saved) {
         const webhooks = JSON.parse(saved)
-        Object.assign(ZOHO_WEBHOOKS, webhooks)
-        console.log('Loaded Zoho webhooks from storage')
+        Object.assign(MAKE_WEBHOOKS, webhooks)
+        console.log('Loaded Make.com webhooks from storage')
     }
 })()

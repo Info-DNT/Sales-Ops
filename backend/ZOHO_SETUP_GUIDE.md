@@ -72,12 +72,21 @@ Before you begin, ensure you have:
    - **Function Name:** `returnLeads`
    - **Return Type:** `map` (or `void`)
    
-4. **Copy this code into the editor:**
+4. **IMPORTANT: pass the Search Records output into the function**
+
+Zoho Flow custom functions do **not** automatically get a global variable named `Leads`. If you paste code that references `Leads` (capital L) you’ll get:
+`Variable 'Leads' is not defined...`
+
+To fix this, add an **Input/Argument** to the custom function and map it to the previous step output:
+- In the custom function configuration, add an **argument** named **`Leads`** (type should match the Search Records output, typically a **list** / **map list**).
+- Set the argument value using the variable picker from the **Zoho CRM → Search Records** step output (the list of lead records).
+
+5. **Copy this code into the editor:**
 
 ```javascript
 response = Map();
 response.put("success", true);
-response.put("leads", Leads);  // Leads from previous step
+response.put("leads", Leads);  // This is the FUNCTION ARGUMENT mapped from Search Records output
 return response;
 ```
 
