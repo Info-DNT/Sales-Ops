@@ -16,6 +16,8 @@ const MAKE_WEBHOOKS = {
  * Called when admin clicks "Sync CRM" button
  */
 async function syncCRMLeads() {
+    let totalCount = 0
+    let newCount = 0
     try {
         // #region agent log
         fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'D', location: 'assets/js/zoho-integration.js:syncCRMLeads:entry', message: 'syncCRMLeads entry', data: { hasFetchWebhook: !!MAKE_WEBHOOKS.fetchLeads, proxyPath: '/.netlify/functions/zoho-proxy' }, timestamp: Date.now() }) }).catch(() => { });
@@ -150,11 +152,13 @@ async function syncCRMLeads() {
         }
 
         // 5. Return result object
+        // 5. Return result object
+        totalCount = crmLeads.length
+        newCount = newLeadIDs.length
+
         // #region agent log
         fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'D', location: 'assets/js/zoho-integration.js:syncCRMLeads:beforeReturn', message: 'about to return sync result', data: { crmLeadsLen: crmLeads.length, newLeadIDsLen: newLeadIDs.length, totalCountType: typeof totalCount, newCountType: typeof newCount }, timestamp: Date.now() }) }).catch(() => { });
         // #endregion agent log
-        const totalCount = crmLeads.length
-        const newCount = newLeadIDs.length
 
         return {
             success: true,
