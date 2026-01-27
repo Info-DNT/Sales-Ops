@@ -154,7 +154,8 @@ async function syncCRMLeads() {
  */
 async function getExistingCRMLeadIDs() {
     try {
-        const { data, error } = await supabase
+        const client = initSupabase()
+        const { data, error } = await client
             .from('crm_lead_registry')
             .select('zoho_lead_id')
 
@@ -173,13 +174,14 @@ async function getExistingCRMLeadIDs() {
  */
 async function registerNewCRMLeads(zohoLeadIDs) {
     try {
+        const client = initSupabase()
         const records = zohoLeadIDs.map(id => ({
             zoho_lead_id: id,
             user_id: null,
             assigned_at: null
         }))
 
-        const { error } = await supabase
+        const { error } = await client
             .from('crm_lead_registry')
             .insert(records)
 
@@ -204,8 +206,9 @@ async function getAssignedCRMLeads(userId) {
             return []
         }
 
+        const client = initSupabase()
         // 1. Get assigned lead IDs from registry
-        const { data: assignments, error } = await supabase
+        const { data: assignments, error } = await client
             .from('crm_lead_registry')
             .select('zoho_lead_id')
             .eq('user_id', userId)
@@ -343,8 +346,9 @@ async function assignCRMLeadToUser(zohoLeadId, userId, userEmail) {
             throw new Error(`Assignment failed: ${response.statusText}`)
         }
 
+        const client = initSupabase()
         // 2. Update registry in Supabase
-        const { error } = await supabase
+        const { error } = await client
             .from('crm_lead_registry')
             .update({
                 user_id: userId,
