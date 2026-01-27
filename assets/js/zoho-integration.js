@@ -285,7 +285,7 @@ async function updateCRMLead(leadData) {
             follow_up_date: leadData.follow_up_date || '',
             next_action: leadData.next_action || '',
             expected_close: leadData.expected_close || '',
-            updated_by: getCurrentUser().email,
+            updated_by: getCurrentSession()?.email || 'Unknown',
             timestamp: new Date().toISOString()
         }
 
@@ -329,7 +329,7 @@ async function assignCRMLeadToUser(zohoLeadId, userId, userEmail) {
         const payload = {
             zoho_lead_id: zohoLeadId,
             app_assigned_to: userEmail,
-            assigned_by: getCurrentUser().email,
+            assigned_by: getCurrentSession()?.email || 'Unknown',
             timestamp: new Date().toISOString()
         }
 
@@ -366,14 +366,6 @@ async function assignCRMLeadToUser(zohoLeadId, userId, userEmail) {
         showToast(`Failed to assign: ${error.message}`, 'error')
         return false
     }
-}
-
-/**
- * Get current user from session
- */
-function getCurrentUser() {
-    const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}')
-    return session
 }
 
 /**
