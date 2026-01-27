@@ -19,17 +19,14 @@ async function syncCRMLeads() {
     let totalCount = 0
     let newCount = 0
     try {
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'D', location: 'assets/js/zoho-integration.js:syncCRMLeads:entry', message: 'syncCRMLeads entry', data: { hasFetchWebhook: !!MAKE_WEBHOOKS.fetchLeads, proxyPath: '/.netlify/functions/zoho-proxy' }, timestamp: Date.now() }) }).catch(() => { });
-        // #endregion agent log
         if (!MAKE_WEBHOOKS.fetchLeads) {
             showToast('Make.com webhook not configured', 'error')
-            return
+            return { success: false, error: 'Webhook not configured' }
         }
 
         showToast('Fetching leads from CRM...', 'info')
 
-        // 1. Fetch ALL leads from Zoho via Netlify proxy function
+        // 1. Fetch leads via Netlify proxy
         const response = await fetch('/.netlify/functions/zoho-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -37,10 +34,6 @@ async function syncCRMLeads() {
                 webhookUrl: MAKE_WEBHOOKS.fetchLeads
             })
         })
-
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'A', location: 'assets/js/zoho-integration.js:syncCRMLeads:proxyResponse', message: 'zoho-proxy response received', data: { ok: response.ok, status: response.status, statusText: response.statusText }, timestamp: Date.now() }) }).catch(() => { });
-        // #endregion agent log
 
         if (!response.ok) {
             let errDetail = ''
@@ -64,17 +57,13 @@ async function syncCRMLeads() {
         }
 
         const data = await response.json()
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'C', location: 'assets/js/zoho-integration.js:syncCRMLeads:proxyJson', message: 'zoho-proxy JSON parsed', data: { success: data?.success, leadsIsArray: Array.isArray(data?.leads), leadsLen: Array.isArray(data?.leads) ? data.leads.length : null, keys: data && typeof data === 'object' ? Object.keys(data).slice(0, 15) : null }, timestamp: Date.now() }) }).catch(() => { });
-        // #endregion agent log
-        console.log('Zoho Proxy Response:', data)
+        console.log('CRM Proxy Response:', data)
 
         // 2. Extract leads (handle different response formats)
         let rawLeads = []
         if (Array.isArray(data)) {
             rawLeads = data
         } else if (data && typeof data === 'object') {
-            // Check common array wrappers
             const potentialKeys = ['leads', 'data', 'records', 'array', 'items', 'list']
             for (const key of potentialKeys) {
                 if (Array.isArray(data[key])) {
@@ -83,7 +72,6 @@ async function syncCRMLeads() {
                 }
             }
 
-            // Fallback: If no common key works, use the first array found in the object
             if (rawLeads.length === 0) {
                 const firstArrayKey = Object.keys(data).find(k => Array.isArray(data[k]))
                 if (firstArrayKey) {
@@ -93,33 +81,24 @@ async function syncCRMLeads() {
         }
 
         if (rawLeads.length === 0 && (!data || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && Object.keys(data).length === 0))) {
-            console.log('No leads found in CRM response (empty list)')
             return { success: true, totalLeads: 0, newLeads: 0, leads: [] }
         }
 
         if (rawLeads.length === 0) {
             const keys = data ? Object.keys(data).join(', ') : 'none'
-            console.error('Extraction failed. Received data keys:', keys)
-            throw new Error(`Could not find leads array. Response contains keys: ${keys}`)
+            throw new Error(`Could not find leads array. Response keys: ${keys}`)
         }
 
-        console.log(`Processing ${rawLeads.length} leads from CRM`)
-
-        // 3. Get existing lead IDs from registry (duplicate prevention)
+        // 3. Get existing lead IDs and process leads
         const existingIDs = await getExistingCRMLeadIDs()
-
-        // 4. Process and transform leads
         const crmLeads = []
         const newLeadIDs = []
 
         for (const zohoLead of rawLeads) {
-            // Zoho IDs can be strings or numbers
             const leadId = zohoLead.id || zohoLead.ID || zohoLead.zoho_id
             if (!leadId) continue
 
             const isNew = !existingIDs.includes(String(leadId))
-
-            // Transform Zoho lead format to app format (handle various Zoho field names)
             const lead = {
                 zoho_lead_id: String(leadId),
                 name: zohoLead.Last_Name || zohoLead.Full_Name || zohoLead.Name || 'Unknown',
@@ -139,26 +118,16 @@ async function syncCRMLeads() {
             }
 
             crmLeads.push(lead)
-
-            if (isNew) {
-                newLeadIDs.push(String(leadId))
-            }
+            if (isNew) newLeadIDs.push(String(leadId))
         }
 
-        // 5. Register new leads in Supabase (for duplicate tracking)
+        // 4. Register new leads
         if (newLeadIDs.length > 0) {
             await registerNewCRMLeads(newLeadIDs)
-            console.log(`Registered ${newLeadIDs.length} new CRM leads`)
         }
 
-        // 5. Return result object
-        // 5. Return result object
         totalCount = crmLeads.length
         newCount = newLeadIDs.length
-
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'D', location: 'assets/js/zoho-integration.js:syncCRMLeads:beforeReturn', message: 'about to return sync result', data: { crmLeadsLen: crmLeads.length, newLeadIDsLen: newLeadIDs.length, totalCountType: typeof totalCount, newCountType: typeof newCount }, timestamp: Date.now() }) }).catch(() => { });
-        // #endregion agent log
 
         return {
             success: true,
@@ -168,14 +137,11 @@ async function syncCRMLeads() {
         }
 
     } catch (error) {
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'D', location: 'assets/js/zoho-integration.js:syncCRMLeads:catch', message: 'syncCRMLeads caught error', data: { name: error?.name, message: error?.message, stackTop: (error?.stack || '').split('\n').slice(0, 3).join(' | ') }, timestamp: Date.now() }) }).catch(() => { });
-        // #endregion agent log
         console.error('Sync error:', error)
         return {
             success: false,
             error: error.message,
-            raw: error.raw, // Pass through raw response if available
+            raw: error.raw,
             totalLeads: 0,
             newLeads: 0,
             leads: []
