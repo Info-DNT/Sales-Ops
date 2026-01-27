@@ -42,19 +42,23 @@ async function syncCRMLeads() {
 
         if (!response.ok) {
             let errDetail = ''
+            let rawBody = ''
             try {
                 const ct = response.headers.get('content-type') || ''
                 if (ct.includes('application/json')) {
                     const j = await response.json()
                     errDetail = j?.error ? ` - ${j.error}` : ''
+                    rawBody = j?.raw || ''
                 } else {
-                    const t = await response.text()
-                    errDetail = t ? ` - ${t.slice(0, 140)}` : ''
+                    rawBody = await response.text()
+                    errDetail = rawBody ? ` - ${rawBody.slice(0, 140)}` : ''
                 }
             } catch (e) {
                 errDetail = ''
             }
-            throw new Error(`Failed to fetch: ${response.statusText}${errDetail}`)
+            const error = new Error(`Failed to fetch: ${response.statusText}${errDetail}`)
+            error.raw = rawBody
+            throw error
         }
 
         const data = await response.json()
@@ -148,6 +152,7 @@ async function syncCRMLeads() {
         return {
             success: false,
             error: error.message,
+            raw: error.raw, // Pass through raw response if available
             totalLeads: 0,
             newLeads: 0,
             leads: []
