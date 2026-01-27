@@ -60,7 +60,7 @@ exports.handler = async (event, context) => {
         });
 
         // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'B', location: 'netlify/functions/zoho-proxy.js:handler:webhookResponse', message: 'Zoho Flow webhook responded', data: { ok: response.ok, status: response.status, statusText: response.statusText, contentType: response.headers.get('content-type') }, timestamp: Date.now() }) }).catch(() => { });
+        fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'debug-session', runId: 'pre-fix', hypothesisId: 'B', location: 'netlify/functions/zoho-proxy.js:handler:webhookResponse', message: 'CRM Webhook responded', data: { ok: response.ok, status: response.status, statusText: response.statusText, contentType: response.headers.get('content-type') }, timestamp: Date.now() }) }).catch(() => { });
         // #endregion agent log
 
         let rawText = '';
@@ -77,7 +77,7 @@ exports.handler = async (event, context) => {
             return {
                 statusCode: 502,
                 headers,
-                body: JSON.stringify({ success: false, error: 'Zoho Flow webhook returned empty response' })
+                body: JSON.stringify({ success: false, error: 'CRM webhook returned empty response' })
             };
         }
 
@@ -91,7 +91,7 @@ exports.handler = async (event, context) => {
             return {
                 statusCode: 502,
                 headers,
-                body: JSON.stringify({ success: false, error: 'Zoho Flow returned non-JSON response', raw: rawText.slice(0, 200) })
+                body: JSON.stringify({ success: false, error: 'CRM webhook returned non-JSON response', raw: rawText.slice(0, 200) })
             };
         }
 

@@ -1,6 +1,6 @@
 /**
- * Zoho CRM Integration
- * Handles bi-directional sync between app and Zoho CRM
+ * CRM Integration
+ * Handles bi-directional sync between app and Zoho CRM via Make.com
  */
 
 // Make.com Webhook URLs
@@ -78,7 +78,7 @@ async function syncCRMLeads() {
             throw new Error('Could not find leads array in Zoho response')
         }
 
-        console.log(`Processing ${rawLeads.length} leads from Zoho CRM`)
+        console.log(`Processing ${rawLeads.length} leads from CRM`)
 
         // 3. Get existing lead IDs from registry (duplicate prevention)
         const existingIDs = await getExistingCRMLeadIDs()
@@ -306,11 +306,11 @@ async function updateCRMLead(leadData) {
         }
 
         const result = await response.json()
-        console.log('Zoho update successful:', result)
+        console.log('CRM update successful:', result)
         return true
 
     } catch (error) {
-        console.error('Error updating Zoho lead:', error)
+        console.error('Error updating CRM lead:', error)
         throw error
     }
 }

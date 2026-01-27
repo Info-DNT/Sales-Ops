@@ -63,15 +63,16 @@ function debugLog(hypothesisId, location, message, data) {
       data,
       timestamp: Date.now()
     })
-  }).catch(() => {});
+  }).catch(() => { });
 }
 // #endregion agent log
 
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${req.headers.host}`);
 
-  // Local implementation of Netlify function
+  // Handle CRM Sync Proxy
   if (u.pathname === '/.netlify/functions/zoho-proxy') {
+    const proxyHandler = require('./netlify/functions/zoho-proxy').handler;
     const headers = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Headers': 'Content-Type',
@@ -86,77 +87,52 @@ const server = http.createServer(async (req, res) => {
       const raw = await readBody(req);
       const { webhookUrl, payload } = JSON.parse(raw || '{}');
 
-      debugLog('B', 'dev-server.js:zoho-proxy:entry', 'local zoho-proxy invoked', {
+      debugLog('B', 'dev-server.js:zoho-proxy:entry', 'local CRM proxy invoked', {
         hasWebhookUrl: !!webhookUrl,
-        hasPayload: !!payload,
-        webhookHost: (() => {
-          try {
-            return new URL(webhookUrl).host;
-          } catch {
-            return null;
-          }
-        })()
+        hasPayload: !!payload
       });
 
       if (!webhookUrl) return send(res, 400, headers, JSON.stringify({ error: 'webhookUrl is required' }));
 
-      let zohoResp;
+      let crmResp;
       try {
-        zohoResp = await fetch(webhookUrl, {
-          // Zoho Flow "incoming webhook" expects POST; GET often returns 200 with an empty body.
-          method: 'POST',
+        // Match live proxy logic: use POST if payload exists, otherwise GET
+        const method = payload ? 'POST' : 'GET';
+        crmResp = await fetch(webhookUrl, {
+          method: method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload ?? {})
+          body: method === 'POST' ? JSON.stringify(payload) : undefined
         });
       } catch (e) {
-        debugLog('A', 'dev-server.js:zoho-proxy:webhookFetchFail', 'Fetch to Zoho Flow webhook failed', {
-          name: e?.name,
-          message: e?.message,
-          causeName: e?.cause?.name,
-          causeCode: e?.cause?.code,
-          causeMessage: e?.cause?.message,
-          causeErrno: e?.cause?.errno,
-          causeSyscall: e?.cause?.syscall
+        debugLog('A', 'dev-server.js:zoho-proxy:webhookFetchFail', 'CRM Webhook fetch failed', {
+          message: e?.message
         });
         throw e;
       }
 
-      debugLog('B', 'dev-server.js:zoho-proxy:webhookResponse', 'Zoho Flow webhook responded', {
-        ok: zohoResp.ok,
-        status: zohoResp.status,
-        statusText: zohoResp.statusText,
-        contentType: zohoResp.headers.get('content-type')
+      debugLog('B', 'dev-server.js:zoho-proxy:webhookResponse', 'CRM Webhook responded', {
+        ok: crmResp.ok,
+        status: crmResp.status,
+        statusText: crmResp.statusText,
+        contentType: crmResp.headers.get('content-type')
       });
 
       let rawText = '';
       try {
-        rawText = await zohoResp.text();
+        rawText = await crmResp.text();
       } catch (e) {
         rawText = '';
       }
 
       if (!rawText) {
-        debugLog('B', 'dev-server.js:zoho-proxy:emptyBody', 'Webhook returned empty body', {
-          ok: zohoResp.ok,
-          status: zohoResp.status,
-          statusText: zohoResp.statusText,
-          contentType: zohoResp.headers.get('content-type')
-        });
-        return send(res, 502, headers, JSON.stringify({ success: false, error: 'Zoho Flow webhook returned empty response' }));
+        return send(res, 502, headers, JSON.stringify({ success: false, error: 'CRM webhook returned empty response' }));
       }
 
       let data;
       try {
         data = JSON.parse(rawText);
       } catch (e) {
-        debugLog('B', 'dev-server.js:zoho-proxy:jsonParseFail', 'Failed parsing webhook response as JSON', {
-          name: e?.name,
-          message: e?.message,
-          contentType: zohoResp.headers.get('content-type'),
-          rawLen: rawText.length,
-          rawHead: rawText.slice(0, 140)
-        });
-        return send(res, 502, headers, JSON.stringify({ success: false, error: 'Zoho Flow returned non-JSON response', raw: rawText.slice(0, 200) }));
+        return send(res, 502, headers, JSON.stringify({ success: false, error: 'CRM webhook returned non-JSON response', raw: rawText.slice(0, 200) }));
       }
 
       debugLog('C', 'dev-server.js:zoho-proxy:jsonOk', 'Webhook JSON parsed', {
