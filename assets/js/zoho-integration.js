@@ -78,15 +78,6 @@ async function syncCRMLeads() {
                     rawLeads = data[firstArrayKey]
                 }
             }
-            if (rawLeads.length > 0 && Array.isArray(rawLeads[0])) {
-                console.log('Detected nested array, flattening...')
-                rawLeads = rawLeads.flat()
-            }
-
-            if (rawLeads.length === 0 && (!data || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && Object.keys(data).length === 0))) {
-                return { success: true, totalLeads: 0, newLeads: 0, leads: [] }
-            }
-
             if (rawLeads.length === 0) {
                 const keys = data ? Object.keys(data).join(', ') : 'none'
                 throw new Error(`Could not find leads array. Response keys: ${keys}`)
