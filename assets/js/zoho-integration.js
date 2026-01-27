@@ -71,15 +71,34 @@ async function syncCRMLeads() {
         let rawLeads = []
         if (Array.isArray(data)) {
             rawLeads = data
-        } else if (data.leads && Array.isArray(data.leads)) {
-            rawLeads = data.leads
-        } else if (data.data && Array.isArray(data.data)) {
-            rawLeads = data.data
-        } else if (data.records && Array.isArray(data.records)) {
-            rawLeads = data.records
-        } else {
-            console.error('Unexpected Zoho response format:', data)
-            throw new Error('Could not find leads array in Zoho response')
+        } else if (data && typeof data === 'object') {
+            // Check common array wrappers
+            const potentialKeys = ['leads', 'data', 'records', 'array', 'items', 'list']
+            for (const key of potentialKeys) {
+                if (Array.isArray(data[key])) {
+                    rawLeads = data[key]
+                    break
+                }
+            }
+
+            // Fallback: If no common key works, use the first array found in the object
+            if (rawLeads.length === 0) {
+                const firstArrayKey = Object.keys(data).find(k => Array.isArray(data[k]))
+                if (firstArrayKey) {
+                    rawLeads = data[firstArrayKey]
+                }
+            }
+        }
+
+        if (rawLeads.length === 0 && (!data || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && Object.keys(data).length === 0))) {
+            console.log('No leads found in CRM response (empty list)')
+            return { success: true, totalLeads: 0, newLeads: 0, leads: [] }
+        }
+
+        if (rawLeads.length === 0) {
+            const keys = data ? Object.keys(data).join(', ') : 'none'
+            console.error('Extraction failed. Received data keys:', keys)
+            throw new Error(`Could not find leads array. Response contains keys: ${keys}`)
         }
 
         console.log(`Processing ${rawLeads.length} leads from CRM`)
