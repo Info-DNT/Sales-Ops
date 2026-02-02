@@ -26,14 +26,26 @@ async function syncCRMLeads() {
 
         showToast('Fetching leads from CRM...', 'info')
 
-        // 1. Fetch leads via Netlify proxy
-        const response = await fetch('/.netlify/functions/zoho-proxy', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                webhookUrl: MAKE_WEBHOOKS.fetchLeads
+        // 1. Fetch leads (use direct webhook in local dev, proxy in production)
+        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+
+        let response
+        if (isLocalDev) {
+            // Call Make.com webhook directly in local development
+            response = await fetch(MAKE_WEBHOOKS.fetchLeads, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
             })
-        })
+        } else {
+            // Use Netlify proxy in production
+            response = await fetch('/.netlify/functions/zoho-proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    webhookUrl: MAKE_WEBHOOKS.fetchLeads
+                })
+            })
+        }
 
         if (!response.ok) {
             let errDetail = ''
@@ -227,14 +239,23 @@ async function getAssignedCRMLeads(userId) {
             return []
         }
 
-        // 2. Fetch fresh data via proxy (avoid CORS)
-        const response = await fetch('/.netlify/functions/zoho-proxy', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                webhookUrl: MAKE_WEBHOOKS.fetchLeads
+        // 2. Fetch fresh data (use direct webhook in local dev, proxy in production)
+        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        let response
+        if (isLocalDev) {
+            response = await fetch(MAKE_WEBHOOKS.fetchLeads, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
             })
-        })
+        } else {
+            response = await fetch('/.netlify/functions/zoho-proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    webhookUrl: MAKE_WEBHOOKS.fetchLeads
+                })
+            })
+        }
         const data = await response.json()
 
         if (!data.success || !data.leads) {
@@ -295,14 +316,24 @@ async function updateCRMLead(leadData) {
             timestamp: new Date().toISOString()
         }
 
-        const response = await fetch('/.netlify/functions/zoho-proxy', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                webhookUrl: MAKE_WEBHOOKS.updateLead,
-                payload: payload
+        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        let response
+        if (isLocalDev) {
+            response = await fetch(MAKE_WEBHOOKS.updateLead, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             })
-        })
+        } else {
+            response = await fetch('/.netlify/functions/zoho-proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    webhookUrl: MAKE_WEBHOOKS.updateLead,
+                    payload: payload
+                })
+            })
+        }
 
         if (!response.ok) {
             throw new Error(`Update failed: ${response.statusText}`)
@@ -339,14 +370,24 @@ async function assignCRMLeadToUser(zohoLeadId, userId, userEmail) {
             timestamp: new Date().toISOString()
         }
 
-        const response = await fetch('/.netlify/functions/zoho-proxy', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                webhookUrl: MAKE_WEBHOOKS.assignLead,
-                payload: payload
+        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        let response
+        if (isLocalDev) {
+            response = await fetch(MAKE_WEBHOOKS.assignLead, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             })
-        })
+        } else {
+            response = await fetch('/.netlify/functions/zoho-proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    webhookUrl: MAKE_WEBHOOKS.assignLead,
+                    payload: payload
+                })
+            })
+        }
 
         if (!response.ok) {
             throw new Error(`Assignment failed: ${response.statusText}`)

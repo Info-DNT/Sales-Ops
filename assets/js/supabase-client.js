@@ -291,16 +291,31 @@ async function createLead(userId, lead) {
         .single();
 
     if (error) throw error;
+
+    // Log creation in history
+    await logLeadActivity(data.id, userId, 'Lead Created', {
+        name: lead.name,
+        status: lead.status
+    });
+
     return data;
 }
 
 /**
- * Update a lead
+ * Update a lead with history logging
  * @param {string} leadId 
  * @param {object} updates 
+ * @param {string} userId - ID of the user performing the update
  */
-async function updateLead(leadId, updates) {
+async function updateLead(leadId, updates, userId) {
     const client = initSupabase();
+
+    // Get current lead data to compare changes
+    const { data: currentLead } = await client
+        .from('leads')
+        .select('*')
+        .eq('id', leadId)
+        .single();
 
     const { data, error } = await client
         .from('leads')
@@ -320,7 +335,65 @@ async function updateLead(leadId, updates) {
         .single();
 
     if (error) throw error;
+
+    // Detect changes and log to history
+    if (currentLead) {
+        let changedFields = [];
+        if (currentLead.status !== updates.status) changedFields.push(`Status changed to ${updates.status}`);
+        if (currentLead.owner !== updates.owner) changedFields.push(`Owner updated`);
+        if (currentLead.next_action !== updates.next_action) changedFields.push(`Next action updated`);
+
+        if (changedFields.length > 0) {
+            await logLeadActivity(leadId, userId, 'Lead Updated', {
+                changes: changedFields,
+                summary: changedFields.join(', ')
+            });
+        }
+    }
+
     return data;
+}
+
+/**
+ * Log activity to lead history
+ * @param {string} leadId 
+ * @param {string} userId 
+ * @param {string} action 
+ * @param {object} details 
+ */
+async function logLeadActivity(leadId, userId, action, details = {}) {
+    const client = initSupabase();
+
+    const { error } = await client
+        .from('lead_history')
+        .insert({
+            lead_id: leadId,
+            user_id: userId,
+            action: action,
+            details: details
+        });
+
+    if (error) console.error('Error logging activity:', error);
+}
+
+/**
+ * Get lead history for timeline
+ * @param {string} leadId 
+ */
+async function getLeadHistory(leadId) {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('lead_history')
+        .select(`
+            *,
+            users (name, email)
+        `)
+        .eq('lead_id', leadId)
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
 }
 
 /**

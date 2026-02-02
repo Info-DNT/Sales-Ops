@@ -77,19 +77,26 @@ function generateUserNav(currentPage) {
     
     <nav class="sidebar">
       <div class="sidebar-header">
-        <h4 class="text-white mb-4">Sales Ops</h4>
-        <p class="text-white-50 small mb-0 user-name"></p>
+        <div class="logo-container">
+          <img src="../assets/logo.png" alt="Air Medical 24x7" class="sidebar-logo">
+        </div>
+        <p class="text-white-50 small mb-0 mt-2 user-name"></p>
       </div>
       <ul class="nav-menu">
         ${navItems.map(item => {
     if (item.hasDropdown) {
-      const isActive = currentPage === item.page || item.dropdownItems.some(sub => sub.page === currentPage);
+      const isLeadsActive = currentPage === 'leads' || currentPage === 'calls' || currentPage === 'meetings';
       return `
-              <li class="nav-item-dropdown">
-                <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
-                  <i class="fas ${item.icon}"></i> ${item.label}
+              <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''}">
+                <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">
+                  <i class="fas ${item.icon}"></i> 
+                  <span>${item.label}</span>
+                  <i class="fas fa-chevron-down ms-auto dropdown-arrow"></i>
                 </a>
-                <div class="nav-dropdown">
+                <div class="nav-dropdown ${isLeadsActive ? 'show' : ''}">
+                  <a href="leads.html" class="nav-dropdown-link ${currentPage === 'leads' ? 'active' : ''}">
+                    <i class="fas fa-list"></i> All Leads
+                  </a>
                   ${item.dropdownItems.map(subItem => `
                     <a href="${subItem.page}.html" class="nav-dropdown-link ${currentPage === subItem.page ? 'active' : ''}">
                       <i class="fas ${subItem.icon}"></i> ${subItem.label}
@@ -102,7 +109,7 @@ function generateUserNav(currentPage) {
       return `
               <li>
                 <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
-                  <i class="fas ${item.icon}"></i> ${item.label}
+                  <i class="fas ${item.icon}"></i> <span>${item.label}</span>
                 </a>
               </li>
             `;
@@ -110,7 +117,7 @@ function generateUserNav(currentPage) {
   }).join('')}
         <li>
           <a href="#" onclick="logout(); return false;" class="nav-link">
-            <i class="fas fa-sign-out-alt"></i> Logout
+            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
           </a>
         </li>
       </ul>
@@ -150,19 +157,24 @@ function generateAdminNav(currentPage) {
     
     <nav class="sidebar">
       <div class="sidebar-header">
-        <h4 class="text-white mb-4">Admin Panel</h4>
-        <p class="text-white-50 small mb-0 user-name"></p>
+        <img src="../assets/logo.png" alt="Air Medical 24x7" class="sidebar-logo">
+        <p class="text-white-50 small mb-0 mt-2 user-name"></p>
       </div>
       <ul class="nav-menu">
         ${navItems.map(item => {
     if (item.hasDropdown) {
-      const isActive = currentPage === item.page || item.dropdownItems.some(sub => sub.page === currentPage);
+      const isLeadsActive = currentPage === 'leads' || currentPage === 'calls' || currentPage === 'meetings';
       return `
-              <li class="nav-item-dropdown">
-                <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
-                  <i class="fas ${item.icon}"></i> ${item.label}
+              <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''}">
+                <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">
+                  <i class="fas ${item.icon}"></i> 
+                  <span>${item.label}</span>
+                  <i class="fas fa-chevron-down ms-auto dropdown-arrow"></i>
                 </a>
-                <div class="nav-dropdown">
+                <div class="nav-dropdown ${isLeadsActive ? 'show' : ''}">
+                  <a href="leads.html" class="nav-dropdown-link ${currentPage === 'leads' ? 'active' : ''}">
+                    <i class="fas fa-list"></i> All Leads
+                  </a>
                   ${item.dropdownItems.map(subItem => `
                     <a href="${subItem.page}.html" class="nav-dropdown-link ${currentPage === subItem.page ? 'active' : ''}">
                       <i class="fas ${subItem.icon}"></i> ${subItem.label}
@@ -175,7 +187,7 @@ function generateAdminNav(currentPage) {
       return `
               <li>
                 <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
-                  <i class="fas ${item.icon}"></i> ${item.label}
+                  <i class="fas ${item.icon}"></i> <span>${item.label}</span>
                 </a>
               </li>
             `;
@@ -183,7 +195,7 @@ function generateAdminNav(currentPage) {
   }).join('')}
         <li>
           <a href="#" onclick="logout(); return false;" class="nav-link">
-            <i class="fas fa-sign-out-alt"></i> Logout
+            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
           </a>
         </li>
       </ul>
@@ -242,28 +254,72 @@ function showToast(message, type = 'success') {
 function toggleMobileMenu() {
   const sidebar = document.querySelector('.sidebar')
   const overlay = document.querySelector('.mobile-overlay')
+  const toggleBtn = document.querySelector('.mobile-menu-toggle i')
 
   if (sidebar && overlay) {
-    sidebar.classList.toggle('mobile-active')
+    const isActive = sidebar.classList.toggle('mobile-active')
     overlay.classList.toggle('active')
     document.body.classList.toggle('menu-open')
+
+    // Change icon between bars and times
+    if (toggleBtn) {
+      toggleBtn.className = isActive ? 'fas fa-times' : 'fas fa-bars'
+    }
+  }
+}
+
+function toggleDropdown(event, element) {
+  event.preventDefault();
+  const parent = element.parentElement;
+  const dropdown = parent.querySelector('.nav-dropdown');
+  const arrow = element.querySelector('.dropdown-arrow');
+
+  const isOpen = dropdown.classList.contains('show');
+
+  // Toggle classes instead of inline styles
+  dropdown.classList.toggle('show');
+  parent.classList.toggle('dropdown-active');
+
+  if (arrow) {
+    arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
   }
 }
 
 function closeMobileMenu() {
   const sidebar = document.querySelector('.sidebar')
   const overlay = document.querySelector('.mobile-overlay')
+  const toggleBtn = document.querySelector('.mobile-menu-toggle i')
 
   if (sidebar && overlay) {
     sidebar.classList.remove('mobile-active')
     overlay.classList.remove('active')
     document.body.classList.remove('menu-open')
+
+    if (toggleBtn) {
+      toggleBtn.className = 'fas fa-bars'
+    }
   }
 }
 
 // Close mobile menu when clicking on navigation links (delegated event listener)
+// But don't close if it's a dropdown toggle that just opens a submenu
 document.addEventListener('click', function (e) {
-  if (e.target.closest('.nav-link')) {
+  const navLink = e.target.closest('.nav-link')
+  if (navLink) {
+    // Check if this link is a dropdown toggle
+    const isDropdownToggle = navLink.parentElement.classList.contains('nav-item-dropdown') || navLink.querySelector('.dropdown-arrow')
+
+    if (isDropdownToggle) {
+      // It's a toggle, don't close the menu
+      return
+    }
+
+    // It's a regular navigation link, close the menu
+    closeMobileMenu()
+  }
+
+  // Also close for sub-links
+  if (e.target.closest('.nav-dropdown-link')) {
     closeMobileMenu()
   }
 })

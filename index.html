@@ -75,27 +75,27 @@
         }
 
         .login-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
+            width: auto;
+            max-width: 280px;
+            height: auto;
+            background: transparent;
+            border-radius: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            margin: 0 auto 2rem;
+            box-shadow: none;
         }
 
-        .login-logo i {
-            font-size: 2.5rem;
-            color: white;
+        .login-logo img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
         }
 
         .login-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
+            display: none;
+            /* Logo contains the title now */
         }
 
         .login-subtitle {
@@ -207,9 +207,8 @@
         <div class="login-card">
             <div class="login-header">
                 <div class="login-logo">
-                    <i class="fas fa-chart-line"></i>
+                    <img src="assets/logo.png" alt="Air Medical 24x7">
                 </div>
-                <h1 class="login-title">Sales Ops</h1>
                 <p class="login-subtitle">Sign in to your account</p>
             </div>
 

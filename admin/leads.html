@@ -14,35 +14,35 @@
 <body>
     <div id="app">
         <div class="main-content">
-            <div class="page-header">
-                <h2>All Leads</h2>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-success" onclick="handleSyncCRM()" id="sync-crm-btn">
+            <div class="page-header flex-wrap gap-3">
+                <h2 class="mb-0">All Leads</h2>
+                <div class="d-flex flex-wrap gap-2 w-100-mobile align-items-center">
+                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addLeadModal">
+                        <i class="fas fa-plus"></i> Add Lead
+                    </button>
+                    <button class="btn btn-success flex-grow-1" onclick="handleSyncCRM()" id="sync-crm-btn">
                         <i class="fas fa-sync"></i> Sync Zoho CRM
-                    </button>
-                    <input type="date" class="form-control" id="search-date" style="width: 200px;">
-                    <input type="tel" class="form-control" id="search-contact" style="width: 200px;"
-                        placeholder="Search by contact">
-                    <button class="btn btn-secondary" onclick="searchLeads()">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                    <button class="btn btn-outline-secondary" onclick="clearSearch()">
-                        <i class="fas fa-times"></i> Clear
                     </button>
                 </div>
             </div>
 
-            <!-- Filter -->
+            <!-- Search/Filter -->
             <div class="content-card mb-3">
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Search</label>
-                        <input type="text" class="form-control" id="search-query"
-                            placeholder="Search by name, email, account...">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Search Date/Contact</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" id="search-date">
+                            <input type="tel" class="form-control" id="search-contact" placeholder="Contact">
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Filter by Status</label>
-                        <select class="form-control" id="filter-status">
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Keyword Search</label>
+                        <input type="text" class="form-control" id="search-query" placeholder="Name, email, account...">
+                    </div>
+                    <div class="col-lg-2 col-md-6">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="filter-status">
                             <option value="">All Statuses</option>
                             <option value="New">New</option>
                             <option value="In Progress">In Progress</option>
@@ -50,11 +50,11 @@
                             <option value="Closed">Closed</option>
                         </select>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button class="btn btn-secondary me-2" onclick="applyFilter()">
-                            <i class="fas fa-search"></i> Search & Filter
+                    <div class="col-lg-3 col-md-6 d-flex align-items-end gap-2">
+                        <button class="btn btn-secondary flex-grow-1" onclick="applyCombinedAdminFilters()">
+                            <i class="fas fa-filter"></i> Apply
                         </button>
-                        <button class="btn btn-outline-secondary" onclick="clearFilter()">
+                        <button class="btn btn-outline-secondary" onclick="clearAllAdminFilters()">
                             Clear
                         </button>
                     </div>
@@ -68,129 +68,321 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../assets/js/supabase-client.js"></script>
-    <script src="../assets/js/auth.js"></script>
-    <script src="../assets/js/common.js"></script>
-    <script src="../assets/js/zoho-integration.js"></script>
-    <script>
-        if (!initAuthCheck('admin')) window.location.href = '../index.html'
-        insertNav('admin', 'leads')
+    <!-- Lead Details Offcanvas -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="leadDetailsOffcanvas" style="width: 500px;">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title" id="details-lead-name">Lead Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <!-- Tabs -->
+            <ul class="nav nav-tabs-custom px-4" id="detailsTabs">
+                <li><a href="#" class="nav-link active" onclick="switchDetailsTab('overview')">Overview</a></li>
+                <li><a href="#" class="nav-link" onclick="switchDetailsTab('timeline')">Timeline</a></li>
+            </ul>
 
-        let leads = []
-        let allLeads = []
+            <!-- Content Area -->
+            <div class="px-4 pb-4">
+                <!-- Overview Tab -->
+                <div id="tab-overview" class="details-tab-content">
+                    <form id="edit-lead-form">
+                        <input type="hidden" id="edit-lead-id">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" id="edit-lead-name" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Contact</label>
+                                <input type="tel" class="form-control" id="edit-lead-contact" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="edit-lead-email">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-control" id="edit-lead-status">
+                                    <option value="New">New</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Qualified">Qualified</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Owner</label>
+                                <input type="text" class="form-control" id="edit-lead-owner">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Next Action</label>
+                            <textarea class="form-control" id="edit-lead-next-action" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Follow-up Date</label>
+                                <input type="date" class="form-control" id="edit-lead-follow-up">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Expected Close</label>
+                                <input type="date" class="form-control" id="edit-lead-expected-close">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mt-2" id="save-lead-btn">
+                            Save Changes
+                        </button>
+                    </form>
+                </div>
 
-        // Load all leads
-        async function loadLeads() {
-            const container = document.getElementById('leads-list')
-            container.innerHTML = '<p class="text-muted">Loading...</p>'
+                <!-- Timeline Tab -->
+                <div id="tab-timeline" class="details-tab-content d-none">
+                    <div id="timeline-container" class="timeline">
+                        <!-- Activity items will be inserted here -->
+                        <p class="text-muted text-center py-4">Loading history...</p>
+                    </div>
 
-            try {
-                allLeads = await getAllLeadsAdmin()
-                leads = allLeads
-                displayLeads()
-            } catch (error) {
-                console.error('Error loading leads:', error)
-                showToast('Failed to load leads', 'error')
-                container.innerHTML = '<p class="text-danger">Error loading leads.</p>'
-            }
-        }
+                    <!-- Add Lead Modal -->
+                    <div class="modal fade" id="addLeadModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Add New Lead</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="add-lead-form">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="lead-name" class="form-label">Lead Name</label>
+                                                <input type="text" class="form-control" id="lead-name" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="lead-contact" class="form-label">Contact Number</label>
+                                                <input type="tel" class="form-control" id="lead-contact" required>
+                                            </div>
+                                        </div>
 
-        // Handle Sync CRM button click
-        async function handleSyncCRM() {
-            const btn = document.getElementById('sync-crm-btn')
-            const icon = btn.querySelector('i')
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="lead-email" class="form-label">Email</label>
+                                                <input type="email" class="form-control" id="lead-email" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="lead-owner" class="form-label">Lead Owner</label>
+                                                <input type="text" class="form-control" id="lead-owner">
+                                            </div>
+                                        </div>
 
-            // Show syncing state
-            btn.classList.add('syncing')
-            btn.disabled = true
-            icon.classList.add('fa-spin')
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="lead-status" class="form-label">Lead Status</label>
+                                                <select class="form-control" id="lead-status" required>
+                                                    <option value="New">New</option>
+                                                    <option value="In Progress">In Progress</option>
+                                                    <option value="Qualified">Qualified</option>
+                                                    <option value="Closed">Closed</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="lead-source" class="form-label">Lead Source</label>
+                                                <select class="form-control" id="lead-source">
+                                                    <option value="">Select Source</option>
+                                                    <option value="WhatsApp">WhatsApp</option>
+                                                    <option value="Hospital">Hospital</option>
+                                                    <option value="Ads">Ads</option>
+                                                    <option value="Reference">Reference</option>
+                                                    <option value="SEO">SEO</option>
+                                                    <option value="Social Media">Social Media</option>
+                                                    <option value="Consulates">Consulates</option>
+                                                    <option value="Embassy">Embassy</option>
+                                                </select>
+                                            </div>
+                                        </div>
 
-            try {
-                const result = await syncCRMLeads()
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="lead-account" class="form-label">Account Name</label>
+                                                <input type="text" class="form-control" id="lead-account">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="lead-field" class="form-label">Field</label>
+                                                <select class="form-control" id="lead-field">
+                                                    <option value="">Select Field</option>
+                                                    <option value="Medical Tourism">Medical Tourism</option>
+                                                    <option value="Medical Evacuation">Medical Evacuation</option>
+                                                </select>
+                                            </div>
+                                        </div>
 
-                if (result.success) {
-                    showToast(`Synced ${result.totalLeads} CRM leads (${result.newLeads} new)`, 'success')
-                    // Reload leads to include CRM leads
-                    await loadLeads()
-                } else {
-                    const errorMsg = result.raw ? `${result.error}: ${result.raw.slice(0, 50)}...` : (result.error || 'Failed to sync CRM leads')
-                    showToast(errorMsg, 'error')
-                }
-            } catch (error) {
-                console.error('Error syncing CRM:', error)
-                showToast('Error: ' + error.message, 'error')
-            } finally {
-                // Remove syncing state
-                btn.classList.remove('syncing')
-                btn.disabled = false
-                icon.classList.remove('fa-spin')
-            }
-        }
+                                        <div class="mb-3">
+                                            <label for="follow-up-date" class="form-label">Follow-up Date</label>
+                                            <input type="date" class="form-control" id="follow-up-date" required>
+                                        </div>
 
-        // Search by date and/or contact number
-        async function searchLeads() {
-            const searchDate = document.getElementById('search-date').value
-            const searchContact = document.getElementById('search-contact').value
+                                        <div class="mb-3">
+                                            <label for="next-action" class="form-label">Next Action</label>
+                                            <textarea class="form-control" id="next-action" rows="2"
+                                                placeholder="Describe next action"></textarea>
+                                        </div>
 
-            if (!searchDate && !searchContact) {
-                showToast('Please enter a date or contact number to search', 'error')
-                return
-            }
+                                        <div class="mb-3">
+                                            <label for="expected-close" class="form-label">Expected Close Date</label>
+                                            <input type="date" class="form-control" id="expected-close">
+                                        </div>
 
-            let filtered = allLeads
+                                        <button type="submit" class="btn btn-primary w-100" id="add-lead-btn">
+                                            <i class="fas fa-check"></i> Save Lead
+                                            <span class="spinner-border spinner-border-sm ms-2 d-none"
+                                                role="status"></span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-            // Filter by date if provided
-            if (searchDate) {
-                filtered = filtered.filter(lead => {
-                    // Check lead_date first
-                    if (lead.lead_date && lead.lead_date === searchDate) {
-                        return true
-                    }
-                    // Check follow_up_date
-                    if (lead.follow_up_date && lead.follow_up_date === searchDate) {
-                        return true
-                    }
-                    // Fall back to created_at
-                    const createdDate = lead.created_at.split('T')[0]
-                    return createdDate === searchDate
-                })
-            }
 
-            // Filter by contact if provided
-            if (searchContact) {
-                filtered = filtered.filter(lead => {
-                    return lead.contact && lead.contact.includes(searchContact)
-                })
-            }
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+                    <script src="../assets/js/supabase-client.js"></script>
+                    <script src="../assets/js/auth.js"></script>
+                    <script src="../assets/js/common.js"></script>
+                    <script src="../assets/js/zoho-integration.js"></script>
+                    <script>
+                        if (!initAuthCheck('admin')) window.location.href = '../index.html'
+                        insertNav('admin', 'leads')
 
-            leads = filtered
-            displayLeads()
+                        const session = getCurrentSession()
+                        let leads = []
+                        let allLeads = []
+                        let editingLeadId = null
 
-            if (leads.length === 0) {
-                showToast('No leads found matching your search criteria', 'info')
-            }
-        }
+                        // Load all leads
+                        async function loadLeads() {
+                            const container = document.getElementById('leads-list')
+                            container.innerHTML = '<p class="text-muted">Loading...</p>'
 
-        // Clear search
-        function clearSearch() {
-            document.getElementById('search-date').value = ''
-            document.getElementById('search-contact').value = ''
-            leads = allLeads
-            displayLeads()
-        }
+                            try {
+                                allLeads = await getAllLeadsAdmin()
+                                leads = allLeads
+                                displayLeads()
+                            } catch (error) {
+                                console.error('Error loading leads:', error)
+                                showToast('Failed to load leads', 'error')
+                                container.innerHTML = '<p class="text-danger">Error loading leads.</p>'
+                            }
+                        }
 
-        function displayLeads() {
-            const container = document.getElementById('leads-list')
+                        // Handle Sync CRM button click
+                        async function handleSyncCRM() {
+                            const btn = document.getElementById('sync-crm-btn')
+                            const icon = btn.querySelector('i')
 
-            if (!leads || leads.length === 0) {
-                container.innerHTML = '<p class="text-muted">No leads found.</p>'
-                return
-            }
+                            // Show syncing state
+                            btn.classList.add('syncing')
+                            btn.disabled = true
+                            icon.classList.add('fa-spin')
 
-            container.innerHTML = leads.map(lead => `
-                <div class="lead-card mb-3 ${lead.source === 'crm' ? 'crm-lead' : ''}">
+                            try {
+                                const result = await syncCRMLeads()
+
+                                if (result.success) {
+                                    showToast(`Synced ${result.totalLeads} CRM leads (${result.newLeads} new)`, 'success')
+                                    // Reload leads to include CRM leads
+                                    await loadLeads()
+                                } else {
+                                    const errorMsg = result.raw ? `${result.error}: ${result.raw.slice(0, 50)}...` : (result.error || 'Failed to sync CRM leads')
+                                    showToast(errorMsg, 'error')
+                                }
+                            } catch (error) {
+                                console.error('Error syncing CRM:', error)
+                                showToast('Error: ' + error.message, 'error')
+                            } finally {
+                                // Remove syncing state
+                                btn.classList.remove('syncing')
+                                btn.disabled = false
+                                icon.classList.remove('fa-spin')
+                            }
+                        }
+
+                        // Search by date and/or contact number
+                        // Combined filter function for Admin
+                        function applyCombinedAdminFilters() {
+                            const searchDate = document.getElementById('search-date').value
+                            const searchContact = document.getElementById('search-contact').value
+                            const filterStatus = document.getElementById('filter-status').value
+                            const searchQuery = document.getElementById('search-query').value.toLowerCase()
+
+                            let filtered = allLeads
+
+                            if (searchDate) {
+                                filtered = filtered.filter(lead => {
+                                    const createdDate = lead.created_at.split('T')[0]
+                                    return createdDate === searchDate || (lead.follow_up_date && lead.follow_up_date === searchDate) || (lead.lead_date && lead.lead_date === searchDate)
+                                })
+                            }
+
+                            if (searchContact) {
+                                filtered = filtered.filter(lead => lead.contact && lead.contact.includes(searchContact))
+                            }
+
+                            if (filterStatus) {
+                                filtered = filtered.filter(l => l.status === filterStatus)
+                            }
+
+                            if (searchQuery) {
+                                filtered = filtered.filter(l => {
+                                    const name = (l.name || '').toLowerCase()
+                                    const email = (l.email || '').toLowerCase()
+                                    const account = (l.account_name || '').toLowerCase()
+                                    const owner = (l.owner || '').toLowerCase()
+                                    const userName = (l.users?.name || '').toLowerCase()
+                                    const userEmail = (l.users?.email || '').toLowerCase()
+
+                                    return name.includes(searchQuery) ||
+                                        email.includes(searchQuery) ||
+                                        account.includes(searchQuery) ||
+                                        owner.includes(searchQuery) ||
+                                        userName.includes(searchQuery) ||
+                                        userEmail.includes(searchQuery)
+                                })
+                            }
+
+                            leads = filtered
+                            displayLeads()
+
+                            if (leads.length === 0) {
+                                showToast('No leads found matching your criteria', 'info')
+                            }
+                        }
+
+                        function clearAllAdminFilters() {
+                            document.getElementById('search-date').value = ''
+                            document.getElementById('search-contact').value = ''
+                            document.getElementById('filter-status').value = ''
+                            document.getElementById('search-query').value = ''
+                            leads = allLeads
+                            displayLeads()
+                        }
+
+                        // Backward compatibility
+                        function searchLeads() { applyCombinedAdminFilters(); }
+                        function clearSearch() { clearAllAdminFilters(); }
+                        function applyFilter() { applyCombinedAdminFilters(); }
+                        function clearFilter() { clearAllAdminFilters(); }
+
+                        function displayLeads() {
+                            const container = document.getElementById('leads-list')
+
+                            if (!leads || leads.length === 0) {
+                                container.innerHTML = '<p class="text-muted">No leads found.</p>'
+                                return
+                            }
+
+                            container.innerHTML = leads.map(lead => `
+                <div class="lead-card mb-3 ${lead.source === 'crm' ? 'crm-lead' : ''}" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer;">
                     <div class="lead-header">
                         <div class="lead-title">
                             <h6>
@@ -219,51 +411,222 @@
                             </div>
                         </div>
                     </div>
+                    <div class="lead-actions mt-3">
+                        <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); handleDeleteLead('${lead.id}')">Delete</button>
+                    </div>
                 </div>
             `).join('')
-        }
+                        }
 
-        function applyFilter() {
-            const status = document.getElementById('filter-status').value
-            const searchQuery = document.getElementById('search-query').value.toLowerCase()
+                        function applyFilter() {
+                            const status = document.getElementById('filter-status').value
+                            const searchQuery = document.getElementById('search-query').value.toLowerCase()
 
-            let filtered = allLeads
+                            let filtered = allLeads
 
-            // Filter by status
-            if (status) {
-                filtered = filtered.filter(l => l.status === status)
-            }
+                            // Filter by status
+                            if (status) {
+                                filtered = filtered.filter(l => l.status === status)
+                            }
 
-            // Filter by search query
-            if (searchQuery) {
-                filtered = filtered.filter(l => {
-                    const name = (l.name || '').toLowerCase()
-                    const email = (l.email || '').toLowerCase()
-                    const account = (l.account_name || '').toLowerCase()
-                    const owner = (l.owner || '').toLowerCase()
-                    const userName = (l.users?.name || '').toLowerCase()
-                    const userEmail = (l.users?.email || '').toLowerCase()
+                            // Filter by search query
+                            if (searchQuery) {
+                                filtered = filtered.filter(l => {
+                                    const name = (l.name || '').toLowerCase()
+                                    const email = (l.email || '').toLowerCase()
+                                    const account = (l.account_name || '').toLowerCase()
+                                    const owner = (l.owner || '').toLowerCase()
+                                    const userName = (l.users?.name || '').toLowerCase()
+                                    const userEmail = (l.users?.email || '').toLowerCase()
 
-                    return name.includes(searchQuery) ||
-                        email.includes(searchQuery) ||
-                        account.includes(searchQuery) ||
-                        owner.includes(searchQuery) ||
-                        userName.includes(searchQuery) ||
-                        userEmail.includes(searchQuery)
-                })
-            }
+                                    return name.includes(searchQuery) ||
+                                        email.includes(searchQuery) ||
+                                        account.includes(searchQuery) ||
+                                        owner.includes(searchQuery) ||
+                                        userName.includes(searchQuery) ||
+                                        userEmail.includes(searchQuery)
+                                })
+                            }
 
-            displayLeads(filtered)
-        }
+                            displayLeads(filtered)
+                        }
 
-        function clearFilter() {
-            document.getElementById('filter-status').value = ''
-            document.getElementById('search-query').value = ''
-            displayLeads(allLeads)
-        }
+                        function clearFilter() { clearAllAdminFilters(); }
 
-        loadLeads()
-    </script>
+                        async function openLeadDetails(leadId) {
+                            editingLeadId = leadId;
+                            const lead = allLeads.find(l => l.id === leadId);
+                            if (!lead) return;
+
+                            // Fill overview form
+                            document.getElementById('details-lead-name').textContent = lead.name;
+                            document.getElementById('edit-lead-id').value = lead.id;
+                            document.getElementById('edit-lead-name').value = lead.name;
+                            document.getElementById('edit-lead-contact').value = lead.contact;
+                            document.getElementById('edit-lead-email').value = lead.email || '';
+                            document.getElementById('edit-lead-status').value = lead.status;
+                            document.getElementById('edit-lead-owner').value = lead.owner || '';
+                            document.getElementById('edit-lead-next-action').value = lead.next_action || '';
+                            document.getElementById('edit-lead-follow-up').value = lead.follow_up_date || '';
+                            document.getElementById('edit-lead-expected-close').value = lead.expected_close || '';
+
+                            // Switch to overview tab by default
+                            switchDetailsTab('overview');
+
+                            // Show offcanvas
+                            const offcanvasElement = document.getElementById('leadDetailsOffcanvas');
+                            const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasElement) || new bootstrap.Offcanvas(offcanvasElement);
+                            offcanvas.show();
+
+                            // Load history
+                            loadLeadHistory(leadId);
+                        }
+
+                        function switchDetailsTab(tab) {
+                            const overviewTab = document.getElementById('tab-overview');
+                            const timelineTab = document.getElementById('tab-timeline');
+                            const links = document.querySelectorAll('#detailsTabs .nav-link');
+
+                            if (tab === 'overview') {
+                                overviewTab.classList.remove('d-none');
+                                timelineTab.classList.add('d-none');
+                                links[0].classList.add('active');
+                                links[1].classList.remove('active');
+                            } else {
+                                overviewTab.classList.add('d-none');
+                                timelineTab.classList.remove('d-none');
+                                links[0].classList.remove('active');
+                                links[1].classList.add('active');
+                            }
+                        }
+
+                        async function loadLeadHistory(leadId) {
+                            const container = document.getElementById('timeline-container');
+                            container.innerHTML = '<p class="text-muted text-center py-4">Loading history...</p>';
+
+                            try {
+                                const history = await getLeadHistory(leadId);
+                                if (!history || history.length === 0) {
+                                    container.innerHTML = '<p class="text-muted text-center py-4">No activity yet.</p>';
+                                    return;
+                                }
+
+                                container.innerHTML = history.map(item => `
+                    <div class="timeline-item">
+                        <div class="timeline-dot">
+                            <i class="fas ${item.action.includes('Created') ? 'fa-plus' : 'fa-edit'}"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-time">${new Date(item.created_at).toLocaleString()}</div>
+                            <div class="timeline-title">${item.action}</div>
+                            <div class="timeline-desc">${item.details.summary || item.details.status || (item.details.changes ? item.details.changes.join(', ') : '') || ''}</div>
+                            <div class="small text-muted mt-1">by ${item.users?.name || item.users?.email || 'User'}</div>
+                        </div>
+                    </div>
+                `).join('');
+                            } catch (error) {
+                                console.error('Error loading history:', error);
+                                container.innerHTML = '<p class="text-danger text-center py-4">Error loading history.</p>';
+                            }
+                        }
+
+                        document.getElementById('edit-lead-form').addEventListener('submit', async function (e) {
+                            e.preventDefault();
+                            const saveBtn = document.getElementById('save-lead-btn');
+                            saveBtn.disabled = true;
+                            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
+
+                            try {
+                                const updates = {
+                                    name: document.getElementById('edit-lead-name').value,
+                                    contact: document.getElementById('edit-lead-contact').value,
+                                    email: document.getElementById('edit-lead-email').value,
+                                    status: document.getElementById('edit-lead-status').value,
+                                    owner: document.getElementById('edit-lead-owner').value,
+                                    next_action: document.getElementById('edit-lead-next-action').value,
+                                    follow_up_date: document.getElementById('edit-lead-follow-up').value,
+                                    expected_close: document.getElementById('edit-lead-expected-close').value
+                                };
+
+                                await updateLead(editingLeadId, updates, session.userId);
+                                showToast('Lead updated successfully', 'success');
+
+                                // Refresh list
+                                await loadLeads();
+
+                                // Refresh history tab
+                                loadLeadHistory(editingLeadId);
+
+                            } catch (error) {
+                                console.error('Error updating lead:', error);
+                                showToast('Failed to update lead', 'error');
+                            } finally {
+                                saveBtn.disabled = false;
+                                saveBtn.textContent = 'Save Changes';
+                            }
+                        })
+
+                        // Delete lead
+                        async function handleDeleteLead(leadId) {
+                            if (!confirm('Are you sure you want to delete this lead?')) {
+                                return
+                            }
+
+                            try {
+                                await deleteLead(leadId)
+                                showToast('Lead deleted successfully', 'success')
+                                loadLeads()
+                            } catch (error) {
+                                console.error('Error deleting lead:', error)
+                                showToast('Failed to delete lead', 'error')
+                            }
+                        }
+
+
+                        // Create lead form submission
+                        document.getElementById('add-lead-form').addEventListener('submit', async function (e) {
+                            e.preventDefault()
+
+                            const addBtn = document.getElementById('add-lead-btn')
+                            const spinner = addBtn.querySelector('.spinner-border')
+
+                            addBtn.disabled = true
+                            spinner.classList.remove('d-none')
+
+                            try {
+                                const lead = {
+                                    name: document.getElementById('lead-name').value,
+                                    contact: document.getElementById('lead-contact').value,
+                                    email: document.getElementById('lead-email').value,
+                                    owner: document.getElementById('lead-owner').value,
+                                    status: document.getElementById('lead-status').value,
+                                    accountName: document.getElementById('lead-account').value,
+                                    followUpDate: document.getElementById('follow-up-date').value,
+                                    nextAction: document.getElementById('next-action').value,
+                                    expectedClose: document.getElementById('expected-close').value
+                                }
+
+                                await createLead(session.userId, lead)
+
+                                // Reset form and close modal
+                                this.reset()
+                                bootstrap.Modal.getInstance(document.getElementById('addLeadModal')).hide()
+
+                                showToast('Lead added successfully!', 'success')
+
+                                // Reload list
+                                await loadLeads()
+                            } catch (error) {
+                                console.error('Error adding lead:', error)
+                                showToast('Failed to add lead', 'error')
+                            } finally {
+                                addBtn.disabled = false
+                                spinner.classList.add('d-none')
+                            }
+                        })
+
+                        loadLeads()
+                    </script>
 </body>
 
 </html>

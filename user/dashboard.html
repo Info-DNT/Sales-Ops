@@ -130,10 +130,13 @@
                 const leads = await getLeads(session.userId)
                 document.getElementById('total-leads').textContent = leads.length
 
-                // Load work report
-                const workReport = await getWorkReport(session.userId, today)
-                document.getElementById('total-calls').textContent = workReport?.total_calls || 0
-                document.getElementById('total-meetings').textContent = workReport?.total_meetings || 0
+                // Load calls count
+                const calls = await getCalls(session.userId)
+                document.getElementById('total-calls').textContent = calls.length
+
+                // Load meetings count
+                const meetings = await getMeetings(session.userId)
+                document.getElementById('total-meetings').textContent = meetings.length
 
                 // Load quotations
                 quotations = await getQuotations(session.userId)
