@@ -82,6 +82,7 @@ function generateUserNav(currentPage) {
         </div>
         <p class="text-white-50 small mb-0 mt-2 user-name"></p>
       </div>
+
       <ul class="nav-menu">
         ${navItems.map(item => {
     if (item.hasDropdown) {
@@ -157,9 +158,12 @@ function generateAdminNav(currentPage) {
     
     <nav class="sidebar">
       <div class="sidebar-header">
-        <img src="../assets/logo.png" alt="Air Medical 24x7" class="sidebar-logo">
+        <div class="logo-container">
+          <img src="../assets/logo.png" alt="Air Medical 24x7" class="sidebar-logo">
+        </div>
         <p class="text-white-50 small mb-0 mt-2 user-name"></p>
       </div>
+
       <ul class="nav-menu">
         ${navItems.map(item => {
     if (item.hasDropdown) {

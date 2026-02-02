@@ -27,6 +27,9 @@
                     <button class="btn btn-outline-secondary" onclick="clearSearch()">
                         <i class="fas fa-times"></i> Clear
                     </button>
+                    <button class="btn btn-outline-primary" onclick="exportCalls()">
+                        <i class="fas fa-file-export"></i> Export CSV
+                    </button>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCallModal">
                         <i class="fas fa-plus"></i> Add Call
                     </button>
@@ -288,6 +291,11 @@
 
         // Initialize
         loadCalls()
+
+        window.exportCalls = function () {
+            const headers = ['Client Name', 'Phone', 'Designation', 'Hospital', 'User', 'Created'];
+            exportToCSV(calls, 'All_Calls', headers);
+        }
 
         // Auto-refresh every 30 seconds
         setInterval(loadCalls, 30000)

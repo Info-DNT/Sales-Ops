@@ -17,6 +17,9 @@
             <div class="page-header flex-wrap gap-3">
                 <h2 class="mb-0">All Leads</h2>
                 <div class="d-flex flex-wrap gap-2 w-100-mobile align-items-center">
+                    <button class="btn btn-outline-primary flex-grow-1" onclick="exportLeads()">
+                        <i class="fas fa-file-export"></i> Export CSV
+                    </button>
                     <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addLeadModal">
                         <i class="fas fa-plus"></i> Add Lead
                     </button>
@@ -626,6 +629,11 @@
                         })
 
                         loadLeads()
+
+                        window.exportLeads = function () {
+                            const headers = ['Name', 'Phone', 'Email', 'Status', 'User', 'Created'];
+                            exportToCSV(leads, 'All_Leads', headers);
+                        }
                     </script>
 </body>
 

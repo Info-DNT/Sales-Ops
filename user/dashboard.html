@@ -65,14 +65,21 @@
                 </div>
             </div>
 
-            <!-- Recent Quotations -->
-            <div class="recent-section">
-                <h5 class="mb-3">Recent Quotations</h5>
-                <div id="recent-quotations" class="quotation-list">
-                    <p class="text-muted">Loading...</p>
+            <!-- Today's Reminders -->
+            <div class="reminders-section mt-4">
+                <h5 class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-bell text-warning me-2"></i> Today's Reminders
+                    <span id="reminder-count" class="badge bg-danger ms-2 d-none">0</span>
+                </h5>
+                <div id="reminders-list">
+                    <p class="text-muted">Checking for reminders...</p>
                 </div>
             </div>
+
         </div>
+
+
+    </div>
     </div>
 
     <!-- Request Quotation Modal -->
@@ -109,7 +116,6 @@
 
         // Get session
         const session = getCurrentSession()
-        let quotations = []
 
         // Load dashboard data
         async function updateDashboard() {
@@ -138,38 +144,55 @@
                 const meetings = await getMeetings(session.userId)
                 document.getElementById('total-meetings').textContent = meetings.length
 
-                // Load quotations
-                quotations = await getQuotations(session.userId)
-                displayRecentQuotations()
+
+                // Load reminders
+                displayReminders(leads)
 
             } catch (error) {
                 console.error('Error loading dashboard:', error)
             }
         }
 
-        function displayRecentQuotations() {
-            const quotationContainer = document.getElementById('recent-quotations')
 
-            if (!quotations || quotations.length === 0) {
-                quotationContainer.innerHTML = '<p class="text-muted">No quotations yet. Create one to get started.</p>'
+        function displayReminders(leads) {
+            const reminderContainer = document.getElementById('reminders-list')
+            const reminderCountBadge = document.getElementById('reminder-count')
+
+            const today = new Date().toISOString().split('T')[0]
+
+            const reminders = leads.filter(lead => {
+                if (!lead.follow_up_date) return false
+                return lead.follow_up_date <= today && lead.status !== 'Qualified' && lead.status !== 'Lost'
+            }).sort((a, b) => new Date(a.follow_up_date) - new Date(b.follow_up_date))
+
+            if (reminders.length === 0) {
+                reminderContainer.innerHTML = '<p class="text-muted">No urgent follow-ups for today. Great job!</p>'
+                reminderCountBadge.classList.add('d-none')
                 return
             }
 
-            const recentQuotations = quotations.slice(0, 5)
+            reminderCountBadge.textContent = reminders.length
+            reminderCountBadge.classList.remove('d-none')
 
-            quotationContainer.innerHTML = recentQuotations
-                .map(quotation => `
-                    <div class="quotation-item">
-                        <div class="quotation-info">
-                            <h6>${quotation.client_name}</h6>
-                            <p>${quotation.description || 'No description'}</p>
-                            <p class="small text-muted">Created: ${new Date(quotation.created_at).toLocaleDateString()}</p>
+            reminderContainer.innerHTML = reminders
+                .map(lead => {
+                    const isOverdue = lead.follow_up_date < today
+                    return `
+                        <div class="reminder-card ${isOverdue ? 'overdue' : ''}" onclick="window.location.href='leads.html?id=${lead.id}'">
+                            <div class="reminder-icon">
+                                <i class="fas ${isOverdue ? 'fa-exclamation-triangle' : 'fa-clock'}"></i>
+                            </div>
+                            <div class="reminder-content">
+                                <h6>Follow up with ${lead.name}</h6>
+                                <p>${isOverdue ? 'Overdue' : 'Due today'}: ${new Date(lead.follow_up_date).toLocaleDateString()}</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
                         </div>
-                        <div class="quotation-amount">₹${parseFloat(quotation.amount).toLocaleString('en-IN')}</div>
-                    </div>
-                `)
+                    `
+                })
                 .join('')
         }
+
 
         // Initialize dashboard
         updateDashboard()

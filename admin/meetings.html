@@ -25,6 +25,9 @@
                     <button class="btn btn-outline-secondary" onclick="clearSearch()">
                         <i class="fas fa-times"></i> Clear
                     </button>
+                    <button class="btn btn-outline-primary" onclick="exportMeetings()">
+                        <i class="fas fa-file-export"></i> Export CSV
+                    </button>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMeetingModal">
                         <i class="fas fa-plus"></i> Add Meeting
                     </button>
@@ -270,6 +273,11 @@
 
             // Initialize
             loadMeetings()
+
+            window.exportMeetings = function () {
+                const headers = ['Meeting With', 'Client Name', 'Agenda', 'Outcome', 'User', 'Created'];
+                exportToCSV(meetings, 'All_Meetings', headers);
+            }
 
             // Auto-refresh every 30 seconds
             setInterval(loadMeetings, 30000)
