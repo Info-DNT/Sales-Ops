@@ -23,49 +23,65 @@ exports.handler = async (event, context) => {
 
     try {
         const payload = JSON.parse(event.body);
-        console.log('Received lead from Zoho:', payload);
-
-        // Required fields mapping (matched to your Zoho Webhook screenshot)
-        const leadData = {
-            id: payload.ID || payload.id || undefined, // Supabase PK or Zoho ID
-            name: payload.Name || payload.Last_Name || 'Unknown',
-            email: payload.Email || payload.email || '',
-            contact: payload.Phone || payload.phone || payload.Mobile || '',
-            status: 'New',
-            source: 'crm', // Matches the UI class 'crm-lead'
-            lead_source: payload.Lead_Source || 'Zoho CRM', // Matches DB column
-            created_at: new Date().toISOString()
-        };
+        console.log('Incoming Zoho Payload:', JSON.stringify(payload, null, 2));
 
         if (!SUPABASE_SERVICE_ROLE_KEY) {
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' })
-            };
+            throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing in Netlify environment variables');
         }
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-        // Simple insert for the test (more robust against schema differences)
+        // 1. Try to find a default Admin user to assign the lead to
+        // This prevents foreign key errors if user_id is required
+        const { data: adminUsers } = await supabase
+            .from('users')
+            .select('id')
+            .eq('role', 'admin')
+            .limit(1);
+
+        const defaultUserId = adminUsers && adminUsers.length > 0 ? adminUsers[0].id : null;
+
+        // 2. Map Zoho fields (ID, Name, Phone, Email)
+        const leadData = {
+            // We let Supabase generate the UUID for 'id'
+            name: payload.Name || payload.Last_Name || 'Unknown CRM Lead',
+            email: payload.Email || payload.email || '',
+            contact: payload.Phone || payload.phone || payload.Mobile || '',
+            status: 'New',
+            source: 'crm',
+            lead_source: payload.Lead_Source || 'Zoho CRM',
+            user_id: defaultUserId, // Assign to first admin found
+            created_at: new Date().toISOString()
+        };
+
+        console.log('Mapping to LeadData:', JSON.stringify(leadData, null, 2));
+
+        // 3. Insert into database
         const { data, error } = await supabase
             .from('leads')
             .insert(leadData)
             .select();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase DB Error:', JSON.stringify(error, null, 2));
+            return {
+                statusCode: 400, // Return 400 so Zoho logs it as a failure
+                headers,
+                body: JSON.stringify({ success: false, error: error.message, details: error })
+            };
+        }
 
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ success: true, message: 'Lead processed', data })
+            body: JSON.stringify({ success: true, message: 'Lead added successfully', data })
         };
     } catch (error) {
-        console.error('Error processing Zoho lead:', error);
+        console.error('Function Execution Error:', error.message);
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: error.message })
+            body: JSON.stringify({ success: false, error: error.message })
         };
     }
 };
