@@ -1,11 +1,9 @@
 const { createClient } = require('@supabase/supabase-js');
 
-// Initialize Supabase from environment variables
 const SUPABASE_URL = 'https://lgedjkyafshufxhjywhk.supabase.co';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 exports.handler = async (event, context) => {
-    // Enable CORS
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
@@ -13,80 +11,71 @@ exports.handler = async (event, context) => {
         'Content-Type': 'application/json'
     };
 
-    if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 200, headers, body: '' };
-    }
-
-    if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
-    }
+    if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
 
     try {
-        const payload = JSON.parse(event.body);
-        console.log('Incoming Zoho Payload:', JSON.stringify(payload, null, 2));
+        const payload = JSON.parse(event.body || '{}');
 
         if (!SUPABASE_SERVICE_ROLE_KEY) {
-            throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing');
+            return {
+                statusCode: 200, // We return 200 so Zoho shows this body
+                headers,
+                body: JSON.stringify({ debug_error: 'SUPABASE_SERVICE_ROLE_KEY is missing in Netlify settings' })
+            };
         }
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-        // 1. Try to find a default Admin user
-        let defaultUserId = null;
-        try {
-            const { data: adminUsers } = await supabase
-                .from('users')
-                .select('id')
-                .eq('role', 'admin')
-                .limit(1);
-            if (adminUsers && adminUsers.length > 0) {
-                defaultUserId = adminUsers[0].id;
-            }
-        } catch (e) {
-            console.log('Admin lookup skipped');
-        }
-
-        // 2. Map Zoho fields (ID, Name, Phone, Email, Company)
+        // Map data - Minimal set for testing
         const leadData = {
-            name: payload.Name || payload.Last_Name || 'Unknown CRM Lead',
-            email: payload.Email || payload.email || '',
-            contact: payload.Phone || payload.phone || payload.Mobile || '',
+            name: payload.Name || payload.Last_Name || 'Test Lead',
+            email: payload.Email || '',
+            contact: payload.Phone || '',
             status: 'New',
             source: 'crm',
-            lead_source: payload.Lead_Source || 'Zoho CRM',
+            lead_source: 'Zoho CRM',
             account_name: payload.Company || 'N/A',
-            user_id: defaultUserId,
             created_at: new Date().toISOString()
         };
 
-        console.log('Final Lead Object:', JSON.stringify(leadData, null, 2));
-
-        // 3. Insert into database
+        // Attempt insert
         const { data, error } = await supabase
             .from('leads')
             .insert(leadData)
             .select();
 
         if (error) {
-            console.error('Supabase DB Error:', error);
             return {
-                statusCode: 400,
+                statusCode: 200, // Return 200 even on error for debugging
                 headers,
-                body: JSON.stringify({ success: false, error: error.message })
+                body: JSON.stringify({
+                    debug_mode: true,
+                    status: 'Database Error',
+                    message: error.message,
+                    code: error.code,
+                    hint: error.hint,
+                    details: error.details,
+                    received_payload: payload
+                })
             };
         }
 
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ success: true, message: 'Lead added', data })
+            body: JSON.stringify({ success: true, message: 'Debug: Lead added', data })
         };
+
     } catch (error) {
-        console.error('Execution Error:', error.message);
         return {
-            statusCode: 500,
+            statusCode: 200,
             headers,
-            body: JSON.stringify({ success: false, error: error.message })
+            body: JSON.stringify({
+                debug_mode: true,
+                status: 'Function Crash',
+                error: error.message,
+                stack: error.stack
+            })
         };
     }
 };
