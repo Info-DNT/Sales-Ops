@@ -230,40 +230,58 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="lead-owner" class="form-label">Lead Owner</label>
-                                <input type="text" class="form-control" id="lead-owner" placeholder="Enter lead owner"
-                                    required>
+                                <input type="text" class="form-control" id="lead-owner">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-source" class="form-label">Lead Source</label>
+                                <select class="form-control" id="lead-source">
+                                    <option value="">Select Source</option>
+                                    <option value="WhatsApp">WhatsApp</option>
+                                    <option value="Hospital">Hospital</option>
+                                    <option value="Reference">Reference</option>
+                                    <option value="Social Media">Social Media</option>
+                                    <option value="Consulates">Consulates</option>
+                                    <option value="Embassy">Embassy</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-field" class="form-label">Field</label>
+                                <select class="form-control" id="lead-field">
+                                    <option value="">Select Field</option>
+                                    <option value="Medical Tourism">Medical Tourism</option>
+                                    <option value="Medical Evacuation">Medical Evacuation</option>
+                                </select>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="lead-status" class="form-label">Status</label>
-                                <select class="form-select" id="lead-status" required>
+                                <select class="form-select" id="lead-status">
                                     <option value="">Select status</option>
                                     <option value="New">New</option>
                                     <option value="In Progress">In Progress</option>
                                     <option value="Qualified">Qualified</option>
                                     <option value="Closed">Closed</option>
+                                    <option value="Not Converted">Not Converted</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="lead-account" class="form-label">Account Name</label>
-                                <input type="text" class="form-control" id="lead-account"
-                                    placeholder="Enter account name" required>
+                                <label for="follow-up-date" class="form-label">Follow-up Date</label>
+                                <input type="date" class="form-control" id="follow-up-date" required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="lead-followup" class="form-label">Follow-up Date</label>
-                                <input type="date" class="form-control" id="lead-followup" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="lead-expected" class="form-label">Expected Close</label>
-                                <input type="date" class="form-control" id="lead-expected">
+                                <label for="expected-close" class="form-label">Expected Close</label>
+                                <input type="date" class="form-control" id="expected-close">
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="lead-action" class="form-label">Next Action</label>
-                            <textarea class="form-control" id="lead-action" rows="2" placeholder="Enter next action"
+                            <label for="next-action" class="form-label">Next Action</label>
+                            <textarea class="form-control" id="next-action" rows="2" placeholder="Enter next action"
                                 required></textarea>
                         </div>
                         <div class="mb-3">
@@ -383,10 +401,11 @@
                     email: document.getElementById('lead-email').value,
                     owner: document.getElementById('lead-owner').value,
                     status: document.getElementById('lead-status').value,
-                    accountName: document.getElementById('lead-account').value,
-                    followUpDate: document.getElementById('lead-followup').value,
-                    nextAction: document.getElementById('lead-action').value,
-                    expectedClose: document.getElementById('lead-expected').value
+                    leadSource: document.getElementById('lead-source').value,
+                    leadField: document.getElementById('lead-field').value,
+                    followUpDate: document.getElementById('follow-up-date').value,
+                    nextAction: document.getElementById('next-action').value,
+                    expectedClose: document.getElementById('expected-close').value
                 }
 
                 await createLead(session.userId, leadData)

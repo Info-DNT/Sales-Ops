@@ -17,7 +17,8 @@
         <div class="main-content">
             <div class="page-header">
                 <h2>Home Dashboard</h2>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quotationModal">
+                <button class="btn btn-primary d-none-quotation" data-bs-toggle="modal"
+                    data-bs-target="#quotationModal">
                     <i class="fas fa-file-invoice-dollar"></i> Request Quotation
                 </button>
             </div>
@@ -162,11 +163,19 @@
 
             const reminders = leads.filter(lead => {
                 if (!lead.follow_up_date) return false
-                return lead.follow_up_date <= today && lead.status !== 'Qualified' && lead.status !== 'Lost'
+                return lead.follow_up_date <= today && lead.status !== 'Qualified' && lead.status !== 'Closed' && lead.status !== 'Not Converted'
             }).sort((a, b) => new Date(a.follow_up_date) - new Date(b.follow_up_date))
 
             if (reminders.length === 0) {
-                reminderContainer.innerHTML = '<p class="text-muted">No urgent follow-ups for today. Great job!</p>'
+                reminderContainer.innerHTML = `
+                    <div class="text-center py-5">
+                        <div class="mb-3 text-muted" style="font-size: 3rem;">
+                            <i class="fas fa-check-circle text-success opacity-25"></i>
+                        </div>
+                        <h6 class="text-muted">All caught up!</h6>
+                        <p class="text-muted small">No urgent follow-ups for today.</p>
+                    </div>
+                `
                 reminderCountBadge.classList.add('d-none')
                 return
             }
@@ -174,23 +183,30 @@
             reminderCountBadge.textContent = reminders.length
             reminderCountBadge.classList.remove('d-none')
 
-            reminderContainer.innerHTML = reminders
-                .map(lead => {
-                    const isOverdue = lead.follow_up_date < today
-                    return `
-                        <div class="reminder-card ${isOverdue ? 'overdue' : ''}" onclick="window.location.href='leads.html?id=${lead.id}'">
-                            <div class="reminder-icon">
-                                <i class="fas ${isOverdue ? 'fa-exclamation-triangle' : 'fa-clock'}"></i>
+            reminderContainer.innerHTML = `
+                <div class="reminders-grid">
+                    ${reminders.map(lead => {
+                const isOverdue = lead.follow_up_date < today
+                return `
+                            <div class="premium-reminder-card" onclick="window.location.href='leads.html?id=${lead.id}'">
+                                <span class="reminder-badge ${isOverdue ? 'overdue' : 'today'}">
+                                    ${isOverdue ? 'Overdue' : 'Due Today'}
+                                </span>
+                                <div class="reminder-icon-box ${isOverdue ? 'overdue' : 'due-today'}">
+                                    <i class="fas ${isOverdue ? 'fa-exclamation-triangle' : 'fa-calendar-day'}"></i>
+                                </div>
+                                <div class="reminder-info">
+                                    <h6>${lead.name}</h6>
+                                    <span>${isOverdue ? 'Was due on' : 'Scheduled for'} ${new Date(lead.follow_up_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                </div>
+                                <div class="reminder-action-btn">
+                                    <i class="fas fa-chevron-right"></i>
+                                </div>
                             </div>
-                            <div class="reminder-content">
-                                <h6>Follow up with ${lead.name}</h6>
-                                <p>${isOverdue ? 'Overdue' : 'Due today'}: ${new Date(lead.follow_up_date).toLocaleDateString()}</p>
-                            </div>
-                            <i class="fas fa-chevron-right text-muted"></i>
-                        </div>
-                    `
-                })
-                .join('')
+                        `
+            }).join('')}
+                </div>
+            `
         }
 
 

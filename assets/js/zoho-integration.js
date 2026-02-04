@@ -6,9 +6,9 @@
 // Make.com Webhook URLs
 // Replace these with your scenario URLs from Make.com
 const MAKE_WEBHOOKS = {
-    fetchLeads: 'https://hook.eu1.make.com/7ljqht2ikevvjymtsxvbcuef8gb5bly3', // ✅ Scenario 1: Fetch Leads
-    updateLead: '', // ⚠️ TODO: Add Scenario 2 URL
-    assignLead: ''  // ⚠️ TODO: Add Scenario 3 URL
+    fetchLeads: 'https://hook.eu1.make.com/7ljqht2ikevvjymtsxvbcuef8gb5bly3',
+    updateLead: '', // MISSING: Add Update Lead webhook URL
+    assignLead: ''  // MISSING: Add Assign Lead webhook URL
 }
 
 /**
@@ -69,7 +69,7 @@ async function syncCRMLeads() {
         }
 
         const data = await response.json()
-        console.log('CRM Proxy Response:', data)
+        // console.log('CRM Proxy Response:', data)
 
         // 2. Extract leads (handle different response formats)
         let rawLeads = []
@@ -94,7 +94,7 @@ async function syncCRMLeads() {
 
         // Flatten nested array if needed (handles [[lead1, lead2]])
         if (rawLeads.length > 0 && Array.isArray(rawLeads[0])) {
-            console.log('Detected nested array, flattening...')
+            // console.log('Detected nested array, flattening...')
             rawLeads = rawLeads.flat()
         }
 
@@ -340,7 +340,7 @@ async function updateCRMLead(leadData) {
         }
 
         const result = await response.json()
-        console.log('CRM update successful:', result)
+        // console.log('CRM update successful:', result)
         return true
 
     } catch (error) {
@@ -426,7 +426,7 @@ function configureMakeWebhooks(fetchUrl, updateUrl, assignUrl) {
     // Save to localStorage for persistence
     localStorage.setItem('makeWebhooks', JSON.stringify(MAKE_WEBHOOKS))
 
-    console.log('Make.com webhooks configured:', MAKE_WEBHOOKS)
+    // console.log('Make.com webhooks configured:', MAKE_WEBHOOKS)
 }
 
 // Load saved webhooks on page load
@@ -435,6 +435,6 @@ function configureMakeWebhooks(fetchUrl, updateUrl, assignUrl) {
     if (saved) {
         const webhooks = JSON.parse(saved)
         Object.assign(MAKE_WEBHOOKS, webhooks)
-        console.log('Loaded Make.com webhooks from storage')
+        // console.log('Loaded Make.com webhooks from storage')
     }
 })()

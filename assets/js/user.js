@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Initialize App
 function initializeApp() {
-  console.log("[v0] Initializing application")
+  // console.log("[v0] Initializing application")
 
   // Set today's date
   const today = new Date()
@@ -71,7 +71,7 @@ function setupEventListeners() {
 
 // Navigation
 function navigateToPage(pageName) {
-  console.log("[v0] Navigating to page:", pageName)
+  // console.log("[v0] Navigating to page:", pageName)
 
   // Hide all pages
   document.querySelectorAll(".page-container").forEach((page) => {
@@ -113,7 +113,7 @@ function updateCurrentTime() {
 
 // ATTENDANCE MODULE
 function clockIn() {
-  console.log("[v0] Clock in clicked")
+  // console.log("[v0] Clock in clicked")
 
   const now = new Date()
   const today = now.toISOString().split("T")[0]
@@ -146,11 +146,11 @@ function clockIn() {
   document.getElementById("attendance-time-status").textContent = "Currently Working"
   document.getElementById("attendance-status").textContent = "Clocked In"
 
-  console.log("[v0] Clocked in at:", clockInTime)
+  // console.log("[v0] Clocked in at:", clockInTime)
 }
 
 function clockOut() {
-  console.log("[v0] Clock out clicked")
+  // console.log("[v0] Clock out clicked")
 
   const now = new Date()
   const today = now.toISOString().split("T")[0]
@@ -184,12 +184,12 @@ function clockOut() {
   document.getElementById("attendance-time-status").textContent = "Shift Completed"
   document.getElementById("attendance-status").textContent = "Clocked Out"
 
-  console.log("[v0] Clocked out at:", clockOutTime)
+  // console.log("[v0] Clocked out at:", clockOutTime)
   alert(`Shift completed! Hours worked: ${diffHours}h ${diffMinutes}m`)
 }
 
 function displayAttendanceHistory() {
-  console.log("[v0] Displaying attendance history")
+  // console.log("[v0] Displaying attendance history")
 
   const historyContainer = document.getElementById("attendance-history")
 
@@ -221,7 +221,7 @@ function displayAttendanceHistory() {
 
 // USER DETAILS MODULE
 function saveUserDetails(e) {
-  console.log("[v0] Saving user details")
+  // console.log("[v0] Saving user details")
 
   e.preventDefault()
 
@@ -236,11 +236,11 @@ function saveUserDetails(e) {
   displayUserDetails()
   alert("User details saved successfully!")
 
-  console.log("[v0] User details saved:", appState.currentUser)
+  // console.log("[v0] User details saved:", appState.currentUser)
 }
 
 function displayUserDetails() {
-  console.log("[v0] Displaying user details")
+  // console.log("[v0] Displaying user details")
 
   const displayContainer = document.getElementById("user-details-display")
 
@@ -261,7 +261,7 @@ function displayUserDetails() {
 
 // WORK REPORT MODULE
 function saveWorkReport(e) {
-  console.log("[v0] Saving work report")
+  // console.log("[v0] Saving work report")
 
   e.preventDefault()
 
@@ -279,11 +279,11 @@ function saveWorkReport(e) {
   alert("Work report saved successfully!")
   updateDashboard()
 
-  console.log("[v0] Work report saved:", appState.workReport)
+  // console.log("[v0] Work report saved:", appState.workReport)
 }
 
 function displayWorkReport() {
-  console.log("[v0] Displaying work report")
+  // console.log("[v0] Displaying work report")
 
   const displayContainer = document.getElementById("work-report-display")
 
@@ -318,7 +318,7 @@ function displayWorkReport() {
 
 // QUOTATION MODULE
 function saveQuotation(e) {
-  console.log("[v0] Saving quotation")
+  // console.log("[v0] Saving quotation")
 
   e.preventDefault()
 
@@ -340,11 +340,11 @@ function saveQuotation(e) {
   modal.hide()
 
   alert("Quotation created successfully!")
-  console.log("[v0] Quotation saved:", quotation)
+  // console.log("[v0] Quotation saved:", quotation)
 }
 
 function displayRecentQuotations() {
-  console.log("[v0] Displaying recent quotations")
+  // console.log("[v0] Displaying recent quotations")
 
   const quotationContainer = document.getElementById("recent-quotations")
 
@@ -373,7 +373,7 @@ function displayRecentQuotations() {
 
 // LEADS MODULE
 function addLead(e) {
-  console.log("[v0] Adding new lead")
+  // console.log("[v0] Adding new lead")
 
   e.preventDefault()
 
@@ -402,11 +402,11 @@ function addLead(e) {
   modal.hide()
 
   alert("Lead added successfully!")
-  console.log("[v0] Lead added:", lead)
+  // console.log("[v0] Lead added:", lead)
 }
 
 function displayLeads() {
-  console.log("[v0] Displaying leads")
+  // console.log("[v0] Displaying leads")
 
   const leadsContainer = document.getElementById("leads-list")
 
@@ -469,12 +469,12 @@ function displayLeads() {
 }
 
 function editLead(leadId) {
-  console.log("[v0] Editing lead:", leadId)
+  // console.log("[v0] Editing lead:", leadId)
   alert("Edit functionality can be implemented. Lead ID: " + leadId)
 }
 
 function deleteLead(leadId) {
-  console.log("[v0] Deleting lead:", leadId)
+  // console.log("[v0] Deleting lead:", leadId)
 
   if (confirm("Are you sure you want to delete this lead?")) {
     appState.leads = appState.leads.filter((lead) => lead.id !== leadId)
@@ -486,7 +486,7 @@ function deleteLead(leadId) {
 
 // DASHBOARD UPDATE
 function updateDashboard() {
-  console.log("[v0] Updating dashboard")
+  // console.log("[v0] Updating dashboard")
 
   // Update attendance status
   const today = new Date().toISOString().split("T")[0]
@@ -509,12 +509,12 @@ function updateDashboard() {
 
 // STORAGE MANAGEMENT
 function saveDataToStorage() {
-  console.log("[v0] Saving data to localStorage")
+  // console.log("[v0] Saving data to localStorage")
   localStorage.setItem("salesAppData", JSON.stringify(appState))
 }
 
 function loadDataFromStorage() {
-  console.log("[v0] Loading data from localStorage")
+  // console.log("[v0] Loading data from localStorage")
 
   const storedData = localStorage.getItem("salesAppData")
   if (storedData) {
@@ -525,7 +525,7 @@ function loadDataFromStorage() {
       appState.workReport = data.workReport || {}
       appState.quotations = data.quotations || []
       appState.leads = data.leads || []
-      console.log("[v0] Data loaded successfully")
+      // console.log("[v0] Data loaded successfully")
     } catch (error) {
       console.error("[v0] Error loading data:", error)
     }
@@ -534,7 +534,7 @@ function loadDataFromStorage() {
 
 // SETTINGS
 function exportData() {
-  console.log("[v0] Exporting data")
+  // console.log("[v0] Exporting data")
 
   const dataStr = JSON.stringify(appState, null, 2)
   const dataBlob = new Blob([dataStr], { type: "application/json" })
@@ -548,7 +548,7 @@ function exportData() {
 }
 
 function clearAllData() {
-  console.log("[v0] Clearing all data")
+  // console.log("[v0] Clearing all data")
 
   appState.currentUser = {}
   appState.attendance = []

@@ -15,20 +15,41 @@
         <!-- Sidebar will be inserted here -->
 
         <div class="main-content">
-            <div class="page-header">
-                <h2>Meetings</h2>
-                <div class="d-flex gap-2">
-                    <input type="date" class="form-control" id="search-date" style="width: 200px;"
-                        placeholder="Search by date">
-                    <button class="btn btn-secondary" onclick="searchByDate()">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                    <button class="btn btn-outline-secondary" onclick="clearSearch()">
-                        <i class="fas fa-times"></i> Clear
-                    </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMeetingModal">
+            <div class="page-header flex-wrap gap-3">
+                <h2 class="mb-0">Meetings</h2>
+                <div class="d-flex flex-wrap gap-2 w-100-mobile align-items-center">
+                    <div class="d-none d-lg-flex gap-2">
+                        <input type="date" class="form-control" id="header-search-date" style="width: 150px;"
+                            onchange="syncAndSearch('date', this.value)">
+                        <input type="text" class="form-control" id="header-search-client" style="width: 150px;"
+                            placeholder="Client" oninput="syncAndSearch('client', this.value)">
+                    </div>
+                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal"
+                        data-bs-target="#addMeetingModal">
                         <i class="fas fa-plus"></i> Add Meeting
                     </button>
+                </div>
+            </div>
+
+            <!-- Search/Filter -->
+            <div class="content-card mb-3">
+                <div class="row g-3">
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Search Date</label>
+                        <input type="date" class="form-control" id="search-date">
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Search Client</label>
+                        <input type="text" class="form-control" id="search-client" placeholder="Client name">
+                    </div>
+                    <div class="col-lg-4 col-md-12 d-flex align-items-end gap-2">
+                        <button class="btn btn-secondary flex-grow-1" onclick="searchMeetings()">
+                            <i class="fas fa-filter"></i> Apply
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearSearch()">
+                            Clear
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -118,26 +139,53 @@
             }
         }
 
-        // Search by date
-        async function searchByDate() {
+        // Search by date and/or client
+        async function searchMeetings() {
             const searchDate = document.getElementById('search-date').value
-            if (!searchDate) {
-                showToast('Please select a date', 'error')
-                return
+            const searchClient = document.getElementById('search-client').value
+
+            let filtered = allMeetings
+
+            // Filter by date if provided
+            if (searchDate) {
+                filtered = filtered.filter(meeting => {
+                    const meetingDate = meeting.meeting_date || meeting.created_at.split('T')[0]
+                    return meetingDate === searchDate
+                })
             }
 
-            const filtered = allMeetings.filter(meeting => {
-                const meetingDate = meeting.meeting_date || meeting.created_at.split('T')[0]
-                return meetingDate === searchDate
-            })
+            // Filter by client if provided
+            if (searchClient) {
+                filtered = filtered.filter(meeting => {
+                    return meeting.client_name.toLowerCase().includes(searchClient.toLowerCase()) ||
+                        meeting.meeting_with.toLowerCase().includes(searchClient.toLowerCase())
+                })
+            }
 
             meetings = filtered
             displayMeetings()
+
+            if (meetings.length === 0 && (searchDate || searchClient)) {
+                showToast('No meetings found matching your search criteria', 'info')
+            }
+        }
+
+        // Sync header search with main filters
+        function syncAndSearch(type, value) {
+            if (type === 'date') {
+                document.getElementById('search-date').value = value
+            } else if (type === 'client') {
+                document.getElementById('search-client').value = value
+            }
+            searchMeetings()
         }
 
         // Clear search
         function clearSearch() {
             document.getElementById('search-date').value = ''
+            document.getElementById('search-client').value = ''
+            document.getElementById('header-search-date').value = ''
+            document.getElementById('header-search-client').value = ''
             meetings = allMeetings
             displayMeetings()
         }

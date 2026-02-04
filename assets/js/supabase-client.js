@@ -273,24 +273,30 @@ async function getLeads(userId, filters = {}) {
 async function createLead(userId, lead) {
     const client = initSupabase();
 
+    const insertData = {
+        user_id: userId,
+        name: lead.name,
+        contact: lead.contact,
+        email: lead.email,
+        owner: lead.owner,
+        status: lead.status,
+        follow_up_date: lead.followUpDate || null,
+        next_action: lead.nextAction,
+        expected_close: lead.expectedClose || null,
+        lead_source: lead.leadSource || null, // Added
+        field: lead.leadField || null       // Added
+    };
+
     const { data, error } = await client
         .from('leads')
-        .insert({
-            user_id: userId,
-            name: lead.name,
-            contact: lead.contact,
-            email: lead.email,
-            owner: lead.owner,
-            status: lead.status,
-            account_name: lead.accountName,
-            follow_up_date: lead.followUpDate || null,
-            next_action: lead.nextAction,
-            expected_close: lead.expectedClose || null
-        })
+        .insert(insertData)
         .select()
         .single();
 
-    if (error) throw error;
+    if (error) {
+        console.error('Supabase Insert Error:', error);
+        throw error;
+    }
 
     // Log creation in history
     await logLeadActivity(data.id, userId, 'Lead Created', {
@@ -325,7 +331,6 @@ async function updateLead(leadId, updates, userId) {
             email: updates.email,
             owner: updates.owner,
             status: updates.status,
-            account_name: updates.accountName,
             follow_up_date: updates.followUpDate,
             next_action: updates.nextAction,
             expected_close: updates.expectedClose

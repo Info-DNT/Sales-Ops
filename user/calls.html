@@ -15,22 +15,40 @@
         <!-- Sidebar will be inserted here -->
 
         <div class="main-content">
-            <div class="page-header">
-                <h2>Calls</h2>
-                <div class="d-flex gap-2">
-                    <input type="date" class="form-control" id="search-date" style="width: 200px;"
-                        placeholder="Search by date">
-                    <input type="tel" class="form-control" id="search-phone" style="width: 200px;"
-                        placeholder="Search by phone number">
-                    <button class="btn btn-secondary" onclick="searchCalls()">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                    <button class="btn btn-outline-secondary" onclick="clearSearch()">
-                        <i class="fas fa-times"></i> Clear
-                    </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCallModal">
+            <div class="page-header flex-wrap gap-3">
+                <h2 class="mb-0">Calls</h2>
+                <div class="d-flex flex-wrap gap-2 w-100-mobile align-items-center">
+                    <div class="d-none d-lg-flex gap-2">
+                        <input type="date" class="form-control" id="header-search-date" style="width: 150px;"
+                            onchange="syncAndSearch('date', this.value)">
+                        <input type="tel" class="form-control" id="header-search-phone" style="width: 150px;"
+                            placeholder="Phone" oninput="syncAndSearch('phone', this.value)">
+                    </div>
+                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addCallModal">
                         <i class="fas fa-plus"></i> Add Call
                     </button>
+                </div>
+            </div>
+
+            <!-- Search/Filter -->
+            <div class="content-card mb-3">
+                <div class="row g-3">
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Search Date</label>
+                        <input type="date" class="form-control" id="search-date">
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Search Phone</label>
+                        <input type="tel" class="form-control" id="search-phone" placeholder="Phone number">
+                    </div>
+                    <div class="col-lg-4 col-md-12 d-flex align-items-end gap-2">
+                        <button class="btn btn-secondary flex-grow-1" onclick="searchCalls()">
+                            <i class="fas fa-filter"></i> Apply
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearSearch()">
+                            Clear
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -124,11 +142,6 @@
             const searchDate = document.getElementById('search-date').value
             const searchPhone = document.getElementById('search-phone').value
 
-            if (!searchDate && !searchPhone) {
-                showToast('Please enter a date or phone number to search', 'error')
-                return
-            }
-
             let filtered = allCalls
 
             // Filter by date if provided
@@ -149,15 +162,27 @@
             calls = filtered
             displayCalls()
 
-            if (calls.length === 0) {
+            if (calls.length === 0 && (searchDate || searchPhone)) {
                 showToast('No calls found matching your search criteria', 'info')
             }
+        }
+
+        // Sync header search with main filters
+        function syncAndSearch(type, value) {
+            if (type === 'date') {
+                document.getElementById('search-date').value = value
+            } else if (type === 'phone') {
+                document.getElementById('search-phone').value = value
+            }
+            searchCalls()
         }
 
         // Clear search
         function clearSearch() {
             document.getElementById('search-date').value = ''
             document.getElementById('search-phone').value = ''
+            document.getElementById('header-search-date').value = ''
+            document.getElementById('header-search-phone').value = ''
             calls = allCalls
             displayCalls()
         }

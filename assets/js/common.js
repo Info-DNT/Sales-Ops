@@ -85,10 +85,11 @@ function generateUserNav(currentPage) {
 
       <ul class="nav-menu">
         ${navItems.map(item => {
+    const hideClass = item.page === 'quotations' ? 'd-none-quotation' : '';
     if (item.hasDropdown) {
       const isLeadsActive = currentPage === 'leads' || currentPage === 'calls' || currentPage === 'meetings';
       return `
-              <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''}">
+              <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''} ${hideClass}">
                 <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">
                   <i class="fas ${item.icon}"></i> 
                   <span>${item.label}</span>
@@ -108,7 +109,7 @@ function generateUserNav(currentPage) {
             `;
     } else {
       return `
-              <li>
+              <li class="${hideClass}">
                 <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
                   <i class="fas ${item.icon}"></i> <span>${item.label}</span>
                 </a>
@@ -166,10 +167,11 @@ function generateAdminNav(currentPage) {
 
       <ul class="nav-menu">
         ${navItems.map(item => {
+    const hideClass = item.page === 'quotations' ? 'd-none-quotation' : '';
     if (item.hasDropdown) {
       const isLeadsActive = currentPage === 'leads' || currentPage === 'calls' || currentPage === 'meetings';
       return `
-              <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''}">
+              <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''} ${hideClass}">
                 <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">
                   <i class="fas ${item.icon}"></i> 
                   <span>${item.label}</span>
@@ -189,7 +191,7 @@ function generateAdminNav(currentPage) {
             `;
     } else {
       return `
-              <li>
+              <li class="${hideClass}">
                 <a href="${item.page}.html" class="nav-link ${currentPage === item.page ? 'active' : ''}">
                   <i class="fas ${item.icon}"></i> <span>${item.label}</span>
                 </a>
@@ -327,3 +329,58 @@ document.addEventListener('click', function (e) {
     closeMobileMenu()
   }
 })
+
+/**
+ * Export data to CSV and trigger download
+ * @param {Array} data - Array of objects to export
+ * @param {string} fileName - Name of the file (without extension)
+ * @param {Array} headers - Optional array of header names
+ */
+function exportToCSV(data, fileName, headers) {
+  if (!data || !data.length) {
+    showToast('No data to export', 'error');
+    return;
+  }
+
+  // If headers not provided, use keys from first object
+  const columns = headers || Object.keys(data[0]);
+
+  // Create CSV rows
+  const csvRows = [];
+
+  // Add headers
+  csvRows.push(columns.join(','));
+
+  // Add data rows
+  for (const row of data) {
+    const values = columns.map(header => {
+      // Find the corresponding key in the data object
+      // This handles cases where headers might not match keys exactly
+      const key = Object.keys(row).find(k => k.toLowerCase() === header.toLowerCase().replace(/\s/g, '_')) || header.toLowerCase().replace(/\s/g, '_');
+      let val = row[key] !== undefined ? row[key] : (row[header] !== undefined ? row[header] : '');
+
+      // Handle nulls and commas
+      if (val === null || val === undefined) val = '';
+      val = val.toString().replace(/"/g, '""'); // Escape double quotes
+      if (val.search(/("|,|\n)/g) >= 0) val = `"${val}"`; // Wrap in quotes if needed
+      return val;
+    });
+    csvRows.push(values.join(','));
+  }
+
+  // Create blob and download
+  const csvString = csvRows.join('\n');
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.setAttribute('href', url);
+  link.setAttribute('download', `${fileName}_${getCurrentDateString()}.csv`);
+  link.style.visibility = 'hidden';
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  showToast('Data exported successfully!', 'success');
+}

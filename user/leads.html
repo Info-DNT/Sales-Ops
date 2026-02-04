@@ -50,6 +50,7 @@
                             <option value="In Progress">In Progress</option>
                             <option value="Qualified">Qualified</option>
                             <option value="Closed">Closed</option>
+                            <option value="Not Converted">Not Converted</option>
                         </select>
                     </div>
                     <div class="col-lg-3 col-md-6 d-flex align-items-end gap-2">
@@ -112,6 +113,7 @@
                                     <option value="In Progress">In Progress</option>
                                     <option value="Qualified">Qualified</option>
                                     <option value="Closed">Closed</option>
+                                    <option value="Not Converted">Not Converted</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -120,9 +122,7 @@
                                     <option value="">Select Source</option>
                                     <option value="WhatsApp">WhatsApp</option>
                                     <option value="Hospital">Hospital</option>
-                                    <option value="Ads">Ads</option>
                                     <option value="Reference">Reference</option>
-                                    <option value="SEO">SEO</option>
                                     <option value="Social Media">Social Media</option>
                                     <option value="Consulates">Consulates</option>
                                     <option value="Embassy">Embassy</option>
@@ -131,11 +131,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="lead-account" class="form-label">Account Name</label>
-                                <input type="text" class="form-control" id="lead-account">
-                            </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label for="lead-field" class="form-label">Field</label>
                                 <select class="form-control" id="lead-field">
                                     <option value="">Select Field</option>
@@ -212,6 +208,7 @@
                                     <option value="In Progress">In Progress</option>
                                     <option value="Qualified">Qualified</option>
                                     <option value="Closed">Closed</option>
+                                    <option value="Not Converted">Not Converted</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -359,7 +356,6 @@
                         <div class="lead-header">
                             <div class="lead-title">
                                 <h6>${lead.name}</h6>
-                                <p class="text-muted small">${lead.account_name || 'No account specified'}</p>
                             </div>
                             <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>
                         </div>
@@ -399,22 +395,6 @@
                 .join('')
         }
 
-        // Delete lead
-        async function handleDeleteLead(leadId) {
-            if (!confirm('Are you sure you want to delete this lead?')) {
-                return
-            }
-
-            try {
-                await deleteLead(leadId)
-                leads = leads.filter(lead => lead.id !== leadId)
-                displayLeads()
-                showToast('Lead deleted successfully!', 'success')
-            } catch (error) {
-                console.error('Error deleting lead:', error)
-                showToast('Failed to delete lead', 'error')
-            }
-        }
 
         // Apply filters
         function applyFilters() {
@@ -443,7 +423,8 @@
                     email: document.getElementById('lead-email').value,
                     owner: document.getElementById('lead-owner').value,
                     status: document.getElementById('lead-status').value,
-                    accountName: document.getElementById('lead-account').value,
+                    leadSource: document.getElementById('lead-source').value,
+                    leadField: document.getElementById('lead-field').value,
                     followUpDate: document.getElementById('follow-up-date').value,
                     nextAction: document.getElementById('next-action').value,
                     expectedClose: document.getElementById('expected-close').value
