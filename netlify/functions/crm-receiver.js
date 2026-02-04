@@ -4,7 +4,7 @@ const querystring = require('querystring');
 const SUPABASE_URL = 'https://lgedjkyafshufxhjywhk.supabase.co';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
@@ -16,8 +16,6 @@ exports.handler = async (event, context) => {
 
     try {
         const contentType = event.headers['content-type'] || '';
-
-        // 1. Parse Data from BOTH Body and Query Parameters
         let queryParams = event.queryStringParameters || {};
         let bodyParams = {};
 
@@ -33,13 +31,11 @@ exports.handler = async (event, context) => {
             }
         }
 
-        // Merge sources (Query params override body if same name exists, usually Zoho sends one or the other)
         const payload = { ...bodyParams, ...queryParams };
-        console.log('Final Merged Payload:', JSON.stringify(payload, null, 2));
 
         if (!SUPABASE_SERVICE_ROLE_KEY) {
             return {
-                statusCode: 500,
+                statusCode: 200,
                 headers,
                 body: JSON.stringify({ success: false, error: 'SUPABASE_SERVICE_ROLE_KEY missing' })
             };
@@ -47,48 +43,41 @@ exports.handler = async (event, context) => {
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-        // 2. Map mapped fields from Zoho (based on user's Webhook screenshot)
-        // Note: Map parameters correctly (Name, Email, Phone, ID)
         const leadData = {
-            name: payload.Name || payload.Last_Name || 'Unknown CRM Lead',
-            email: payload.Email || payload.email || '',
-            contact: payload.Phone || payload.phone || payload.Mobile || '',
+            name: payload.Name || payload.Last_Name || 'Unknown Zoho Lead',
+            email: payload.Email || '',
+            contact: payload.Phone || payload.Mobile || '',
             status: 'New',
             source: 'crm',
             lead_source: payload.Lead_Source || 'Zoho CRM',
-            account_name: payload.Company || payload.Account_Name || 'N/A',
+            account_name: payload.Company || 'N/A',
             created_at: new Date().toISOString()
         };
 
-        // 3. Find default admin for assignment
+        // Get default admin
         try {
             const { data: users } = await supabase.from('users').select('id').eq('role', 'admin').limit(1);
             if (users && users.length > 0) {
                 leadData.user_id = users[0].id;
-                leadData.owner = 'Super Admin';
             }
-        } catch (e) {
-            console.warn('Admin lookup failed');
-        }
+        } catch (e) { }
 
-        // 4. Insert into DB
-        const { data, error } = await supabase
-            .from('leads')
-            .insert(leadData)
-            .select();
+        const { data, error } = await supabase.from('leads').insert(leadData).select();
 
         if (error) {
-            // Return 400 so Zoho shows failure and the Body below
+            // RETURNING 200 SO ZOHO WILL SHOW THIS BODY
             return {
-                statusCode: 400,
+                statusCode: 200,
                 headers,
                 body: JSON.stringify({
                     success: false,
+                    debug: true,
                     message: error.message,
                     code: error.code,
                     hint: error.hint,
                     details: error.details,
-                    received_keys: Object.keys(payload)
+                    received_payload: payload,
+                    mapped_data: leadData
                 })
             };
         }
@@ -96,14 +85,14 @@ exports.handler = async (event, context) => {
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ success: true, message: 'Lead added', id: data[0]?.id })
+            body: JSON.stringify({ success: true, message: 'Success', id: data[0]?.id })
         };
 
     } catch (err) {
         return {
-            statusCode: 500,
+            statusCode: 200,
             headers,
-            body: JSON.stringify({ success: false, error: err.message })
+            body: JSON.stringify({ success: false, error: err.message, stack: err.stack })
         };
     }
 };
