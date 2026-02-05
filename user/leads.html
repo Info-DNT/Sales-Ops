@@ -562,9 +562,38 @@
             }
         })
 
+        // Enable Real-time listener for leads
+        function setupRealtimeLeads() {
+            const client = initSupabase()
+            if (!client || !session || !session.userId) return
+
+            client
+                .channel('user-leads-realtime')
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'leads',
+                    filter: `user_id=eq.${session.userId}`
+                }, (payload) => {
+                    // Refresh listing
+                    loadLeads()
+
+                    if (payload.eventType === 'INSERT') {
+                        showToast('🚀 New lead assigned to you!', 'success')
+                        // Optional: Play a subtle notification sound
+                    } else if (payload.eventType === 'UPDATE') {
+                        // Check if it was newly assigned (from null or another user to current user)
+                        // Note: payload.old is only available if replica identity is FULL
+                        // But we can check if it's currently in our leads list or not
+                        showToast('📝 Lead updated', 'info')
+                    }
+                })
+                .subscribe()
+        }
 
         // Initialize
         loadLeads()
+        setupRealtimeLeads()
     </script>
 </body>
 
