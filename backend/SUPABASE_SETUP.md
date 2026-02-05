@@ -3,7 +3,7 @@
 ## Project Details
 
 - **Project URL**: `https://lgedjkyafshufxhjywhk.supabase.co`
-- **Admin Email**: `info@digitalnextworld.com`
+- **Admin Email**: `nitin@airmedical24x7.com`
 - **Admin Password**: `digitalnextworld2026`
 
 ---
@@ -183,7 +183,7 @@ CREATE POLICY "Admins can view all attendance" ON attendance
 1. Go to **Supabase Dashboard → Authentication → Users**
 2. Click **Add User** → **Create New User**
 3. Enter:
-   - Email: `info@digitalnextworld.com`
+   - Email: `nitin@airmedical24x7.com`
    - Password: `digitalnextworld2026`
    - ✅ Auto Confirm User
 4. Click **Create User**
@@ -197,7 +197,7 @@ Replace `YOUR_ADMIN_UID` with the actual UUID:
 INSERT INTO users (id, email, name, role)
 VALUES (
     'YOUR_ADMIN_UID',
-    'info@digitalnextworld.com',
+    'nitin@airmedical24x7.com',
     'Admin',
     'admin'
 ) ON CONFLICT (id) DO UPDATE SET role = 'admin';
