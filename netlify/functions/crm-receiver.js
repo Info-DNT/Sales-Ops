@@ -66,6 +66,9 @@ exports.handler = async (event) => {
             console.error('Admin lookup failed:', e);
         }
 
+        // DEBUG: Log the incoming payload to see what Zoho is sending
+        console.log('Received payload from Zoho:', JSON.stringify(payload, null, 2));
+
         // Map Zoho fields to database schema
         // Match exact schema from zoho-crm-integration.sql + create-calls-meetings-tables.sql
         const leadData = {
