@@ -448,10 +448,18 @@
 
         function clearFilter() { clearAllAdminFilters(); }
 
-        async function openLeadDetails(leadId) {
+
+        // Lead Details Functions - Make globally accessible
+        window.openLeadDetails = async function (leadId) {
+            console.log('openLeadDetails called with leadId:', leadId);
             editingLeadId = leadId;
             const lead = allLeads.find(l => l.id === leadId);
-            if (!lead) return;
+            if (!lead) {
+                console.error('Lead not found:', leadId);
+                return;
+            }
+
+            console.log('Found lead:', lead);
 
             // Fill overview form
             document.getElementById('details-lead-name').textContent = lead.name;
