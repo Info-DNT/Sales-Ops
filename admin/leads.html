@@ -488,7 +488,7 @@
 
             const options = users.map(user => `
                 <option value="${user.id}" ${user.id === currentUserId ? 'selected' : ''}>
-                    ${user.name || user.email}${user.role === 'admin' ? ' (Admin)' : ''}
+                    ${user.name ? user.name : user.email}${user.role === 'admin' ? ' (Admin)' : ''}
                 </option>
             `).join('');
 
@@ -657,8 +657,8 @@
                     owner: ownerName,
                     userId: selectedUserId,
                     nextAction: document.getElementById('edit-lead-next-action').value,
-                    followUpDate: document.getElementById('edit-lead-follow-up').value,
-                    expectedClose: document.getElementById('edit-lead-expected-close').value
+                    followUpDate: document.getElementById('edit-lead-follow-up').value || null,
+                    expectedClose: document.getElementById('edit-lead-expected-close').value || null
                 };
 
                 await updateLead(editingLeadId, updates, session.userId);
@@ -723,9 +723,9 @@
                     status: document.getElementById('lead-status').value,
                     leadSource: document.getElementById('lead-source').value,
                     leadField: document.getElementById('lead-field').value,
-                    followUpDate: document.getElementById('follow-up-date').value,
+                    followUpDate: document.getElementById('follow-up-date').value || null,
                     nextAction: document.getElementById('next-action').value,
-                    expectedClose: document.getElementById('expected-close').value
+                    expectedClose: document.getElementById('expected-close').value || null
                 }
 
                 if (!session || !session.userId) {
