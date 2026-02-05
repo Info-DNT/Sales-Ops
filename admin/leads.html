@@ -387,19 +387,20 @@
                 return
             }
 
-            container.innerHTML = leads.map(lead => `
-                <div class="lead-card mb-3 ${lead.source === 'crm' ? 'crm-lead' : ''}" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer;">
+            container.innerHTML = leads.map(lead => {
+                const isCRM = lead.lead_source && lead.lead_source !== '';
+                return `
+                <div class="lead-card mb-3 ${isCRM ? 'crm-lead' : ''}" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer;">
                     <div class="lead-header">
                         <div class="lead-title">
                             <h6>
                                 ${lead.name}
-                                ${lead.source === 'crm' ? '<span class="crm-badge">CRM</span>' : ''}
+                                ${isCRM ? '<span class="crm-badge">CRM</span>' : ''}
                             </h6>
                             <p class="text-muted small mb-0">
                                 <strong>User:</strong> ${lead.users?.name || lead.users?.email || 'Unknown'} | 
                                 <strong>Account:</strong> ${lead.account_name || 'N/A'}
                                 ${lead.field ? ` | <strong>Field:</strong> ${lead.field}` : ''}
-                                ${lead.lead_source ? ` | <strong>Source:</strong> ${lead.lead_source}` : ''}
                             </p>
                         </div>
                         <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>
@@ -421,7 +422,8 @@
                         <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); handleDeleteLead('${lead.id}')">Delete</button>
                     </div>
                 </div>
-            `).join('')
+            `;
+            }).join('')
         }
 
         function applyFilter() {

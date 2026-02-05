@@ -351,11 +351,16 @@
             }
 
             leadsContainer.innerHTML = leads
-                .map(lead => `
-                    <div class="lead-card mb-3" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer;">
+                .map(lead => {
+                    const isCRM = lead.lead_source && lead.lead_source !== '';
+                    return `
+                    <div class="lead-card mb-3 ${isCRM ? 'crm-lead' : ''}" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer;">
                         <div class="lead-header">
                             <div class="lead-title">
-                                <h6>${lead.name}</h6>
+                                <h6>
+                                    ${lead.name}
+                                    ${isCRM ? '<span class="crm-badge">CRM</span>' : ''}
+                                </h6>
                             </div>
                             <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>
                         </div>
@@ -391,7 +396,8 @@
                             <p class="mb-0 text-muted small"><strong>Next Action:</strong> ${lead.next_action || 'No action specified'}</p>
                         </div>
                     </div>
-                `)
+                    `;
+                })
                 .join('')
         }
 
