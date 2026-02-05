@@ -330,6 +330,7 @@ async function updateLead(leadId, updates, userId) {
             contact: updates.contact,
             email: updates.email,
             owner: updates.owner,
+            user_id: updates.userId || currentLead.user_id,
             status: updates.status,
             follow_up_date: updates.followUpDate,
             next_action: updates.nextAction,

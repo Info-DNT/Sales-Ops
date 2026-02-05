@@ -114,8 +114,10 @@
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Owner</label>
-                                <input type="text" class="form-control" id="edit-lead-owner">
+                                <label class="form-label">Assign To User</label>
+                                <select class="form-control" id="edit-lead-owner-select">
+                                    <option value="">Loading users...</option>
+                                </select>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -178,8 +180,10 @@
                                 <input type="email" class="form-control" id="lead-email" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="lead-owner" class="form-label">Lead Owner</label>
-                                <input type="text" class="form-control" id="lead-owner">
+                                <label for="lead-owner-select" class="form-label">Lead Owner</label>
+                                <select class="form-control" id="lead-owner-select">
+                                    <option value="">Loading users...</option>
+                                </select>
                             </div>
                         </div>
 
@@ -455,6 +459,105 @@
 
         function clearFilter() { clearAllAdminFilters(); }
 
+        // ===== Lead Assignment Functions =====
+
+        let allUsers = [];
+
+        // Load all users for assignment dropdown
+        async function loadAllUsers() {
+            const client = initSupabase();
+            const { data, error } = await client
+                .from('users')
+                .select('id, name, email, role')
+                .order('name');
+
+            if (error) {
+                console.error('Error loading users:', error);
+                return [];
+            }
+
+            allUsers = data;
+            return data;
+        }
+
+        // Populate the owner dropdown with users
+        async function populateOwnerDropdown(currentUserId) {
+            const users = allUsers.length > 0 ? allUsers : await loadAllUsers();
+            const editSelect = document.getElementById('edit-lead-owner-select');
+            const addSelect = document.getElementById('lead-owner-select');
+
+            const options = users.map(user => `
+                <option value="${user.id}" ${user.id === currentUserId ? 'selected' : ''}>
+                    ${user.name || user.email}${user.role === 'admin' ? ' (Admin)' : ''}
+                </option>
+            `).join('');
+
+            if (editSelect) editSelect.innerHTML = options;
+            if (addSelect) {
+                // For add modal, if no user is selected yet, default to current session user
+                const defaultOptions = users.map(user => `
+                    <option value="${user.id}" ${user.id === (session?.userId || '') ? 'selected' : ''}>
+                        ${user.name || user.email}${user.role === 'admin' ? ' (Admin)' : ''}
+                    </option>
+                `).join('');
+                addSelect.innerHTML = defaultOptions;
+            }
+        }
+
+        // Handle lead assignment to a user
+        async function handleLeadAssignment(leadId, newUserId) {
+            const client = initSupabase();
+
+            // Get the new user's name
+            const user = allUsers.find(u => u.id === newUserId);
+            if (!user) {
+                showToast('User not found', 'error');
+                return false;
+            }
+
+            // Update the lead
+            const { error } = await client
+                .from('leads')
+                .update({
+                    user_id: newUserId,
+                    owner: user.name || user.email
+                })
+                .eq('id', leadId);
+
+            if (error) {
+                console.error('Assignment error:', error);
+                showToast('Failed to assign lead', 'error');
+                return false;
+            }
+
+            showToast(`Lead assigned to ${user.name || user.email}`, 'success');
+            return true;
+        }
+
+        // Setup real-time listener for new users
+        function setupRealtimeUsers() {
+            const client = initSupabase();
+
+            client
+                .channel('users-updates')
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'users'
+                }, () => {
+                    // Refresh users list
+                    loadAllUsers().then(() => {
+                        // Update dropdown if modal is open
+                        const modalElement = document.getElementById('leadDetailsOffcanvas');
+                        if (modalElement && modalElement.classList.contains('show') && editingLeadId) {
+                            const currentUserId = document.getElementById('edit-lead-owner-select')?.value;
+                            populateOwnerDropdown(currentUserId);
+                        }
+                    });
+                })
+                .subscribe();
+        }
+
         async function openLeadDetails(leadId) {
             editingLeadId = leadId;
             const lead = allLeads.find(l => l.id === leadId);
@@ -467,7 +570,10 @@
             document.getElementById('edit-lead-contact').value = lead.contact;
             document.getElementById('edit-lead-email').value = lead.email || '';
             document.getElementById('edit-lead-status').value = lead.status;
-            document.getElementById('edit-lead-owner').value = lead.owner || '';
+
+            // Populate owner dropdown
+            populateOwnerDropdown(lead.user_id);
+
             document.getElementById('edit-lead-next-action').value = lead.next_action || '';
             document.getElementById('edit-lead-follow-up').value = lead.follow_up_date || '';
             document.getElementById('edit-lead-expected-close').value = lead.expected_close || '';
@@ -539,12 +645,17 @@
             saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
 
             try {
+                const selectedUserId = document.getElementById('edit-lead-owner-select').value;
+                const selectedUser = allUsers.find(u => u.id === selectedUserId);
+                const ownerName = selectedUser ? (selectedUser.name || selectedUser.email) : 'Unknown';
+
                 const updates = {
                     name: document.getElementById('edit-lead-name').value,
                     contact: document.getElementById('edit-lead-contact').value,
                     email: document.getElementById('edit-lead-email').value,
                     status: document.getElementById('edit-lead-status').value,
-                    owner: document.getElementById('edit-lead-owner').value,
+                    owner: ownerName,
+                    userId: selectedUserId,
                     nextAction: document.getElementById('edit-lead-next-action').value,
                     followUpDate: document.getElementById('edit-lead-follow-up').value,
                     expectedClose: document.getElementById('edit-lead-expected-close').value
@@ -558,6 +669,10 @@
 
                 // Refresh history tab
                 loadLeadHistory(editingLeadId);
+
+                // Close modal
+                const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('leadDetailsOffcanvas'));
+                if (offcanvas) offcanvas.hide();
 
             } catch (error) {
                 console.error('Error updating lead:', error);
@@ -596,11 +711,15 @@
             spinner.classList.remove('d-none')
 
             try {
+                const selectedUserId = document.getElementById('lead-owner-select').value;
+                const selectedUser = allUsers.find(u => u.id === selectedUserId);
+                const ownerName = selectedUser ? (selectedUser.name || selectedUser.email) : 'Unknown';
+
                 const lead = {
                     name: document.getElementById('lead-name').value,
                     contact: document.getElementById('lead-contact').value,
                     email: document.getElementById('lead-email').value,
-                    owner: document.getElementById('lead-owner').value,
+                    owner: ownerName,
                     status: document.getElementById('lead-status').value,
                     leadSource: document.getElementById('lead-source').value,
                     leadField: document.getElementById('lead-field').value,
@@ -613,7 +732,7 @@
                     throw new Error('No active session found. Please login again.')
                 }
 
-                await createLead(session.userId, lead)
+                await createLead(selectedUserId, lead)
 
                 // Reset form and close modal
                 this.reset()
@@ -631,8 +750,11 @@
                 spinner.classList.add('d-none')
             }
         })
-
         loadLeads()
+        loadAllUsers().then(() => {
+            populateOwnerDropdown();
+        })
+        setupRealtimeUsers()
 
         window.exportLeads = function () {
             const headers = ['Name', 'Phone', 'Email', 'Status', 'User', 'Created'];
