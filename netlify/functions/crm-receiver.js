@@ -79,11 +79,11 @@ exports.handler = async (event) => {
             owner: 'Super Admin',
             status: 'New',
             account_name: payload.Company || payload.Account_Name || '',
-            next_action: 'Follow up',
-            follow_up_date: null,
-            expected_close: null,
-            field: null,
-            lead_source: payload.Lead_Source || 'Zoho CRM',
+            next_action: payload.Next_Action || payload['Next Action'] || 'Follow up',
+            follow_up_date: payload.Follow_Up_Date || payload['Follow-up Date'] || null,
+            expected_close: payload.Expected_Close || payload['Expected Close'] || null,
+            field: payload.Field || payload.field || null,
+            lead_source: payload.Lead_Source || payload.Source || 'Zoho CRM',
             lead_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
             zoho_lead_id: payload['Lead ID'] || payload.id || payload.Lead_Id || null, // Capture "Lead ID" from Zoho Flow
             created_at: new Date().toISOString()

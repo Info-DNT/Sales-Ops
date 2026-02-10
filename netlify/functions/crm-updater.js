@@ -102,14 +102,28 @@ async function updateLeadInZoho(zohoLeadId, updates) {
     if (updates.status) zohoData.data[0].Lead_Status = mapStatus(updates.status);
     if (updates.account_name) zohoData.data[0].Company = updates.account_name;
 
-    // Additional fields requested by user
-    if (updates.assignedTo) zohoData.data[0].App_Assigned_To = updates.assignedTo;
-    if (updates.expectedClose) zohoData.data[0].Expected_Close = updates.expectedClose;
-    if (updates.followUpDate) zohoData.data[0].Follow_Up_Date = updates.followUpDate;
+    // Additional fields requested by user (with robust fallbacks)
+    if (updates.assignedTo) {
+        zohoData.data[0].App_Assigned_To = updates.assignedTo;
+        zohoData.data[0]['App Assigned To'] = updates.assignedTo;
+    }
 
-    // Add next_action to description if provided
+    if (updates.expectedClose) {
+        zohoData.data[0].Expected_Close = updates.expectedClose;
+        zohoData.data[0]['Expected Close'] = updates.expectedClose;
+    }
+
+    if (updates.followUpDate) {
+        zohoData.data[0].Follow_Up_Date = updates.followUpDate;
+        zohoData.data[0].Follow_up_Date = updates.followUpDate; // lowercase variant
+        zohoData.data[0]['Follow-up Date'] = updates.followUpDate;
+    }
+
+    // Add next_action with fallbacks
     if (updates.next_action) {
         zohoData.data[0].Description = updates.next_action;
+        zohoData.data[0].Next_Action = updates.next_action;
+        zohoData.data[0]['Next Action'] = updates.next_action;
     }
 
     try {
