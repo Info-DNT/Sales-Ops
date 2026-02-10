@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cases - Sales Ops</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/crm-styles.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Sidebar will be inserted here -->
+
+        <div class="main-content">
+            <div class="page-header flex-wrap gap-3">
+                <div>
+                    <h2 class="mb-0">My Cases</h2>
+                    <p class="text-muted small mb-0">Manage your assigned support and sales cases</p>
+                </div>
+                <div class="d-flex flex-wrap gap-2 w-100-mobile align-items-center">
+                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addCaseModal">
+                        <i class="fas fa-plus"></i> New Case
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="dashboard-grid-horizontal mb-4">
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="stat-label">My Total</div>
+                    <div class="stat-value" id="stats-total">0</div>
+                </div>
+
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-label">Active</div>
+                    <div class="stat-value" id="stats-active">0</div>
+                </div>
+
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-value" id="stats-completed">0</div>
+                </div>
+            </div>
+
+            <!-- Search/Filter -->
+            <div class="content-card mb-3">
+                <div class="row g-3">
+                    <div class="col-lg-8">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" id="search-query"
+                                placeholder="Search my cases..." oninput="filterCases()">
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <select class="form-select" id="filter-status" onchange="filterCases()">
+                            <option value="">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div id="cases-list-container">
+                    <div class="text-center py-5" id="no-cases-message">
+                        <p class="text-muted mb-0">No cases found</p>
+                    </div>
+                    <div id="cases-list" class="leads-container">
+                        <!-- Case cards will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case Details Offcanvas -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="caseDetailsOffcanvas" style="width: 500px;">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title">Update Case Status</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form id="edit-case-form">
+                <input type="hidden" id="edit-case-id">
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Case Title</label>
+                    <div id="display-case-title" class="p-2 bg-light rounded"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Update Status</label>
+                    <select class="form-select" id="edit-case-status">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                        <option value="On Hold">On Hold</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Priority</label>
+                    <select class="form-select" id="edit-case-priority">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description / Notes</label>
+                    <textarea class="form-control" id="edit-case-description" rows="5"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mt-2" id="save-case-btn">
+                    Update Case
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Case Modal -->
+    <div class="modal fade" id="addCaseModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Report New Case</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-case-form">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" id="case-title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Priority</label>
+                            <select class="form-select" id="case-priority" required>
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Lead (Optional)</label>
+                            <select class="form-select" id="case-lead-select">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="case-description" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="add-case-btn">
+                            Submit Case
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        // Check auth
+        if (!initAuthCheck('user')) {
+            window.location.href = '../index.html';
+        }
+
+        insertNav('user', 'cases');
+
+        let myCases = [];
+        let filteredCases = [];
+        let myLeads = [];
+        let editingCaseId = null;
+        const session = getCurrentSession();
+
+        async function loadData() {
+            try {
+                const [casesData, leadsData] = await Promise.all([
+                    getCasesForUser(session.userId),
+                    getAllLeads() // Standard user leads function
+                ]);
+
+                myCases = casesData;
+                myLeads = leadsData;
+
+                populateDropdowns();
+                updateStats();
+                filterCases();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showToast('Failed to load cases', 'error');
+            }
+        }
+
+        function populateDropdowns() {
+            const leadOptions = '<option value="">None</option>' + myLeads.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
+            document.getElementById('case-lead-select').innerHTML = leadOptions;
+        }
+
+        function updateStats() {
+            const total = myCases.length;
+            const active = myCases.filter(c => c.status === 'In Progress' || c.status === 'Pending').length;
+            const completed = myCases.filter(c => c.status === 'Completed').length;
+
+            document.getElementById('stats-total').textContent = total;
+            document.getElementById('stats-active').textContent = active;
+            document.getElementById('stats-completed').textContent = completed;
+        }
+
+        function filterCases() {
+            const query = document.getElementById('search-query').value.toLowerCase();
+            const status = document.getElementById('filter-status').value;
+
+            filteredCases = myCases.filter(c => {
+                const matchesQuery = !query ||
+                    c.title.toLowerCase().includes(query) ||
+                    c.case_number.toLowerCase().includes(query);
+                const matchesStatus = !status || c.status === status;
+                return matchesQuery && matchesStatus;
+            });
+
+            displayCases();
+        }
+
+        function displayCases() {
+            const list = document.getElementById('cases-list');
+            const noCases = document.getElementById('no-cases-message');
+
+            if (filteredCases.length === 0) {
+                list.innerHTML = '';
+                noCases.classList.remove('d-none');
+                return;
+            }
+
+            noCases.classList.add('d-none');
+            list.innerHTML = filteredCases.map(c => `
+                <div class="lead-card">
+                    <div class="lead-header">
+                        <div class="lead-title">
+                            <h6><span class="text-primary small me-2">#${c.case_number}</span>${c.title}</h6>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <span class="badge ${getPriorityBadge(c.priority)}">${c.priority}</span>
+                            <span class="badge ${getStatusBadge(c.status)}">${c.status}</span>
+                        </div>
+                    </div>
+
+                    <div class="lead-details mt-3">
+                        ${c.leads ? `<div class="lead-detail-item"><span class="lead-detail-label">Lead</span><span class="lead-detail-value">${c.leads.name}</span></div>` : ''}
+                        <div class="lead-detail-item">
+                            <span class="lead-detail-label">Reported</span>
+                            <span class="lead-detail-value">${new Date(c.created_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+
+                    <p class="text-muted small mt-2 mb-0 text-truncate">${c.description || 'No description.'}</p>
+
+                    <div class="lead-actions mt-3">
+                        <button class="btn btn-sm btn-primary w-100" onclick="openCaseDetails('${c.id}')">
+                            <i class="fas fa-edit me-1"></i> Update Status
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusBadge(status) {
+            switch (status) {
+                case 'Completed': return 'bg-success';
+                case 'Pending': return 'bg-warning text-dark';
+                case 'In Progress': return 'bg-info text-white';
+                case 'On Hold': return 'bg-secondary';
+                case 'Cancelled': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function getPriorityBadge(priority) {
+            switch (priority) {
+                case 'High': return 'bg-danger';
+                case 'Medium': return 'bg-warning text-dark';
+                case 'Low': return 'bg-info text-white';
+                default: return 'bg-secondary';
+            }
+        }
+
+        document.getElementById('add-case-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('add-case-btn');
+            btn.disabled = true;
+
+            try {
+                await createCase({
+                    title: document.getElementById('case-title').value,
+                    description: document.getElementById('case-description').value,
+                    priority: document.getElementById('case-priority').value,
+                    leadId: document.getElementById('case-lead-select').value,
+                    userId: session.userId,
+                    status: 'Pending'
+                });
+
+                showToast('Case reported successfully', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('addCaseModal')).hide();
+                e.target.reset();
+                loadData();
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to submit case', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        window.openCaseDetails = (id) => {
+            const c = myCases.find(x => x.id === id);
+            if (!c) return;
+
+            editingCaseId = id;
+            document.getElementById('edit-case-id').value = c.id;
+            document.getElementById('display-case-title').textContent = c.title;
+            document.getElementById('edit-case-description').value = c.description || '';
+            document.getElementById('edit-case-status').value = c.status;
+            document.getElementById('edit-case-priority').value = c.priority;
+
+            new bootstrap.Offcanvas(document.getElementById('caseDetailsOffcanvas')).show();
+        };
+
+        document.getElementById('edit-case-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('save-case-btn');
+            btn.disabled = true;
+
+            try {
+                await updateCase(editingCaseId, {
+                    title: document.getElementById('display-case-title').textContent,
+                    description: document.getElementById('edit-case-description').value,
+                    status: document.getElementById('edit-case-status').value,
+                    priority: document.getElementById('edit-case-priority').value,
+                    userId: session.userId
+                });
+
+                showToast('Case updated', 'success');
+                bootstrap.Offcanvas.getInstance(document.getElementById('caseDetailsOffcanvas')).hide();
+                loadData();
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to update case', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        loadData();
+    </script>
+</body>
+
+</html>

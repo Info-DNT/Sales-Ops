@@ -59,6 +59,7 @@ function generateUserNav(currentPage) {
       label: 'Leads',
       hasDropdown: true,
       dropdownItems: [
+        { page: 'cases', icon: 'fa-briefcase', label: 'Cases' },
         { page: 'calls', icon: 'fa-phone', label: 'Calls' },
         { page: 'meetings', icon: 'fa-video', label: 'Meetings' }
       ]
@@ -87,7 +88,7 @@ function generateUserNav(currentPage) {
         ${navItems.map(item => {
     const hideClass = item.page === 'quotations' ? 'd-none-quotation' : '';
     if (item.hasDropdown) {
-      const isLeadsActive = currentPage === 'leads' || currentPage === 'calls' || currentPage === 'meetings';
+      const isLeadsActive = currentPage === 'leads' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings';
       return `
               <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''} ${hideClass}">
                 <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">
@@ -139,6 +140,7 @@ function generateAdminNav(currentPage) {
       label: 'Leads',
       hasDropdown: true,
       dropdownItems: [
+        { page: 'cases', icon: 'fa-briefcase', label: 'Cases' },
         { page: 'calls', icon: 'fa-phone', label: 'Calls' },
         { page: 'meetings', icon: 'fa-video', label: 'Meetings' }
       ]
@@ -169,7 +171,7 @@ function generateAdminNav(currentPage) {
         ${navItems.map(item => {
     const hideClass = item.page === 'quotations' ? 'd-none-quotation' : '';
     if (item.hasDropdown) {
-      const isLeadsActive = currentPage === 'leads' || currentPage === 'calls' || currentPage === 'meetings';
+      const isLeadsActive = currentPage === 'leads' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings';
       return `
               <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''} ${hideClass}">
                 <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">

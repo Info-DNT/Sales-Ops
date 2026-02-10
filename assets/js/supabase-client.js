@@ -995,6 +995,119 @@ async function getAllMeetingsAdmin() {
     return data || [];
 }
 
+// =============================================
+// CASES FUNCTIONS
+// =============================================
+
+/**
+ * Get all cases for admin
+ */
+async function getAllCasesAdmin() {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('cases')
+        .select(`
+            *,
+            users (name, email),
+            leads (name, account_name)
+        `)
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Get cases for a specific user
+ * @param {string} userId 
+ */
+async function getCasesForUser(userId) {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('cases')
+        .select(`
+            *,
+            leads (name, account_name)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Create a new case
+ * @param {object} caseData 
+ */
+async function createCase(caseData) {
+    const client = initSupabase();
+
+    // Generate a simple case number if not provided
+    const caseNumber = caseData.caseNumber || `CASE-${Date.now().toString().slice(-6)}`;
+
+    const { data, error } = await client
+        .from('cases')
+        .insert({
+            case_number: caseNumber,
+            title: caseData.title,
+            description: caseData.description,
+            lead_id: caseData.leadId || null,
+            user_id: caseData.userId,
+            status: caseData.status || 'Pending',
+            priority: caseData.priority || 'Medium'
+        })
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Update a case
+ * @param {string} caseId 
+ * @param {object} updates 
+ */
+async function updateCase(caseId, updates) {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('cases')
+        .update({
+            title: updates.title,
+            description: updates.description,
+            status: updates.status,
+            priority: updates.priority,
+            user_id: updates.userId,
+            lead_id: updates.leadId
+        })
+        .eq('id', caseId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Delete a case
+ * @param {string} caseId 
+ */
+async function deleteCase(caseId) {
+    const client = initSupabase();
+
+    const { error } = await client
+        .from('cases')
+        .delete()
+        .eq('id', caseId);
+
+    if (error) throw error;
+    return true;
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     initSupabase();
