@@ -323,8 +323,29 @@
             exportToCSV(calls, 'All_Calls', headers);
         }
 
-        // Auto-refresh every 30 seconds
-        setInterval(loadCalls, 30000)
+        // Enable Real-time listener for calls
+        function setupRealtimeCalls() {
+            const client = initSupabase()
+            if (!client) return
+
+            client
+                .channel('admin-calls-realtime')
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'calls'
+                }, (payload) => {
+                    loadCalls() // Refresh listing
+                    if (payload.eventType === 'INSERT') {
+                        showToast('📞 A team member recorded a new call', 'info')
+                    }
+                })
+                .subscribe()
+        }
+
+        // Initialize
+        loadCalls()
+        setupRealtimeCalls()
     </script>
 </body>
 

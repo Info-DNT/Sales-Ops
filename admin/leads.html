@@ -389,18 +389,32 @@
 
             container.innerHTML = leads.map(lead => {
                 const isCRM = lead.lead_source && lead.lead_source !== '';
+
+                // 1. Calculate Stale Status (Aging)
+                const lastUpdate = new Date(lead.updated_at || lead.created_at);
+                const diffDays = Math.floor((new Date() - lastUpdate) / (1000 * 60 * 60 * 24));
+                let agingClass = '';
+                if (diffDays >= 7) agingClass = 'stale-pulse-danger';
+                else if (diffDays >= 3) agingClass = 'stale-pulse-warning';
+
+                // 2. Calculate Follow-up Status (Urgent)
+                const today = new Date().toISOString().split('T')[0];
+                const isUrgent = lead.follow_up_date && lead.follow_up_date <= today && lead.status !== 'Closed';
+
                 return `
-                <div class="lead-card mb-3 ${isCRM ? 'crm-lead' : ''}" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer;">
+                <div class="lead-card mb-3 ${isCRM ? 'crm-lead' : ''} ${agingClass}" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer;">
                     <div class="lead-header">
                         <div class="lead-title">
                             <h6>
                                 ${lead.name}
                                 ${isCRM ? '<span class="crm-badge">CRM</span>' : ''}
+                                ${isUrgent ? '<span class="urgent-badge"><i class="fas fa-exclamation-circle"></i> Follow-up Due</span>' : ''}
                             </h6>
                             <p class="text-muted small mb-0">
                                 <strong>User:</strong> ${lead.users?.name || lead.users?.email || 'Unknown'} | 
                                 <strong>Account:</strong> ${lead.account_name || 'N/A'}
                                 ${lead.field ? ` | <strong>Field:</strong> ${lead.field}` : ''}
+                                ${diffDays > 0 ? ` | <span class="${diffDays >= 3 ? 'text-warning fw-bold' : ''}">Activity: ${diffDays}d ago</span>` : ' | <span>Activity: Today</span>'}
                             </p>
                         </div>
                         <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>
@@ -414,7 +428,7 @@
                                 <small><strong>Email:</strong> ${lead.email || 'N/A'}</small>
                             </div>
                             <div class="col-md-4">
-                                <small><strong>Created:</strong> ${new Date(lead.created_at).toLocaleDateString()}</small>
+                                <small><strong>Follow-up:</strong> <span class="${isUrgent ? 'text-danger fw-bold' : ''}">${lead.follow_up_date || 'N/A'}</span></small>
                             </div>
                         </div>
                     </div>

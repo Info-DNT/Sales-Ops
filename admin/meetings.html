@@ -328,8 +328,29 @@
                 exportToCSV(meetings, 'All_Meetings', headers);
             }
 
-            // Auto-refresh every 30 seconds
-            setInterval(loadMeetings, 30000)
+            // Enable Real-time listener for meetings
+            function setupRealtimeMeetings() {
+                const client = initSupabase()
+                if (!client) return
+
+                client
+                    .channel('admin-meetings-realtime')
+                    .on('postgres_changes', {
+                        event: '*',
+                        schema: 'public',
+                        table: 'meetings'
+                    }, (payload) => {
+                        loadMeetings() // Refresh listing
+                        if (payload.eventType === 'INSERT') {
+                            showToast('🤝 A team member scheduled a new meeting', 'info')
+                        }
+                    })
+                    .subscribe()
+            }
+
+            // Initialize
+            loadMeetings()
+            setupRealtimeMeetings()
         </script>
 </body>
 

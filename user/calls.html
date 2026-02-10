@@ -316,8 +316,30 @@
             document.getElementById('callModalTitle').textContent = 'Add Call'
         })
 
+        // Enable Real-time listener for calls
+        function setupRealtimeCalls() {
+            const client = initSupabase()
+            if (!client || !session || !session.userId) return
+
+            client
+                .channel('user-calls-realtime')
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'calls',
+                    filter: `user_id=eq.${session.userId}`
+                }, (payload) => {
+                    loadCalls() // Refresh listing
+                    if (payload.eventType === 'INSERT') {
+                        showToast('📞 New call recorded', 'info')
+                    }
+                })
+                .subscribe()
+        }
+
         // Initialize
         loadCalls()
+        setupRealtimeCalls()
     </script>
 </body>
 

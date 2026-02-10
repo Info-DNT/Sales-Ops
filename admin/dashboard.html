@@ -312,8 +312,16 @@
                         .map(lead => {
                             const statusClass = lead.status.toLowerCase().replace(' ', '-');
                             const isCRM = lead.lead_source && lead.lead_source !== '';
+
+                            // Calculate Stale Status (Aging)
+                            const lastUpdate = new Date(lead.updated_at || lead.created_at);
+                            const diffDays = Math.floor((new Date() - lastUpdate) / (1000 * 60 * 60 * 24));
+                            let agingClass = '';
+                            if (diffDays >= 7) agingClass = 'stale-pulse-danger';
+                            else if (diffDays >= 3) agingClass = 'stale-pulse-warning';
+
                             return `
-                            <div class="saas-list-item ${isCRM ? 'crm-lead' : ''}">
+                            <div class="saas-list-item ${isCRM ? 'crm-lead' : ''} ${agingClass}">
                                 <div class="saas-list-item-icon">
                                     <i class="fas fa-user-circle"></i>
                                 </div>
@@ -322,7 +330,7 @@
                                         ${lead.name}
                                         ${isCRM ? '<span class="crm-badge">CRM</span>' : ''}
                                     </h6>
-                                    <p>${lead.users?.name || 'Unassigned'} • ${new Date(lead.created_at).toLocaleDateString()}</p>
+                                    <p>${lead.users?.name || 'Unassigned'} • ${new Date(lead.created_at).toLocaleDateString()} ${diffDays > 0 ? `• <small class="${diffDays >= 3 ? 'text-warning fw-bold' : ''}">${diffDays}d inactive</small>` : ''}</p>
                                 </div>
                                 <span class="status-badge-soft ${statusClass}">${lead.status}</span>
                             </div>

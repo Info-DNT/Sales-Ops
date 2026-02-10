@@ -318,8 +318,30 @@
             document.getElementById('meetingModalTitle').textContent = 'Add Meeting'
         })
 
+        // Enable Real-time listener for meetings
+        function setupRealtimeMeetings() {
+            const client = initSupabase()
+            if (!client || !session || !session.userId) return
+
+            client
+                .channel('user-meetings-realtime')
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'meetings',
+                    filter: `user_id=eq.${session.userId}`
+                }, (payload) => {
+                    loadMeetings() // Refresh listing
+                    if (payload.eventType === 'INSERT') {
+                        showToast('🤝 New meeting scheduled', 'info')
+                    }
+                })
+                .subscribe()
+        }
+
         // Initialize
         loadMeetings()
+        setupRealtimeMeetings()
     </script>
 </body>
 

@@ -85,6 +85,7 @@ exports.handler = async (event) => {
             field: null,
             lead_source: payload.Lead_Source || 'Zoho CRM',
             lead_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+            zoho_lead_id: payload.id || payload.Lead_Id || null, // CRITICAL: Store Zoho ID for bidirectional sync
             created_at: new Date().toISOString()
         };
 

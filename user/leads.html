@@ -31,6 +31,20 @@
                 </div>
             </div>
 
+            <!-- Urgent Tasks Panel -->
+            <div id="urgent-tasks-container" style="display: none;">
+                <div class="alert-panel">
+                    <div class="alert-panel-header">
+                        <div class="alert-panel-title">
+                            <i class="fas fa-bell"></i> Urgent Follow-ups Due Today
+                        </div>
+                    </div>
+                    <div id="urgent-leads-list" class="row g-3">
+                        <!-- Urgent leads will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Search/Filter -->
             <div class="content-card mb-3">
                 <div class="row g-3">
@@ -353,13 +367,26 @@
             leadsContainer.innerHTML = leads
                 .map(lead => {
                     const isCRM = lead.lead_source && lead.lead_source !== '';
+
+                    // 1. Calculate Stale Status (Aging)
+                    const lastUpdate = new Date(lead.updated_at || lead.created_at);
+                    const diffDays = Math.floor((new Date() - lastUpdate) / (1000 * 60 * 60 * 24));
+                    let agingClass = '';
+                    if (diffDays >= 7) agingClass = 'stale-pulse-danger';
+                    else if (diffDays >= 3) agingClass = 'stale-pulse-warning';
+
+                    // 2. Calculate Follow-up Status (Urgent)
+                    const today = new Date().toISOString().split('T')[0];
+                    const isUrgent = lead.follow_up_date && lead.follow_up_date <= today && lead.status !== 'Closed';
+
                     return `
-                    <div class="lead-card mb-3 ${isCRM ? 'crm-lead' : ''}" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer;">
+                    <div class="lead-card mb-3 ${isCRM ? 'crm-lead' : ''} ${agingClass}" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer;">
                         <div class="lead-header">
                             <div class="lead-title">
                                 <h6>
                                     ${lead.name}
                                     ${isCRM ? '<span class="crm-badge">CRM</span>' : ''}
+                                    ${isUrgent ? '<span class="urgent-badge"><i class="fas fa-exclamation-circle"></i> Follow-up Due</span>' : ''}
                                 </h6>
                             </div>
                             <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>
@@ -379,8 +406,12 @@
                                 <span class="lead-detail-value">${lead.owner || 'Not assigned'}</span>
                             </div>
                             <div class="lead-detail-item">
+                                <span class="lead-detail-label">Aging Status</span>
+                                <span class="lead-detail-value ${diffDays >= 3 ? 'text-warning fw-bold' : ''}">${diffDays === 0 ? 'Active Today' : diffDays + ' days inactive'}</span>
+                            </div>
+                            <div class="lead-detail-item">
                                 <span class="lead-detail-label">Follow-up Date</span>
-                                <span class="lead-detail-value">${lead.follow_up_date || 'Not set'}</span>
+                                <span class="lead-detail-value ${isUrgent ? 'text-danger fw-bold' : ''}">${lead.follow_up_date || 'Not set'}</span>
                             </div>
                             <div class="lead-detail-item">
                                 <span class="lead-detail-label">Expected Close</span>
@@ -399,6 +430,54 @@
                     `;
                 })
                 .join('')
+
+            if (typeof displayUrgentPanel === 'function') {
+                displayUrgentPanel(leads);
+            }
+        }
+
+        function displayUrgentPanel(leads) {
+            const urgentContainer = document.getElementById('urgent-tasks-container');
+            const urgentList = document.getElementById('urgent-leads-list');
+            if (!urgentContainer || !urgentList) return;
+
+            const today = new Date().toISOString().split('T')[0];
+            const urgentLeads = leads.filter(l => l.follow_up_date && l.follow_up_date <= today && l.status !== 'Closed');
+
+            if (urgentLeads.length === 0) {
+                urgentContainer.style.display = 'none';
+                return;
+            }
+
+            urgentContainer.style.display = 'block';
+            urgentList.innerHTML = urgentLeads.map(lead => `
+                <div class="col-md-4">
+                    <div class="card border-danger h-100 shadow-sm" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer; border-left: 5px solid #ef4444 !important;">
+                        <div class="card-body p-3">
+                            <h6 class="card-title mb-1">${lead.name}</h6>
+                            <p class="card-text small text-muted mb-2">
+                                <i class="fas fa-phone me-1"></i> ${lead.contact}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-danger">DUE TODAY</span>
+                                <small class="text-muted"><i class="fas fa-history"></i> ${lead.follow_up_date}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Request Notification Permission and Send
+            if (window.Notification && Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        const urgentCount = urgentLeads.length;
+                        new Notification('Urgent Sales Tasks', {
+                            body: `You have ${urgentCount} follow-ups due today!`,
+                        });
+                    }
+                });
+            }
         }
 
 

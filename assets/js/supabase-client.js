@@ -357,6 +357,34 @@ async function updateLead(leadId, updates, userId) {
         }
     }
 
+    // BIDIRECTIONAL SYNC: Push updates back to Zoho CRM (if Zoho ID exists)
+    if (currentLead?.zoho_lead_id) {
+        try {
+            // Fire-and-forget async request to sync back to CRM
+            fetch('/.netlify/functions/crm-updater', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    zohoLeadId: currentLead.zoho_lead_id,
+                    updates: {
+                        name: updates.name,
+                        email: updates.email,
+                        contact: updates.contact,
+                        status: updates.status,
+                        account_name: updates.accountName,
+                        next_action: updates.nextAction
+                    }
+                })
+            }).catch(err => {
+                // Log error but don't block the UI
+                console.warn('CRM sync failed (non-blocking):', err);
+            });
+        } catch (err) {
+            // Graceful degradation - don't fail the update if CRM sync fails
+            console.warn('CRM sync error:', err);
+        }
+    }
+
     return data;
 }
 
@@ -398,7 +426,10 @@ async function getLeadHistory(leadId) {
         .eq('lead_id', leadId)
         .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+        console.error('Error loading history:', error);
+        return [];
+    }
     return data || [];
 }
 
