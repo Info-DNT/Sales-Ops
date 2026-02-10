@@ -372,7 +372,10 @@ async function updateLead(leadId, updates, userId) {
                         contact: updates.contact,
                         status: updates.status,
                         account_name: updates.accountName,
-                        next_action: updates.nextAction
+                        next_action: updates.nextAction,
+                        assignedTo: updates.owner,
+                        followUpDate: updates.followUpDate,
+                        expectedClose: updates.expectedClose
                     }
                 })
             }).catch(err => {

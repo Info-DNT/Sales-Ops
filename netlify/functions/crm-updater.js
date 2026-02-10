@@ -71,13 +71,13 @@ async function getAccessToken() {
  */
 function mapStatus(appStatus) {
     const statusMap = {
-        'New': 'Contacted',
+        'New': 'New',
         'In Progress': 'Contacted',
         'Qualified': 'Qualified',
         'Closed': 'Converted',
         'Not Converted': 'Junk Lead'
     };
-    return statusMap[appStatus] || 'Contacted';
+    return statusMap[appStatus] || 'New';
 }
 
 /**
@@ -101,6 +101,11 @@ async function updateLeadInZoho(zohoLeadId, updates) {
     if (updates.contact) zohoData.data[0].Phone = updates.contact;
     if (updates.status) zohoData.data[0].Lead_Status = mapStatus(updates.status);
     if (updates.account_name) zohoData.data[0].Company = updates.account_name;
+
+    // Additional fields requested by user
+    if (updates.assignedTo) zohoData.data[0].App_Assigned_To = updates.assignedTo;
+    if (updates.expectedClose) zohoData.data[0].Expected_Close = updates.expectedClose;
+    if (updates.followUpDate) zohoData.data[0].Follow_Up_Date = updates.followUpDate;
 
     // Add next_action to description if provided
     if (updates.next_action) {
