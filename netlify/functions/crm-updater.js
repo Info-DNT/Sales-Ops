@@ -81,59 +81,68 @@ function mapStatus(appStatus) {
 }
 
 /**
- * Update a lead in Zoho CRM
+ * Create or Update a lead in Zoho CRM
  */
-async function updateLeadInZoho(zohoLeadId, updates) {
+async function syncLeadToZoho(updates, zohoLeadId = null) {
     const accessToken = await getAccessToken();
     const region = process.env.ZOHO_REGION || 'in';
     const apiUrl = ZOHO_API_BASE[region];
 
     // Map web app fields to Zoho fields
-    const zohoData = {
-        data: [{
-            id: zohoLeadId
-        }]
-    };
+    const leadData = {};
 
-    // Only include fields that were actually updated
-    if (updates.name) zohoData.data[0].Last_Name = updates.name;
-    if (updates.email) zohoData.data[0].Email = updates.email;
-    if (updates.contact) zohoData.data[0].Phone = updates.contact;
-    if (updates.status) zohoData.data[0].Lead_Status = mapStatus(updates.status);
-    if (updates.account_name) zohoData.data[0].Company = updates.account_name;
+    if (updates.name) leadData.Last_Name = updates.name;
+    if (updates.email) leadData.Email = updates.email;
+    if (updates.contact) leadData.Phone = updates.contact;
+    if (updates.status) leadData.Lead_Status = mapStatus(updates.status);
+    if (updates.account_name) leadData.Company = updates.account_name;
 
-    // Additional fields requested by user (with robust fallbacks)
+    // Additional fields with fallbacks
     if (updates.assignedTo) {
-        zohoData.data[0].App_Assigned_To = updates.assignedTo;
-        zohoData.data[0]['App Assigned To'] = updates.assignedTo;
+        leadData.App_Assigned_To = updates.assignedTo;
+        leadData['App Assigned To'] = updates.assignedTo;
     }
 
     if (updates.expectedClose) {
-        zohoData.data[0].Expected_Close = updates.expectedClose;
-        zohoData.data[0]['Expected Close'] = updates.expectedClose;
+        leadData.Expected_Close = updates.expectedClose;
+        leadData['Expected Close'] = updates.expectedClose;
     }
 
     if (updates.followUpDate) {
-        zohoData.data[0].Follow_Up_Date = updates.followUpDate;
-        zohoData.data[0].Follow_up_Date = updates.followUpDate; // lowercase variant
-        zohoData.data[0]['Follow-up Date'] = updates.followUpDate;
+        leadData.Follow_Up_Date = updates.followUpDate;
+        leadData.Follow_up_Date = updates.followUpDate;
+        leadData['Follow-up Date'] = updates.followUpDate;
     }
 
-    // Add next_action with fallbacks
     if (updates.next_action) {
-        zohoData.data[0].Description = updates.next_action;
-        zohoData.data[0].Next_Action = updates.next_action;
-        zohoData.data[0]['Next Action'] = updates.next_action;
+        leadData.Description = updates.next_action;
+        leadData.Next_Action = updates.next_action;
+        leadData['Next Action'] = updates.next_action;
     }
+
+    // Set source for new leads
+    if (!zohoLeadId) {
+        leadData.Lead_Source = 'Web App';
+        leadData['Lead Source'] = 'Web App';
+        // New leads must have a Company in Zoho, fallback to name or "Web App"
+        if (!leadData.Company) leadData.Company = updates.name || 'Web App';
+    } else {
+        leadData.id = zohoLeadId;
+    }
+
+    const zohoPayload = { data: [leadData] };
 
     try {
+        const method = zohoLeadId ? 'PUT' : 'POST';
+        console.log(`Syncing to Zoho (${method}):`, JSON.stringify(zohoPayload));
+
         const response = await fetch(`${apiUrl}/crm/v2/Leads`, {
-            method: 'PUT',
+            method: method,
             headers: {
                 'Authorization': `Zoho-oauthtoken ${accessToken}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(zohoData)
+            body: JSON.stringify(zohoPayload)
         });
 
         if (!response.ok) {
@@ -144,7 +153,7 @@ async function updateLeadInZoho(zohoLeadId, updates) {
         const result = await response.json();
         return result;
     } catch (error) {
-        console.error('Failed to update lead in Zoho:', error);
+        console.error('Failed to sync lead to Zoho:', error);
         throw error;
     }
 }
@@ -160,66 +169,59 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json'
     };
 
-    // Handle preflight
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 200, headers, body: '' };
     }
 
     try {
-        // Validate environment variables
         if (!process.env.ZOHO_CLIENT_ID || !process.env.ZOHO_CLIENT_SECRET || !process.env.ZOHO_REFRESH_TOKEN) {
-            console.warn('Zoho credentials not configured - skipping CRM sync');
+            console.warn('Zoho credentials not configured');
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({
-                    success: true,
-                    message: 'CRM sync skipped (credentials not configured)'
-                })
+                body: JSON.stringify({ success: true, message: 'CRM sync skipped' })
             };
         }
 
-        // Parse request
         const payload = JSON.parse(event.body || '{}');
         const { zohoLeadId, updates } = payload;
 
-        if (!zohoLeadId) {
+        if (!updates) {
             return {
                 statusCode: 400,
                 headers,
-                body: JSON.stringify({
-                    success: false,
-                    error: 'Missing zohoLeadId'
-                })
+                body: JSON.stringify({ success: false, error: 'Missing updates object' })
             };
         }
 
-        // Update lead in Zoho
-        const result = await updateLeadInZoho(zohoLeadId, updates);
+        const result = await syncLeadToZoho(updates, zohoLeadId);
 
-        console.log('Lead synced to Zoho:', zohoLeadId, result);
+        // Extract the Zoho ID from response
+        let returnedZohoId = zohoLeadId;
+        if (!zohoLeadId && result.data && result.data[0] && result.data[0].details) {
+            returnedZohoId = result.data[0].details.id;
+        }
 
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
                 success: true,
-                message: 'Lead updated in Zoho CRM',
+                message: zohoLeadId ? 'Lead updated in Zoho' : 'Lead created in Zoho',
+                zohoLeadId: returnedZohoId,
                 zohoResponse: result
             })
         };
 
     } catch (error) {
-        console.error('CRM updater error:', error);
-
-        // Don't fail the request if CRM sync fails (graceful degradation)
+        console.error('CRM sync error:', error);
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
                 success: false,
                 error: error.message,
-                message: 'Local update succeeded, but CRM sync failed'
+                message: 'Local operation succeeded, but CRM sync failed'
             })
         };
     }

@@ -624,9 +624,9 @@
                     email: document.getElementById('edit-lead-email').value,
                     status: document.getElementById('edit-lead-status').value,
                     owner: document.getElementById('edit-lead-owner').value,
-                    next_action: document.getElementById('edit-lead-next-action').value,
-                    follow_up_date: document.getElementById('edit-lead-follow-up').value,
-                    expected_close: document.getElementById('edit-lead-expected-close').value
+                    nextAction: document.getElementById('edit-lead-next-action').value,
+                    followUpDate: document.getElementById('edit-lead-follow-up').value,
+                    expectedClose: document.getElementById('edit-lead-expected-close').value
                 };
 
                 await updateLead(editingLeadId, updates, session.userId);

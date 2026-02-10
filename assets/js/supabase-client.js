@@ -304,6 +304,40 @@ async function createLead(userId, lead) {
         status: lead.status
     });
 
+    // BIDIRECTIONAL SYNC: Create lead in Zoho CRM and capture ID
+    try {
+        const response = await fetch('/.netlify/functions/crm-updater', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                updates: {
+                    name: lead.name,
+                    email: lead.email,
+                    contact: lead.contact,
+                    status: lead.status,
+                    account_name: lead.accountName,
+                    next_action: lead.nextAction,
+                    assignedTo: lead.owner,
+                    followUpDate: lead.followUpDate,
+                    expectedClose: lead.expectedClose
+                }
+            })
+        });
+
+        const syncResult = await response.json();
+        if (syncResult.success && syncResult.zohoLeadId) {
+            // Update the lead with the newly created Zoho ID
+            await client
+                .from('leads')
+                .update({ zoho_lead_id: syncResult.zohoLeadId })
+                .eq('id', data.id);
+
+            data.zoho_lead_id = syncResult.zohoLeadId;
+        }
+    } catch (err) {
+        console.warn('Initial CRM sync failed:', err);
+    }
+
     return data;
 }
 
@@ -332,9 +366,9 @@ async function updateLead(leadId, updates, userId) {
             owner: updates.owner,
             user_id: updates.userId || currentLead.user_id,
             status: updates.status,
-            follow_up_date: updates.followUpDate,
+            follow_up_date: updates.followUpDate || null,
             next_action: updates.nextAction,
-            expected_close: updates.expectedClose
+            expected_close: updates.expectedClose || null
         })
         .eq('id', leadId)
         .select()
