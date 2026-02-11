@@ -115,7 +115,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="lead-owner" class="form-label">Lead Owner</label>
-                                <input type="text" class="form-control" id="lead-owner">
+                                <input type="text" class="form-control" id="lead-owner" readonly>
                             </div>
                         </div>
 
@@ -227,7 +227,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Owner</label>
-                                <input type="text" class="form-control" id="edit-lead-owner">
+                                <input type="text" class="form-control" id="edit-lead-owner" readonly>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -282,6 +282,14 @@
         let leads = []
         let allLeads = []
         let editingLeadId = null
+
+        // Auto-fill lead owner for new leads
+        if (session) {
+            const ownerInput = document.getElementById('lead-owner');
+            if (ownerInput) {
+                ownerInput.value = session.name || session.email || '';
+            }
+        }
 
         // Load leads
         async function loadLeads() {
