@@ -287,7 +287,9 @@ async function createLead(userId, lead) {
         field: lead.leadField || null,       // Added
         patient_name: lead.patientName || null,
         patient_email: lead.patientEmail || null,
-        patient_contact: lead.patientContact || null
+        patient_contact: lead.patientContact || null,
+        source_location: lead.sourceLocation || null,
+        destination_location: lead.destinationLocation || null
     };
 
     const { data, error } = await client
@@ -374,7 +376,9 @@ async function updateLead(leadId, updates, userId) {
             expected_close: updates.expectedClose || null,
             patient_name: updates.patientName,
             patient_email: updates.patientEmail,
-            patient_contact: updates.patientContact
+            patient_contact: updates.patientContact,
+            source_location: updates.sourceLocation,
+            destination_location: updates.destinationLocation
         })
         .eq('id', leadId)
         .select()

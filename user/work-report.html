@@ -258,6 +258,21 @@
                         </div>
 
                         <hr class="my-3">
+                        <h6 class="mb-3">Travel Details</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="source-location" class="form-label">Source Location</label>
+                                <input type="text" class="form-control" id="source-location"
+                                    placeholder="Enter source location">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="destination-location" class="form-label">Destination Location</label>
+                                <input type="text" class="form-control" id="destination-location"
+                                    placeholder="Enter destination location">
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -435,6 +450,8 @@
                     patientName: document.getElementById('patient-name').value,
                     patientContact: document.getElementById('patient-contact').value,
                     patientEmail: document.getElementById('patient-email').value,
+                    sourceLocation: document.getElementById('source-location').value,
+                    destinationLocation: document.getElementById('destination-location').value,
                     owner: document.getElementById('lead-owner').value,
                     status: document.getElementById('lead-status').value,
                     leadSource: document.getElementById('lead-source').value,

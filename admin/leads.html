@@ -237,6 +237,21 @@
                         </div>
 
                         <hr class="my-3">
+                        <h6 class="mb-3">Travel Details</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="source-location" class="form-label">Source Location</label>
+                                <input type="text" class="form-control" id="source-location"
+                                    placeholder="Enter source location">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="destination-location" class="form-label">Destination Location</label>
+                                <input type="text" class="form-control" id="destination-location"
+                                    placeholder="Enter destination location">
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="lead-status" class="form-label">Lead Status</label>
@@ -639,6 +654,8 @@
             document.getElementById('edit-patient-name').value = lead.patient_name || '';
             document.getElementById('edit-patient-contact').value = lead.patient_contact || '';
             document.getElementById('edit-patient-email').value = lead.patient_email || '';
+            document.getElementById('edit-source-location').value = lead.source_location || '';
+            document.getElementById('edit-destination-location').value = lead.destination_location || '';
             document.getElementById('edit-lead-status').value = lead.status;
 
             // Populate owner dropdown
@@ -731,7 +748,9 @@
                     expectedClose: document.getElementById('edit-lead-expected-close').value || null,
                     patientName: document.getElementById('edit-patient-name').value,
                     patientContact: document.getElementById('edit-patient-contact').value,
-                    patientEmail: document.getElementById('edit-patient-email').value
+                    patientEmail: document.getElementById('edit-patient-email').value,
+                    sourceLocation: document.getElementById('edit-source-location').value,
+                    destinationLocation: document.getElementById('edit-destination-location').value
                 };
 
                 await updateLead(editingLeadId, updates, session.userId);
@@ -801,7 +820,9 @@
                     expectedClose: document.getElementById('expected-close').value || null,
                     patientName: document.getElementById('patient-name').value,
                     patientContact: document.getElementById('patient-contact').value,
-                    patientEmail: document.getElementById('patient-email').value
+                    patientEmail: document.getElementById('patient-email').value,
+                    sourceLocation: document.getElementById('source-location').value,
+                    destinationLocation: document.getElementById('destination-location').value
                 }
 
                 if (!session || !session.userId) {
