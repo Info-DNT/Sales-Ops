@@ -88,20 +88,43 @@
                 <div id="tab-overview" class="details-tab-content">
                     <form id="edit-lead-form">
                         <input type="hidden" id="edit-lead-id">
-                        <div class="mb-3">
-                            <label class="form-label">Name</label>
-                            <input type="text" class="form-control" id="edit-lead-name" required>
-                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Contact</label>
-                                <input type="tel" class="form-control" id="edit-lead-contact" required>
+                                <label class="form-label">Client Name</label>
+                                <input type="text" class="form-control" id="edit-lead-name" placeholder="Client Name"
+                                    required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-control" id="edit-lead-email">
+                                <label class="form-label">Client Phone</label>
+                                <input type="tel" class="form-control" id="edit-lead-contact" placeholder="Client Phone"
+                                    required>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Client Email</label>
+                            <input type="email" class="form-control" id="edit-lead-email" placeholder="Client Email">
+                        </div>
+
+                        <hr class="my-3">
+                        <h6>Patient Information</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Patient Name</label>
+                                <input type="text" class="form-control" id="edit-patient-name"
+                                    placeholder="Patient Name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Patient Contact</label>
+                                <input type="tel" class="form-control" id="edit-patient-contact"
+                                    placeholder="Patient Contact">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Patient Email</label>
+                            <input type="email" class="form-control" id="edit-patient-email"
+                                placeholder="Patient Email">
+                        </div>
+                        <hr class="my-3">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Status</label>
@@ -165,19 +188,22 @@
                     <form id="add-lead-form">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="lead-name" class="form-label">Lead Name</label>
-                                <input type="text" class="form-control" id="lead-name" required>
+                                <label for="lead-name" class="form-label">Client Name</label>
+                                <input type="text" class="form-control" id="lead-name" placeholder="Enter client name"
+                                    required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="lead-contact" class="form-label">Contact Number</label>
-                                <input type="tel" class="form-control" id="lead-contact" required>
+                                <label for="lead-contact" class="form-label">Client Phone</label>
+                                <input type="tel" class="form-control" id="lead-contact"
+                                    placeholder="Enter client phone" required>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="lead-email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="lead-email" required>
+                                <label for="lead-email" class="form-label">Client Email</label>
+                                <input type="email" class="form-control" id="lead-email"
+                                    placeholder="Enter client email" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="lead-owner-select" class="form-label">Lead Owner</label>
@@ -187,6 +213,30 @@
                             </div>
                         </div>
 
+                        <hr class="my-3">
+                        <h6 class="mb-3">Patient Information</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="patient-name" class="form-label">Patient Name</label>
+                                <input type="text" class="form-control" id="patient-name"
+                                    placeholder="Enter patient name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="patient-contact" class="form-label">Patient Contact</label>
+                                <input type="tel" class="form-control" id="patient-contact"
+                                    placeholder="Enter patient contact">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="patient-email" class="form-label">Patient Email</label>
+                                <input type="email" class="form-control" id="patient-email"
+                                    placeholder="Enter patient email">
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="lead-status" class="form-label">Lead Status</label>
@@ -317,7 +367,7 @@
         // Combined filter function for Admin
         function applyCombinedAdminFilters() {
             const searchDate = document.getElementById('search-date').value
-            const searchContact = document.getElementById('search-contact').value
+            const searchContact = document.getElementById('search-contact').value // Search by Client Phone
             const filterStatus = document.getElementById('filter-status').value
             const searchQuery = document.getElementById('search-query').value.toLowerCase()
 
@@ -414,6 +464,7 @@
                                 <strong>User:</strong> ${lead.users?.name || lead.users?.email || 'Unknown'} | 
                                 <strong>Account:</strong> ${lead.account_name || 'N/A'}
                                 ${lead.field ? ` | <strong>Field:</strong> ${lead.field}` : ''}
+                                ${lead.patient_name ? ` | <strong>Patient:</strong> ${lead.patient_name}` : ''}
                                 ${diffDays > 0 ? ` | <span class="${diffDays >= 3 ? 'text-warning fw-bold' : ''}">Activity: ${diffDays}d ago</span>` : ' | <span>Activity: Today</span>'}
                             </p>
                         </div>
@@ -422,10 +473,10 @@
                     <div class="lead-details mt-2">
                         <div class="row">
                             <div class="col-md-4">
-                                <small><strong>Contact:</strong> ${lead.contact || 'N/A'}</small>
+                                <small><strong>Client Phone:</strong> ${lead.contact || 'N/A'}</small>
                             </div>
                             <div class="col-md-4">
-                                <small><strong>Email:</strong> ${lead.email || 'N/A'}</small>
+                                <small><strong>Client Email:</strong> ${lead.email || 'N/A'}</small>
                             </div>
                             <div class="col-md-4">
                                 <small><strong>Follow-up:</strong> <span class="${isUrgent ? 'text-danger fw-bold' : ''}">${lead.follow_up_date || 'N/A'}</span></small>
@@ -585,6 +636,9 @@
             document.getElementById('edit-lead-name').value = lead.name;
             document.getElementById('edit-lead-contact').value = lead.contact;
             document.getElementById('edit-lead-email').value = lead.email || '';
+            document.getElementById('edit-patient-name').value = lead.patient_name || '';
+            document.getElementById('edit-patient-contact').value = lead.patient_contact || '';
+            document.getElementById('edit-patient-email').value = lead.patient_email || '';
             document.getElementById('edit-lead-status').value = lead.status;
 
             // Populate owner dropdown
@@ -674,7 +728,10 @@
                     userId: selectedUserId,
                     nextAction: document.getElementById('edit-lead-next-action').value,
                     followUpDate: document.getElementById('edit-lead-follow-up').value || null,
-                    expectedClose: document.getElementById('edit-lead-expected-close').value || null
+                    expectedClose: document.getElementById('edit-lead-expected-close').value || null,
+                    patientName: document.getElementById('edit-patient-name').value,
+                    patientContact: document.getElementById('edit-patient-contact').value,
+                    patientEmail: document.getElementById('edit-patient-email').value
                 };
 
                 await updateLead(editingLeadId, updates, session.userId);
@@ -741,7 +798,10 @@
                     leadField: document.getElementById('lead-field').value,
                     followUpDate: document.getElementById('follow-up-date').value || null,
                     nextAction: document.getElementById('next-action').value,
-                    expectedClose: document.getElementById('expected-close').value || null
+                    expectedClose: document.getElementById('expected-close').value || null,
+                    patientName: document.getElementById('patient-name').value,
+                    patientContact: document.getElementById('patient-contact').value,
+                    patientEmail: document.getElementById('patient-email').value
                 }
 
                 if (!session || !session.userId) {
@@ -773,8 +833,19 @@
         setupRealtimeUsers()
 
         window.exportLeads = function () {
-            const headers = ['Name', 'Phone', 'Email', 'Status', 'User', 'Created'];
-            exportToCSV(leads, 'All_Leads', headers);
+            const headers = ['Client Name', 'Client Phone', 'Client Email', 'Patient Name', 'Patient Phone', 'Patient Email', 'Status', 'User', 'Created'];
+            const dataToExport = leads.map(l => ({
+                'Client Name': l.name,
+                'Client Phone': l.contact,
+                'Client Email': l.email,
+                'Patient Name': l.patient_name || '',
+                'Patient Phone': l.patient_contact || '',
+                'Patient Email': l.patient_email || '',
+                'Status': l.status,
+                'User': l.users?.name || l.users?.email || 'Unknown',
+                'Created': new Date(l.created_at).toLocaleString()
+            }));
+            exportToCSV(dataToExport, 'All_Leads', headers);
         }
 
         // Enable Real-time listener for leads

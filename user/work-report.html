@@ -212,27 +212,52 @@
                     <form id="lead-form">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="lead-name" class="form-label">Lead Name</label>
-                                <input type="text" class="form-control" id="lead-name" placeholder="Enter lead name"
+                                <label for="lead-name" class="form-label">Client Name</label>
+                                <input type="text" class="form-control" id="lead-name" placeholder="Enter client name"
                                     required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="lead-contact" class="form-label">Contact Number</label>
+                                <label for="lead-contact" class="form-label">Client Phone</label>
                                 <input type="tel" class="form-control" id="lead-contact"
-                                    placeholder="Enter contact number" required>
+                                    placeholder="Enter client phone" required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="lead-email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="lead-email" placeholder="Enter email"
-                                    required>
+                                <label for="lead-email" class="form-label">Client Email</label>
+                                <input type="email" class="form-control" id="lead-email"
+                                    placeholder="Enter client email" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="lead-owner" class="form-label">Lead Owner</label>
                                 <input type="text" class="form-control" id="lead-owner" readonly>
                             </div>
                         </div>
+
+                        <hr class="my-3">
+                        <h6 class="mb-3">Patient Information</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="patient-name" class="form-label">Patient Name</label>
+                                <input type="text" class="form-control" id="patient-name"
+                                    placeholder="Enter patient name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="patient-contact" class="form-label">Patient Contact</label>
+                                <input type="tel" class="form-control" id="patient-contact"
+                                    placeholder="Enter patient contact">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="patient-email" class="form-label">Patient Email</label>
+                                <input type="email" class="form-control" id="patient-email"
+                                    placeholder="Enter patient email">
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -407,6 +432,9 @@
                     name: document.getElementById('lead-name').value,
                     contact: document.getElementById('lead-contact').value,
                     email: document.getElementById('lead-email').value,
+                    patientName: document.getElementById('patient-name').value,
+                    patientContact: document.getElementById('patient-contact').value,
+                    patientEmail: document.getElementById('patient-email').value,
                     owner: document.getElementById('lead-owner').value,
                     status: document.getElementById('lead-status').value,
                     leadSource: document.getElementById('lead-source').value,

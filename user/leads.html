@@ -53,8 +53,8 @@
                         <input type="date" class="form-control" id="search-date">
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <label class="form-label">Search Contact</label>
-                        <input type="tel" class="form-control" id="search-contact" placeholder="Mobile number">
+                        <label class="form-label">Search Client Phone</label>
+                        <input type="tel" class="form-control" id="search-contact" placeholder="Client Phone number">
                     </div>
                     <div class="col-lg-3 col-md-6">
                         <label class="form-label">Filter Status</label>
@@ -99,19 +99,22 @@
                     <form id="add-lead-form">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="lead-name" class="form-label">Lead Name</label>
-                                <input type="text" class="form-control" id="lead-name" required>
+                                <label for="lead-name" class="form-label">Client Name</label>
+                                <input type="text" class="form-control" id="lead-name" placeholder="Enter client name"
+                                    required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="lead-contact" class="form-label">Contact Number</label>
-                                <input type="tel" class="form-control" id="lead-contact" required>
+                                <label for="lead-contact" class="form-label">Client Phone</label>
+                                <input type="tel" class="form-control" id="lead-contact"
+                                    placeholder="Enter client phone" required>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="lead-email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="lead-email" required>
+                                <label for="lead-email" class="form-label">Client Email</label>
+                                <input type="email" class="form-control" id="lead-email"
+                                    placeholder="Enter client email" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="lead-owner" class="form-label">Lead Owner</label>
@@ -119,6 +122,30 @@
                             </div>
                         </div>
 
+                        <hr class="my-3">
+                        <h6 class="mb-3">Patient Information</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="patient-name" class="form-label">Patient Name</label>
+                                <input type="text" class="form-control" id="patient-name"
+                                    placeholder="Enter patient name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="patient-contact" class="form-label">Patient Contact</label>
+                                <input type="tel" class="form-control" id="patient-contact"
+                                    placeholder="Enter patient contact">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="patient-email" class="form-label">Patient Email</label>
+                                <input type="email" class="form-control" id="patient-email"
+                                    placeholder="Enter patient email">
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="lead-status" class="form-label">Lead Status</label>
@@ -201,18 +228,39 @@
                     <form id="edit-lead-form">
                         <input type="hidden" id="edit-lead-id">
                         <div class="mb-3">
-                            <label class="form-label">Name</label>
-                            <input type="text" class="form-control" id="edit-lead-name" required>
+                            <label class="form-label">Client Name</label>
+                            <input type="text" class="form-control" id="edit-lead-name" placeholder="Client Name"
+                                required>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Contact</label>
-                                <input type="tel" class="form-control" id="edit-lead-contact" required>
+                                <label class="form-label">Client Phone</label>
+                                <input type="tel" class="form-control" id="edit-lead-contact" placeholder="Client Phone"
+                                    required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-control" id="edit-lead-email">
+                                <label class="form-label">Client Email</label>
+                                <input type="email" class="form-control" id="edit-lead-email"
+                                    placeholder="Client Email">
                             </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Patient Name</label>
+                                <input type="text" class="form-control" id="edit-patient-name"
+                                    placeholder="Patient Name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Patient Contact</label>
+                                <input type="tel" class="form-control" id="edit-patient-contact"
+                                    placeholder="Patient Contact">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Patient Email</label>
+                            <input type="email" class="form-control" id="edit-patient-email"
+                                placeholder="Patient Email">
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -402,12 +450,16 @@
 
                         <div class="lead-details">
                             <div class="lead-detail-item">
-                                <span class="lead-detail-label">Contact Number</span>
+                                <span class="lead-detail-label">Client Phone</span>
                                 <span class="lead-detail-value">${lead.contact}</span>
                             </div>
                             <div class="lead-detail-item">
-                                <span class="lead-detail-label">Email</span>
+                                <span class="lead-detail-label">Client Email</span>
                                 <span class="lead-detail-value">${lead.email}</span>
+                            </div>
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Patient Name</span>
+                                <span class="lead-detail-value">${lead.patient_name || '--'}</span>
                             </div>
                             <div class="lead-detail-item">
                                 <span class="lead-detail-label">Lead Owner</span>
@@ -514,6 +566,9 @@
                     name: document.getElementById('lead-name').value,
                     contact: document.getElementById('lead-contact').value,
                     email: document.getElementById('lead-email').value,
+                    patientName: document.getElementById('patient-name').value,
+                    patientContact: document.getElementById('patient-contact').value,
+                    patientEmail: document.getElementById('patient-email').value,
                     owner: document.getElementById('lead-owner').value,
                     status: document.getElementById('lead-status').value,
                     leadSource: document.getElementById('lead-source').value,
@@ -555,6 +610,9 @@
             document.getElementById('edit-lead-email').value = lead.email || '';
             document.getElementById('edit-lead-status').value = lead.status;
             document.getElementById('edit-lead-owner').value = lead.owner || '';
+            document.getElementById('edit-patient-name').value = lead.patient_name || '';
+            document.getElementById('edit-patient-contact').value = lead.patient_contact || '';
+            document.getElementById('edit-patient-email').value = lead.patient_email || '';
             document.getElementById('edit-lead-next-action').value = lead.next_action || '';
             document.getElementById('edit-lead-follow-up').value = lead.follow_up_date || '';
             document.getElementById('edit-lead-expected-close').value = lead.expected_close || '';
@@ -634,7 +692,10 @@
                     owner: document.getElementById('edit-lead-owner').value,
                     nextAction: document.getElementById('edit-lead-next-action').value,
                     followUpDate: document.getElementById('edit-lead-follow-up').value,
-                    expectedClose: document.getElementById('edit-lead-expected-close').value
+                    expectedClose: document.getElementById('edit-lead-expected-close').value,
+                    patientName: document.getElementById('edit-patient-name').value,
+                    patientContact: document.getElementById('edit-patient-contact').value,
+                    patientEmail: document.getElementById('edit-patient-email').value
                 };
 
                 await updateLead(editingLeadId, updates, session.userId);
