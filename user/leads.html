@@ -26,9 +26,7 @@
                         <input type="tel" class="form-control" id="header-search-contact" style="width: 150px;"
                             placeholder="Contact" oninput="syncAndSearch('contact', this.value)">
                     </div>
-                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quotationModal">
-                        <i class="fas fa-file-invoice-dollar"></i> Request Quotation
-                    </button>
+
                     <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addLeadModal">
                         <i class="fas fa-plus"></i> Add Lead
                     </button>
@@ -135,17 +133,9 @@
                                     placeholder="Enter patient name">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="patient-contact" class="form-label">Patient Contact</label>
-                                <input type="tel" class="form-control" id="patient-contact"
-                                    placeholder="Enter patient contact">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="patient-email" class="form-label">Patient Email</label>
-                                <input type="email" class="form-control" id="patient-email"
-                                    placeholder="Enter patient email">
+                                <label for="client-relation" class="form-label">Client Relation</label>
+                                <input type="text" class="form-control" id="client-relation"
+                                    placeholder="Enter relation with client">
                             </div>
                         </div>
 
@@ -192,7 +182,7 @@
 
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label for="lead-field" class="form-label">Field</label>
+                                <label for="lead-field" class="form-label">Category</label>
                                 <select class="form-control" id="lead-field">
                                     <option value="">Select Field</option>
                                     <option value="Medical Tourism">Medical Tourism</option>
@@ -271,15 +261,10 @@
                                     placeholder="Patient Name">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Patient Contact</label>
-                                <input type="tel" class="form-control" id="edit-patient-contact"
-                                    placeholder="Patient Contact">
+                                <label class="form-label">Client Relation</label>
+                                <input type="text" class="form-control" id="edit-client-relation"
+                                    placeholder="Relation with client">
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Patient Email</label>
-                            <input type="email" class="form-control" id="edit-patient-email"
-                                placeholder="Patient Email">
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -543,6 +528,13 @@
                         <div class="mt-3 p-2 bg-light rounded">
                             <p class="mb-0 text-muted small"><strong>Next Action:</strong> ${lead.next_action || 'No action specified'}</p>
                         </div>
+
+                        <!-- Lead Actions -->
+                        <div class="mt-3 d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quotationModal" onclick="event.stopPropagation()">
+                                <i class="fas fa-file-invoice-dollar"></i> Request Quotation
+                            </button>
+                        </div>
                     </div>
                     `;
                 })
@@ -624,8 +616,7 @@
                     contact: document.getElementById('lead-contact').value,
                     email: document.getElementById('lead-email').value,
                     patientName: document.getElementById('patient-name').value,
-                    patientContact: document.getElementById('patient-contact').value,
-                    patientEmail: document.getElementById('patient-email').value,
+                    clientRelation: document.getElementById('client-relation').value,
                     sourceLocation: document.getElementById('source-location').value,
                     destinationLocation: document.getElementById('destination-location').value,
                     owner: document.getElementById('lead-owner').value,
@@ -670,8 +661,7 @@
             document.getElementById('edit-lead-status').value = lead.status;
             document.getElementById('edit-lead-owner').value = lead.owner || '';
             document.getElementById('edit-patient-name').value = lead.patient_name || '';
-            document.getElementById('edit-patient-contact').value = lead.patient_contact || '';
-            document.getElementById('edit-patient-email').value = lead.patient_email || '';
+            document.getElementById('edit-client-relation').value = lead.client_relation || '';
             document.getElementById('edit-source-location').value = lead.source_location || '';
             document.getElementById('edit-destination-location').value = lead.destination_location || '';
             document.getElementById('edit-lead-next-action').value = lead.next_action || '';
@@ -755,8 +745,7 @@
                     followUpDate: document.getElementById('edit-lead-follow-up').value,
                     expectedClose: document.getElementById('edit-lead-expected-close').value,
                     patientName: document.getElementById('edit-patient-name').value,
-                    patientContact: document.getElementById('edit-patient-contact').value,
-                    patientEmail: document.getElementById('edit-patient-email').value,
+                    clientRelation: document.getElementById('edit-client-relation').value,
                     sourceLocation: document.getElementById('edit-source-location').value,
                     destinationLocation: document.getElementById('edit-destination-location').value
                 };
@@ -778,6 +767,69 @@
                 saveBtn.textContent = 'Save Changes';
             }
         })
+
+        // Quotation Request Functions
+        function openQuotationModal(leadId) {
+            // Find the lead from the current leads array
+            const lead = leads.find(l => l.id === leadId);
+
+            if (!lead) {
+                showToast('Lead not found', 'error');
+                return;
+            }
+
+            // Pre-fill the form fields
+            document.getElementById('quotation-lead-id').value = lead.id;
+            document.getElementById('quotation-client-name').value = lead.name || '';
+            document.getElementById('quotation-client-phone').value = lead.contact || '';
+            document.getElementById('quotation-client-email').value = lead.email || '';
+            document.getElementById('quotation-patient-name').value = lead.patient_name || '';
+
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('quotationModal'));
+            modal.show();
+        }
+
+        async function submitQuotationRequest(event) {
+            event.preventDefault();
+
+            const leadId = document.getElementById('quotation-lead-id').value;
+            const clientName = document.getElementById('quotation-client-name').value;
+            const clientPhone = document.getElementById('quotation-client-phone').value;
+            const clientEmail = document.getElementById('quotation-client-email').value;
+            const patientName = document.getElementById('quotation-patient-name').value;
+
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            try {
+                // Create quotation in Supabase
+                await createQuotation(session.userId, {
+                    leadId: leadId,
+                    clientName: clientName,
+                    clientPhone: clientPhone,
+                    clientEmail: clientEmail,
+                    patientName: patientName
+                });
+
+                showToast('Quotation request submitted successfully!', 'success');
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('quotationModal'));
+                modal.hide();
+
+                // Reset form
+                document.getElementById('quotationForm').reset();
+
+            } catch (error) {
+                console.error('Error submitting quotation:', error);
+                showToast('Failed to submit quotation request', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Request';
+            }
+        }
 
         // Enable Real-time listener for leads
         function setupRealtimeLeads() {

@@ -286,8 +286,7 @@ async function createLead(userId, lead) {
         lead_source: lead.leadSource || null, // Added
         field: lead.leadField || null,       // Added
         patient_name: lead.patientName || null,
-        patient_email: lead.patientEmail || null,
-        patient_contact: lead.patientContact || null,
+        client_relation: lead.clientRelation || null,
         source_location: lead.sourceLocation || null,
         destination_location: lead.destinationLocation || null
     };
@@ -375,8 +374,7 @@ async function updateLead(leadId, updates, userId) {
             next_action: updates.nextAction,
             expected_close: updates.expectedClose || null,
             patient_name: updates.patientName,
-            patient_email: updates.patientEmail,
-            patient_contact: updates.patientContact,
+            client_relation: updates.clientRelation,
             source_location: updates.sourceLocation,
             destination_location: updates.destinationLocation
         })
@@ -529,9 +527,13 @@ async function createQuotation(userId, quotation) {
         .from('quotations')
         .insert({
             user_id: userId,
+            lead_id: quotation.leadId || null,
             client_name: quotation.clientName,
-            amount: quotation.amount,
-            description: quotation.description
+            client_phone: quotation.clientPhone || null,
+            client_email: quotation.clientEmail || null,
+            patient_name: quotation.patientName || null,
+            amount: quotation.amount || null,
+            description: quotation.description || ''
         })
         .select()
         .single();
