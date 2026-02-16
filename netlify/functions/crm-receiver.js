@@ -86,6 +86,11 @@ exports.handler = async (event) => {
             lead_source: payload.Lead_Source || payload.Source || 'Zoho CRM',
             lead_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
             zoho_lead_id: payload['Lead ID'] || payload.id || payload.Lead_Id || null, // Capture "Lead ID" from Zoho Flow
+
+            // New fields from Zoho CRM
+            service_opt: payload.Service_Opt || payload['Service Opt'] || null,
+            transport: payload.Transport || null,
+
             created_at: new Date().toISOString()
         };
 
