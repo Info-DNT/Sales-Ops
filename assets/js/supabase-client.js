@@ -310,9 +310,16 @@ async function createLead(userId, lead) {
 
     // BIDIRECTIONAL SYNC: Create lead in Zoho CRM and capture ID
     try {
+        // Get Supabase session token for server-side auth validation
+        const { data: sessionData } = await client.auth.getSession();
+        const accessToken = sessionData?.session?.access_token || '';
+
         const response = await fetch('/.netlify/functions/crm-updater', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
             body: JSON.stringify({
                 updates: {
                     name: lead.name,
@@ -402,10 +409,17 @@ async function updateLead(leadId, updates, userId) {
     // BIDIRECTIONAL SYNC: Push updates back to Zoho CRM (if Zoho ID exists)
     if (currentLead?.zoho_lead_id) {
         try {
+            // Get Supabase session token for server-side auth validation
+            const { data: sessionData } = await client.auth.getSession();
+            const accessToken = sessionData?.session?.access_token || '';
+
             // Fire-and-forget async request to sync back to CRM
             fetch('/.netlify/functions/crm-updater', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
                 body: JSON.stringify({
                     zohoLeadId: currentLead.zoho_lead_id,
                     updates: {

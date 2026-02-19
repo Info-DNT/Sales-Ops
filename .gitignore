@@ -1,0 +1,14 @@
+# Environment variables - NEVER commit secrets
+.env
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/
+
+# Netlify build output
+.netlify/
+
+# OS files
+.DS_Store
+Thumbs.db
