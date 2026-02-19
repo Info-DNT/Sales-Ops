@@ -61,7 +61,8 @@ function generateUserNav(currentPage) {
       dropdownItems: [
         { page: 'cases', icon: 'fa-briefcase', label: 'Cases' },
         { page: 'calls', icon: 'fa-phone', label: 'Calls' },
-        { page: 'meetings', icon: 'fa-video', label: 'Meetings' }
+        { page: 'meetings', icon: 'fa-video', label: 'Meetings' },
+        { page: 'expenses', icon: 'fa-receipt', label: 'Expenses' }
       ]
     },
     { page: 'settings', icon: 'fa-cog', label: 'Settings' }
@@ -88,7 +89,7 @@ function generateUserNav(currentPage) {
         ${navItems.map(item => {
     const hideClass = item.page === 'quotations' ? 'd-none-quotation' : '';
     if (item.hasDropdown) {
-      const isLeadsActive = currentPage === 'leads' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings';
+      const isLeadsActive = currentPage === 'leads' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings' || currentPage === 'expenses';
       return `
               <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''} ${hideClass}">
                 <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">
@@ -142,7 +143,8 @@ function generateAdminNav(currentPage) {
       dropdownItems: [
         { page: 'cases', icon: 'fa-briefcase', label: 'Cases' },
         { page: 'calls', icon: 'fa-phone', label: 'Calls' },
-        { page: 'meetings', icon: 'fa-video', label: 'Meetings' }
+        { page: 'meetings', icon: 'fa-video', label: 'Meetings' },
+        { page: 'expenses', icon: 'fa-receipt', label: 'Expenses' }
       ]
     },
     { page: 'quotations', icon: 'fa-file-invoice-dollar', label: 'Quotations' },
@@ -171,7 +173,7 @@ function generateAdminNav(currentPage) {
         ${navItems.map(item => {
     const hideClass = item.page === 'quotations' ? 'd-none-quotation' : '';
     if (item.hasDropdown) {
-      const isLeadsActive = currentPage === 'leads' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings';
+      const isLeadsActive = currentPage === 'leads' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings' || currentPage === 'expenses';
       return `
               <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''} ${hideClass}">
                 <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">

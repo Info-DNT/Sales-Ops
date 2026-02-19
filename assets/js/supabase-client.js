@@ -62,24 +62,34 @@ async function loginWithSupabase(email, password) {
             throw new Error('Failed to create user profile');
         }
 
+        // Generate and register single-session token
+        const sessionToken = crypto.randomUUID();
+        await registerSessionToken(client, authData.user.id, sessionToken);
+
         // Save session to localStorage
         const session = {
             userId: authData.user.id,
             email: authData.user.email,
             name: newUser.name || authData.user.email.split('@')[0],
-            role: newUser.role
+            role: newUser.role,
+            sessionToken
         };
         localStorage.setItem('salesAppSession', JSON.stringify(session));
 
         return session;
     }
 
+    // Generate and register single-session token
+    const sessionToken = crypto.randomUUID();
+    await registerSessionToken(client, authData.user.id, sessionToken);
+
     // Save session to localStorage
     const session = {
         userId: authData.user.id,
         email: userData.email,
         name: userData.name || authData.user.email.split('@')[0],
-        role: userData.role
+        role: userData.role,
+        sessionToken
     };
     localStorage.setItem('salesAppSession', JSON.stringify(session));
 
@@ -92,6 +102,14 @@ async function loginWithSupabase(email, password) {
 async function logoutFromSupabase() {
     const client = initSupabase();
 
+    // Clear session token from DB before signing out
+    try {
+        const sessionData = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+        if (sessionData.userId) {
+            await clearSessionToken(client, sessionData.userId);
+        }
+    } catch (e) { /* ignore */ }
+
     const { error } = await client.auth.signOut();
     if (error) {
         console.error('Logout error:', error);
@@ -99,6 +117,41 @@ async function logoutFromSupabase() {
 
     // Clear local session
     localStorage.removeItem('salesAppSession');
+}
+
+/**
+ * Single-Session Helpers
+ */
+async function registerSessionToken(client, userId, token) {
+    await client.from('user_sessions').upsert(
+        { user_id: userId, session_token: token, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' }
+    );
+}
+
+async function validateSessionToken(userId, token) {
+    try {
+        const client = initSupabase();
+        const { data, error } = await client
+            .from('user_sessions')
+            .select('session_token')
+            .eq('user_id', userId)
+            .single();
+
+        // If there's a DB error (table missing, RLS issue, network glitch)
+        // — don't kick the user. Only kick on a CONFIRMED mismatch.
+        if (error || !data) return true;
+
+        return data.session_token === token;
+    } catch (e) {
+        return true; // any unexpected error — keep session alive
+    }
+}
+
+async function clearSessionToken(client, userId) {
+    try {
+        await client.from('user_sessions').delete().eq('user_id', userId);
+    } catch (e) { /* ignore */ }
 }
 
 /**
@@ -1166,6 +1219,252 @@ async function deleteCase(caseId) {
 
     if (error) throw error;
     return true;
+}
+
+
+// =============================================
+// EXPENSES FUNCTIONS
+// =============================================
+
+/**
+ * Get expenses for the logged-in user
+ */
+async function getExpenses(userId) {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('expenses')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Get ALL expenses (admin only), with user name joined
+ */
+async function getAllExpensesAdmin() {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('expenses')
+        .select('*, users(id, name, email)')
+        .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Create a new expense
+ */
+async function createExpense(userId, expenseData) {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('expenses')
+        .insert([{
+            user_id: userId,
+            category: expenseData.category,
+            amount: parseFloat(expenseData.amount),
+            date: expenseData.date,
+            description: expenseData.description,
+            receipt_url: expenseData.receiptUrl || null,
+            status: 'pending'
+        }])
+        .select()
+        .single();
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Update expense status (admin: approve/reject) and notify the owner
+ */
+async function updateExpenseStatus(expenseId, status, adminNote, ownerUserId) {
+    const client = initSupabase();
+
+    const { error: updateError } = await client
+        .from('expenses')
+        .update({ status, admin_note: adminNote || null })
+        .eq('id', expenseId);
+    if (updateError) throw updateError;
+
+    // Insert notification for the expense owner
+    const notifTitle = status === 'approved' ? 'Expense Approved ✅' : 'Expense Rejected ❌';
+    const notifMessage = status === 'approved'
+        ? 'Your expense submission has been approved by the admin.'
+        : `Your expense submission was rejected. ${adminNote ? 'Reason: ' + adminNote : ''}`;
+
+    const { error: notifError } = await client
+        .from('notifications')
+        .insert([{
+            user_id: ownerUserId,
+            title: notifTitle,
+            message: notifMessage,
+            type: `expense_${status}`,
+            is_read: false
+        }]);
+    if (notifError) console.error('Notification insert error:', notifError);
+
+    return true;
+}
+
+// =============================================
+// NOTIFICATIONS FUNCTIONS
+// =============================================
+
+/**
+ * Get unread notifications for a user
+ */
+async function getNotifications(userId) {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Mark a single notification as read
+ */
+async function markNotificationRead(notificationId) {
+    const client = initSupabase();
+    const { error } = await client
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+    if (error) throw error;
+    return true;
+}
+
+/**
+ * Mark ALL notifications as read for a user
+ */
+async function markAllNotificationsRead(userId) {
+    const client = initSupabase();
+    const { error } = await client
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId)
+        .eq('is_read', false);
+    if (error) throw error;
+    return true;
+}
+
+
+// =============================================
+// AUDIT LOGS
+// =============================================
+
+/**
+ * Record an admin action in the audit log
+ */
+async function createAuditLog(expenseId, adminId, adminName, action, adminNote) {
+    const client = initSupabase();
+    const { error } = await client
+        .from('expense_audit_logs')
+        .insert([{ expense_id: expenseId, admin_id: adminId, admin_name: adminName, action, admin_note: adminNote || null }]);
+    if (error) console.error('Audit log error:', error);
+}
+
+/**
+ * Get audit logs for a specific expense
+ */
+async function getExpenseAuditLogs(expenseId) {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('expense_audit_logs')
+        .select('*')
+        .eq('expense_id', expenseId)
+        .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Update expense status AND create audit log entry
+ */
+async function updateExpenseStatusWithAudit(expenseId, status, adminNote, ownerUserId, adminId, adminName) {
+    const client = initSupabase();
+
+    const { error: updateError } = await client
+        .from('expenses')
+        .update({ status, admin_note: adminNote || null })
+        .eq('id', expenseId);
+    if (updateError) throw updateError;
+
+    // Notify the expense owner
+    const notifTitle = status === 'approved' ? 'Expense Approved ✅' : 'Expense Rejected ❌';
+    const notifMessage = status === 'approved'
+        ? 'Your expense submission has been approved by the admin.'
+        : `Your expense was rejected. ${adminNote ? 'Reason: ' + adminNote : ''}`;
+
+    await client.from('notifications').insert([{
+        user_id: ownerUserId,
+        title: notifTitle,
+        message: notifMessage,
+        type: `expense_${status}`,
+        is_read: false
+    }]);
+
+    // Write audit log
+    await createAuditLog(expenseId, adminId, adminName, status, adminNote);
+
+    return true;
+}
+
+// =============================================
+// ADMIN ANALYTICS & BADGE
+// =============================================
+
+/**
+ * Count pending expenses (for sidebar badge)
+ */
+async function getPendingExpensesCount() {
+    const client = initSupabase();
+    const { count, error } = await client
+        .from('expenses')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pending');
+    if (error) return 0;
+    return count || 0;
+}
+
+/**
+ * Get analytics summary: by category totals and monthly totals
+ */
+async function getExpenseAnalytics() {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('expenses')
+        .select('category, amount, date, status');
+    if (error) throw error;
+    const rows = data || [];
+
+    // Category breakdown
+    const byCategory = {};
+    rows.forEach(r => {
+        if (!byCategory[r.category]) byCategory[r.category] = 0;
+        byCategory[r.category] += parseFloat(r.amount);
+    });
+
+    // Monthly trend (last 6 months, include all statuses)
+    const monthlyMap = {};
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+        monthlyMap[key] = 0;
+    }
+    rows.forEach(r => {
+        const d = new Date(r.date);
+        const key = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+        if (monthlyMap[key] !== undefined) monthlyMap[key] += parseFloat(r.amount);
+    });
+
+    return { byCategory, monthly: monthlyMap };
 }
 
 // Initialize on load

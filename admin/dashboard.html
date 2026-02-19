@@ -28,6 +28,7 @@
                 </div>
             </div>
 
+            <!-- Stat Cards -->
             <div class="dashboard-grid-horizontal">
                 <div class="stat-card-modern">
                     <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
@@ -78,6 +79,7 @@
                 </div>
             </div>
 
+            <!-- Lead Pipeline + Team Activity -->
             <div class="row g-4 mb-4">
                 <div class="col-lg-5">
                     <div class="saas-card">
@@ -105,6 +107,36 @@
                 </div>
             </div>
 
+            <!-- Expense Analytics Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-5">
+                    <div class="saas-card">
+                        <div class="saas-card-header">
+                            <h5><i class="fas fa-chart-pie text-warning me-2"></i> Expenses by Category</h5>
+                        </div>
+                        <div class="saas-card-body">
+                            <div style="height: 280px; position: relative;">
+                                <canvas id="expCategoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="saas-card">
+                        <div class="saas-card-header">
+                            <h5><i class="fas fa-receipt text-warning me-2"></i> Monthly Expense Spending (Last 6
+                                Months)</h5>
+                        </div>
+                        <div class="saas-card-body">
+                            <div style="height: 280px; position: relative;">
+                                <canvas id="expMonthlyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Follow-ups + Recent Leads -->
             <div class="row g-4">
                 <div class="col-lg-6">
                     <div class="saas-card">
@@ -168,10 +200,8 @@
             // Load dashboard data
             async function updateDashboard() {
                 try {
-                    // Get stats from Supabase
                     const stats = await getAdminDashboardStats()
 
-                    // Update stats cards
                     document.getElementById('total-users').textContent = stats.totalUsers
                     document.getElementById('total-leads').textContent = stats.totalLeads
                     document.getElementById('total-quotations').textContent = stats.totalQuotations
@@ -179,10 +209,8 @@
                     document.getElementById('total-calls').textContent = stats.totalCalls
                     document.getElementById('total-meetings').textContent = stats.totalMeetings
 
-                    // Display recent leads
                     await displayRecentLeads()
 
-                    // Render Analytics
                     const allLeads = await getAllLeadsAdmin()
                     const allCalls = await getAllCallsAdmin()
                     const allMeetings = await getAllMeetingsAdmin()
@@ -217,11 +245,7 @@
                         plugins: {
                             legend: {
                                 position: 'bottom',
-                                labels: {
-                                    padding: 20,
-                                    usePointStyle: true,
-                                    font: { family: "'Inter', sans-serif", size: 12 }
-                                }
+                                labels: { padding: 20, usePointStyle: true, font: { family: "'Inter', sans-serif", size: 12 } }
                             }
                         },
                         cutout: '75%'
@@ -249,95 +273,91 @@
                             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                         }),
                         datasets: [
-                            {
-                                label: 'Calls',
-                                data: dailyCalls,
-                                backgroundColor: '#6366f1',
-                                borderRadius: 6,
-                                barThickness: 15
-                            },
-                            {
-                                label: 'Meetings',
-                                data: dailyMeetings,
-                                backgroundColor: '#10b981',
-                                borderRadius: 6,
-                                barThickness: 15
-                            }
+                            { label: 'Calls', data: dailyCalls, backgroundColor: '#6366f1', borderRadius: 6, barThickness: 15 },
+                            { label: 'Meetings', data: dailyMeetings, backgroundColor: '#10b981', borderRadius: 6, barThickness: 15 }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { stepSize: 1, font: { family: "'Inter', sans-serif" } },
-                                grid: { borderDash: [5, 5], drawBorder: false }
-                            },
-                            x: {
-                                grid: { display: false },
-                                ticks: { font: { family: "'Inter', sans-serif" } }
-                            }
+                            y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: "'Inter', sans-serif" } }, grid: { borderDash: [5, 5], drawBorder: false } },
+                            x: { grid: { display: false }, ticks: { font: { family: "'Inter', sans-serif" } } }
                         },
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    padding: 20,
-                                    usePointStyle: true,
-                                    font: { family: "'Inter', sans-serif", size: 12 }
-                                }
-                            }
-                        }
+                        plugins: { legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, font: { family: "'Inter', sans-serif", size: 12 } } } }
                     }
                 })
             }
 
+            // ── Expense Analytics Charts ──
+            async function loadExpenseCharts() {
+                try {
+                    const analytics = await getExpenseAnalytics()
+                    const palette = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6', '#ec4899', '#14b8a6']
+
+                    // Category Doughnut
+                    if (window.expCategoryChart) window.expCategoryChart.destroy()
+                    window.expCategoryChart = new Chart(document.getElementById('expCategoryChart'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(analytics.byCategory),
+                            datasets: [{ data: Object.values(analytics.byCategory), backgroundColor: palette, borderWidth: 2, borderColor: '#fff', hoverOffset: 10 }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false, cutout: '72%',
+                            plugins: { legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, font: { family: "'Inter', sans-serif", size: 12 } } } }
+                        }
+                    })
+
+                    // Monthly Bar
+                    if (window.expMonthlyChart) window.expMonthlyChart.destroy()
+                    window.expMonthlyChart = new Chart(document.getElementById('expMonthlyChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(analytics.monthly),
+                            datasets: [{ label: 'Expenses (AED)', data: Object.values(analytics.monthly), backgroundColor: 'rgba(245,158,11,0.75)', borderRadius: 7, borderSkipped: false, barThickness: 28 }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { beginAtZero: true, grid: { borderDash: [5, 5], drawBorder: false }, ticks: { font: { family: "'Inter', sans-serif" } } },
+                                x: { grid: { display: false }, ticks: { font: { family: "'Inter', sans-serif" } } }
+                            }
+                        }
+                    })
+                } catch (e) {
+                    console.warn('Expense charts skipped (tables may not exist yet):', e.message)
+                }
+            }
+
             async function displayRecentLeads() {
                 const leadsContainer = document.getElementById('recent-leads')
-
                 try {
                     const allLeads = await getAllLeadsAdmin()
-
-                    // Display reminders
                     displayReminders(allLeads)
-
                     if (!allLeads || allLeads.length === 0) {
                         leadsContainer.innerHTML = '<p class="text-muted">No leads yet.</p>'
                         return
                     }
-
-                    const recentLeads = allLeads.slice(0, 5)
-
-                    leadsContainer.innerHTML = recentLeads
-                        .map(lead => {
-                            const statusClass = lead.status.toLowerCase().replace(' ', '-');
-                            const isCRM = lead.lead_source && lead.lead_source !== '';
-
-                            // Calculate Stale Status (Aging)
-                            const lastUpdate = new Date(lead.updated_at || lead.created_at);
-                            const diffDays = Math.floor((new Date() - lastUpdate) / (1000 * 60 * 60 * 24));
-                            let agingClass = '';
-                            if (diffDays >= 7) agingClass = 'stale-pulse-danger';
-                            else if (diffDays >= 3) agingClass = 'stale-pulse-warning';
-
-                            return `
+                    leadsContainer.innerHTML = allLeads.slice(0, 5).map(lead => {
+                        const statusClass = lead.status.toLowerCase().replace(' ', '-');
+                        const isCRM = lead.lead_source && lead.lead_source !== '';
+                        const lastUpdate = new Date(lead.updated_at || lead.created_at);
+                        const diffDays = Math.floor((new Date() - lastUpdate) / (1000 * 60 * 60 * 24));
+                        let agingClass = '';
+                        if (diffDays >= 7) agingClass = 'stale-pulse-danger';
+                        else if (diffDays >= 3) agingClass = 'stale-pulse-warning';
+                        return `
                             <div class="saas-list-item ${isCRM ? 'crm-lead' : ''} ${agingClass}">
-                                <div class="saas-list-item-icon">
-                                    <i class="fas fa-user-circle"></i>
-                                </div>
+                                <div class="saas-list-item-icon"><i class="fas fa-user-circle"></i></div>
                                 <div class="saas-list-item-content flex-grow-1">
-                                    <h6>
-                                        ${lead.name}
-                                        ${isCRM ? '<span class="crm-badge">CRM</span>' : ''}
-                                    </h6>
+                                    <h6>${lead.name} ${isCRM ? '<span class="crm-badge">CRM</span>' : ''}</h6>
                                     <p>${lead.users?.name || 'Unassigned'} • ${new Date(lead.created_at).toLocaleDateString()} ${diffDays > 0 ? `• <small class="${diffDays >= 3 ? 'text-warning fw-bold' : ''}">${diffDays}d inactive</small>` : ''}</p>
                                 </div>
                                 <span class="status-badge-soft ${statusClass}">${lead.status}</span>
-                            </div>
-                        `;
-                        })
-                        .join('')
+                            </div>`;
+                    }).join('')
                 } catch (error) {
                     console.error('Error loading leads:', error)
                     leadsContainer.innerHTML = '<p class="text-muted">Error loading leads.</p>'
@@ -347,9 +367,7 @@
             async function displayReminders(allLeads) {
                 const reminderContainer = document.getElementById('reminders-list')
                 const reminderCountBadge = document.getElementById('reminder-count')
-
                 const today = new Date().toISOString().split('T')[0]
-
                 const reminders = allLeads.filter(lead => {
                     if (!lead.follow_up_date) return false
                     return lead.follow_up_date <= today && lead.status !== 'Qualified' && lead.status !== 'Lost'
@@ -360,14 +378,11 @@
                     reminderCountBadge.classList.add('d-none')
                     return
                 }
-
                 reminderCountBadge.textContent = reminders.length
                 reminderCountBadge.classList.remove('d-none')
-
-                reminderContainer.innerHTML = reminders
-                    .map(lead => {
-                        const isOverdue = lead.follow_up_date < today
-                        return `
+                reminderContainer.innerHTML = reminders.map(lead => {
+                    const isOverdue = lead.follow_up_date < today
+                    return `
                         <div class="saas-list-item" style="cursor: pointer;" onclick="window.location.href='leads.html?search=${encodeURIComponent(lead.name)}'">
                             <div class="saas-list-item-icon" style="background: ${isOverdue ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)'}; color: ${isOverdue ? '#ef4444' : '#f59e0b'};">
                                 <i class="fas ${isOverdue ? 'fa-calendar-times' : 'fa-calendar-day'}"></i>
@@ -379,14 +394,13 @@
                                 </p>
                             </div>
                             <i class="fas fa-chevron-right text-muted small"></i>
-                        </div>
-                    `
-                    })
-                    .join('')
+                        </div>`;
+                }).join('')
             }
 
             // Initialize dashboard
             updateDashboard()
+            loadExpenseCharts()
 
             // Auto-refresh every 30 seconds
             setInterval(updateDashboard, 30000)

@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses (Admin) - Sales Ops</title>
+    <link rel="icon" href="../assets/logo.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ── Stat cards ── */
+        .exp-stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 18px 20px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .05);
+            transition: box-shadow .2s;
+        }
+
+        .exp-stat-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .10);
+        }
+
+        .exp-stat-card .stat-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .exp-stat-card .stat-amount {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.1;
+        }
+
+        .stat-icon-wrap {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon-total {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+
+        .stat-icon-pending {
+            background: #fffbeb;
+            color: #f59e0b;
+        }
+
+        .stat-icon-approved {
+            background: #f0fdf4;
+            color: #22c55e;
+        }
+
+        .stat-icon-rejected {
+            background: #fff1f2;
+            color: #ef4444;
+        }
+
+        /* ── Filter bar ── */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .filter-bar .form-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .filter-bar .form-control,
+        .filter-bar .form-select {
+            font-size: 13px;
+            height: 36px;
+        }
+
+        /* ── Tabs ── */
+        .expense-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .expense-tab-btn {
+            background: none;
+            border: none;
+            padding: 9px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all .15s;
+            white-space: nowrap;
+        }
+
+        .expense-tab-btn.active {
+            color: var(--primary-color, #4f46e5);
+            border-bottom-color: var(--primary-color, #4f46e5);
+        }
+
+        .expense-tab-btn:hover:not(.active) {
+            color: #374151;
+        }
+
+        /* ── Table ── */
+        .expense-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .expense-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        .expense-table th {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #6b7280;
+            padding: 10px 12px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .expense-table td {
+            padding: 12px 12px;
+            font-size: 13px;
+            color: #374151;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+        }
+
+        .expense-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .expense-table tr:hover td {
+            background: #fafafa;
+        }
+
+        /* ── Badges ── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-pending {
+            background: #fffbeb;
+            color: #b45309;
+        }
+
+        .status-approved {
+            background: #f0fdf4;
+            color: #15803d;
+        }
+
+        .status-rejected {
+            background: #fff1f2;
+            color: #b91c1c;
+        }
+
+        .action-btn-group {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn-group .btn {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            color: #d1d5db;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .empty-state p {
+            color: #6b7280;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* ── Analytics section ── */
+        .analytics-section {
+            display: none;
+        }
+
+        .analytics-section.show {
+            display: block;
+        }
+
+        .chart-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+        }
+
+        .chart-card h6 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 16px;
+        }
+
+        /* ── Notification bell ── */
+        .notif-bell-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -5px;
+            right: -6px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 1px 5px;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+        }
+
+        .notif-dropdown {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            width: 310px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+            z-index: 1050;
+            max-height: 380px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .notif-dropdown.show {
+            display: block;
+        }
+
+        .notif-item {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+        }
+
+        .notif-item:last-child {
+            border-bottom: none;
+        }
+
+        .notif-item.unread {
+            background: #f8faff;
+        }
+
+        .notif-item .notif-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 2px;
+        }
+
+        .notif-item .notif-msg {
+            font-size: 11px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .notif-item .notif-time {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 3px;
+        }
+
+        .notif-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .notif-header span {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .notif-header button {
+            font-size: 11px;
+            background: none;
+            border: none;
+            color: var(--primary-color, #4f46e5);
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* ── Sidebar pending badge ── */
+        .sidebar-pending-badge {
+            background: #ef4444;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 1px 6px;
+            margin-left: auto;
+            line-height: 16px;
+            min-width: 18px;
+            text-align: center;
+            display: none;
+        }
+
+        /* ── Mobile responsiveness ── */
+        @media (max-width: 576px) {
+            .exp-stat-card {
+                padding: 14px 16px;
+            }
+
+            .exp-stat-card .stat-amount {
+                font-size: 18px;
+            }
+
+            .notif-dropdown {
+                width: calc(100vw - 32px);
+                right: -60px;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+            }
+
+            .filter-bar>* {
+                width: 100%;
+            }
+
+            .chart-card {
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="main-content">
+
+            <!-- Page Header -->
+            <div class="page-header flex-wrap gap-2">
+                <div class="min-w-0">
+                    <h2 class="mb-0" style="font-size:clamp(18px,4vw,26px);">All Expenses</h2>
+                    <p class="text-muted small mb-0 mt-1">Review and manage team expense submissions</p>
+                </div>
+                <div class="d-flex align-items-center gap-3 flex-shrink-0">
+                    <!-- Notification Bell -->
+                    <div class="notif-bell-wrapper" id="notifBellWrapper">
+                        <i class="fas fa-bell fs-5 text-secondary" id="notifBellIcon"></i>
+                        <span class="notif-badge d-none" id="notifCount">0</span>
+                        <div class="notif-dropdown" id="notifDropdown">
+                            <div class="notif-header">
+                                <span>Notifications</span>
+                                <button onclick="markAllRead()">Mark all read</button>
+                            </div>
+                            <div id="notifList">
+                                <div class="notif-item">
+                                    <p class="notif-msg text-center py-2">No notifications</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Analytics toggle -->
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleAnalytics()"
+                        id="analytics-toggle-btn">
+                        <i class="fas fa-chart-bar me-1"></i><span class="d-none d-sm-inline">Analytics</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="row g-2 mb-3">
+                <div class="col-6 col-md-3">
+                    <div class="exp-stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="stat-label">Total</span>
+                            <div class="stat-icon-wrap stat-icon-total"><i class="fas fa-dollar-sign"></i></div>
+                        </div>
+                        <div class="stat-amount" id="stat-total">AED 0</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="exp-stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="stat-label">Pending</span>
+                            <div class="stat-icon-wrap stat-icon-pending"><i class="fas fa-clock"></i></div>
+                        </div>
+                        <div class="stat-amount" id="stat-pending">AED 0</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="exp-stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="stat-label">Approved</span>
+                            <div class="stat-icon-wrap stat-icon-approved"><i class="fas fa-check-circle"></i></div>
+                        </div>
+                        <div class="stat-amount" id="stat-approved">AED 0</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="exp-stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="stat-label">Rejected</span>
+                            <div class="stat-icon-wrap stat-icon-rejected"><i class="fas fa-times-circle"></i></div>
+                        </div>
+                        <div class="stat-amount" id="stat-rejected">AED 0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Section (hidden by default) -->
+            <div class="analytics-section mb-3" id="analyticsSection">
+                <div class="row g-3">
+                    <div class="col-12 col-md-5">
+                        <div class="chart-card">
+                            <h6><i class="fas fa-chart-pie text-primary me-2"></i>By Category</h6>
+                            <div style="position:relative; height:220px;">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-7">
+                        <div class="chart-card">
+                            <h6><i class="fas fa-chart-bar text-success me-2"></i>Monthly Trend (Last 6 Months)</h6>
+                            <div style="position:relative; height:220px;">
+                                <canvas id="monthlyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expenses Table Card -->
+            <div class="content-card">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                    <div>
+                        <h5 class="mb-0">Expense Submissions</h5>
+                        <p class="text-muted small mb-0">Approve or reject staff expense requests</p>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-bar mt-3">
+                    <div>
+                        <div class="form-label">Staff</div>
+                        <select class="form-select" id="staff-filter" onchange="applyFilters()"
+                            style="min-width:140px;">
+                            <option value="">All Staff</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="form-label">From</div>
+                        <input type="date" class="form-control" id="date-from" onchange="applyFilters()">
+                    </div>
+                    <div>
+                        <div class="form-label">To</div>
+                        <input type="date" class="form-control" id="date-to" onchange="applyFilters()">
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="clearFilters()" style="height:36px;">
+                            <i class="fas fa-times me-1"></i>Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="expense-tabs">
+                    <button class="expense-tab-btn active" onclick="filterExpenses('all', this)">All</button>
+                    <button class="expense-tab-btn" onclick="filterExpenses('pending', this)">Pending</button>
+                    <button class="expense-tab-btn" onclick="filterExpenses('approved', this)">Approved</button>
+                    <button class="expense-tab-btn" onclick="filterExpenses('rejected', this)">Rejected</button>
+                </div>
+
+                <div class="expense-table-wrap">
+                    <table class="expense-table">
+                        <thead>
+                            <tr>
+                                <th>Staff</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenses-tbody">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decision Modal -->
+    <div class="modal fade" id="decisionModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title" id="decisionModalTitle">Review Expense</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="decision-expense-id">
+                    <input type="hidden" id="decision-owner-id">
+                    <input type="hidden" id="decision-action">
+                    <div id="decision-summary" class="mb-3 p-3 rounded" style="background:#f9fafb; font-size:13px;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" id="decision-note-label">Note (Optional)</label>
+                        <textarea class="form-control" id="decision-note" rows="2"
+                            placeholder="Optional message to the user..."></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn flex-grow-1" id="decision-confirm-btn" onclick="confirmDecision()">
+                            Confirm <span class="spinner-border spinner-border-sm ms-2 d-none"
+                                id="decision-spinner"></span>
+                        </button>
+                        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Log Modal -->
+    <div class="modal fade" id="auditModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title"><i class="fas fa-history me-2"></i>Expense History</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="audit-log-body">
+                    <p class="text-muted text-center">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        if (!initAuthCheck('admin')) window.location.href = '../index.html';
+        insertNav('admin', 'expenses');
+
+        const session = getCurrentSession();
+        let allExpenses = [];
+        let activeFilter = 'all';
+        let categoryChart = null;
+        let monthlyChart = null;
+
+        // ── Init ──
+        async function init() {
+            await Promise.all([loadExpenses(), loadNotifications(), updateSidebarBadge()]);
+        }
+
+        // ── Load Expenses ──
+        async function loadExpenses() {
+            try {
+                allExpenses = await getAllExpensesAdmin();
+                populateStaffFilter();
+                updateStats();
+                renderExpenses();
+            } catch (e) {
+                console.error(e);
+                showToast('Failed to load expenses', 'error');
+            }
+        }
+
+        function populateStaffFilter() {
+            const seen = new Set();
+            const select = document.getElementById('staff-filter');
+            const cur = select.value;
+            select.innerHTML = '<option value="">All Staff</option>';
+            allExpenses.forEach(exp => {
+                if (!seen.has(exp.user_id)) {
+                    seen.add(exp.user_id);
+                    const name = exp.users?.name || exp.users?.email || exp.user_id;
+                    select.innerHTML += `<option value="${exp.user_id}">${name}</option>`;
+                }
+            });
+            select.value = cur;
+        }
+
+        function getFilteredList() {
+            const staffId = document.getElementById('staff-filter').value;
+            const from = document.getElementById('date-from').value;
+            const to = document.getElementById('date-to').value;
+            return allExpenses.filter(e => {
+                if (activeFilter !== 'all' && e.status !== activeFilter) return false;
+                if (staffId && e.user_id !== staffId) return false;
+                if (from && e.date < from) return false;
+                if (to && e.date > to) return false;
+                return true;
+            });
+        }
+
+        function applyFilters() { renderExpenses(); }
+
+        function clearFilters() {
+            document.getElementById('staff-filter').value = '';
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
+            renderExpenses();
+        }
+
+        function filterExpenses(status, btn) {
+            activeFilter = status;
+            document.querySelectorAll('.expense-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderExpenses();
+        }
+
+        function updateStats() {
+            const sum = (s) => allExpenses.filter(e => !s || e.status === s)
+                .reduce((a, e) => a + parseFloat(e.amount), 0).toFixed(2);
+            document.getElementById('stat-total').textContent = `AED ${sum(null)}`;
+            document.getElementById('stat-pending').textContent = `AED ${sum('pending')}`;
+            document.getElementById('stat-approved').textContent = `AED ${sum('approved')}`;
+            document.getElementById('stat-rejected').textContent = `AED ${sum('rejected')}`;
+        }
+
+        function renderExpenses() {
+            const tbody = document.getElementById('expenses-tbody');
+            const list = getFilteredList();
+            if (!list.length) {
+                tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-receipt"></i><p>No expenses found.</p></div></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = list.map(exp => {
+                const staffName = exp.users?.name || exp.users?.email || 'Unknown';
+                const statusClass = `status-${exp.status}`;
+                const statusLabel = exp.status.charAt(0).toUpperCase() + exp.status.slice(1);
+                const actions = exp.status === 'pending'
+                    ? `<div class="action-btn-group">
+                            <button class="btn btn-sm btn-success" onclick="openDecision('${exp.id}','${exp.user_id}','approved','${exp.category}','${exp.amount}')"><i class="fas fa-check"></i></button>
+                            <button class="btn btn-sm btn-danger"  onclick="openDecision('${exp.id}','${exp.user_id}','rejected','${exp.category}','${exp.amount}')"><i class="fas fa-times"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="showAuditLog('${exp.id}')" title="History"><i class="fas fa-history"></i></button>
+                       </div>`
+                    : `<button class="btn btn-sm btn-outline-secondary" onclick="showAuditLog('${exp.id}')" title="History"><i class="fas fa-history"></i></button>`;
+                return `<tr>
+                    <td>
+                        <div class="fw-medium" style="white-space:nowrap;">${staffName}</div>
+                        <div class="text-muted" style="font-size:11px;">${new Date(exp.created_at).toLocaleDateString()}</div>
+                    </td>
+                    <td style="white-space:nowrap;">${exp.category}</td>
+                    <td class="fw-semibold" style="white-space:nowrap;">AED ${parseFloat(exp.amount).toFixed(2)}</td>
+                    <td style="white-space:nowrap;">${new Date(exp.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                    <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${exp.description}">${exp.description}</td>
+                    <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                    <td>${actions}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ── Decision ──
+        function openDecision(expenseId, ownerId, action, category, amount) {
+            document.getElementById('decision-expense-id').value = expenseId;
+            document.getElementById('decision-owner-id').value = ownerId;
+            document.getElementById('decision-action').value = action;
+            document.getElementById('decision-note').value = '';
+            const isApprove = action === 'approved';
+            const btn = document.getElementById('decision-confirm-btn');
+            document.getElementById('decisionModalTitle').textContent = isApprove ? 'Approve Expense' : 'Reject Expense';
+            document.getElementById('decision-summary').innerHTML = `<p class="mb-1"><strong>Category:</strong> ${category}</p><p class="mb-0"><strong>Amount:</strong> AED ${parseFloat(amount).toFixed(2)}</p>`;
+            btn.className = `btn flex-grow-1 ${isApprove ? 'btn-success' : 'btn-danger'}`;
+            btn.innerHTML = `${isApprove ? '<i class="fas fa-check me-1"></i>Approve' : '<i class="fas fa-times me-1"></i>Reject'} <span class="spinner-border spinner-border-sm ms-2 d-none" id="decision-spinner"></span>`;
+            document.getElementById('decision-note-label').textContent = isApprove ? 'Note (Optional)' : 'Reason (Optional)';
+            new bootstrap.Modal(document.getElementById('decisionModal')).show();
+        }
+
+        async function confirmDecision() {
+            const expenseId = document.getElementById('decision-expense-id').value;
+            const ownerId = document.getElementById('decision-owner-id').value;
+            const action = document.getElementById('decision-action').value;
+            const note = document.getElementById('decision-note').value;
+            const btn = document.getElementById('decision-confirm-btn');
+            btn.disabled = true;
+            const spinner = document.getElementById('decision-spinner');
+            if (spinner) spinner.classList.remove('d-none');
+            try {
+                await updateExpenseStatusWithAudit(expenseId, action, note, ownerId, session.userId, session.name || session.email);
+                bootstrap.Modal.getInstance(document.getElementById('decisionModal')).hide();
+                showToast(action === 'approved' ? 'Expense approved!' : 'Expense rejected.', action === 'approved' ? 'success' : 'error');
+                await Promise.all([loadExpenses(), updateSidebarBadge()]);
+            } catch (err) {
+                console.error(err);
+                showToast('Action failed: ' + err.message, 'error');
+            } finally { btn.disabled = false; }
+        }
+
+        // ── Audit Log ──
+        async function showAuditLog(expenseId) {
+            document.getElementById('audit-log-body').innerHTML = '<p class="text-muted text-center">Loading...</p>';
+            new bootstrap.Modal(document.getElementById('auditModal')).show();
+            try {
+                const logs = await getExpenseAuditLogs(expenseId);
+                if (!logs.length) {
+                    document.getElementById('audit-log-body').innerHTML = '<p class="text-muted text-center py-3">No history yet.</p>';
+                    return;
+                }
+                document.getElementById('audit-log-body').innerHTML = logs.map(l => `
+                    <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                        <div class="stat-icon-wrap ${l.action === 'approved' ? 'stat-icon-approved' : 'stat-icon-rejected'}" style="margin-top:2px; flex-shrink:0;">
+                            <i class="fas ${l.action === 'approved' ? 'fa-check' : 'fa-times'}"></i>
+                        </div>
+                        <div>
+                            <div class="fw-semibold" style="font-size:13px;">${l.admin_name || 'Admin'} <span class="status-badge status-${l.action}">${l.action}</span></div>
+                            ${l.admin_note ? `<div class="text-muted" style="font-size:12px;">Note: ${l.admin_note}</div>` : ''}
+                            <div class="text-muted" style="font-size:11px; margin-top:3px;">${new Date(l.created_at).toLocaleString()}</div>
+                        </div>
+                    </div>`).join('');
+            } catch (e) {
+                document.getElementById('audit-log-body').innerHTML = '<p class="text-danger text-center">Failed to load history.</p>';
+            }
+        }
+
+        // ── Analytics ──
+        let analyticsOpen = false;
+        async function toggleAnalytics() {
+            const section = document.getElementById('analyticsSection');
+            analyticsOpen = !analyticsOpen;
+            section.classList.toggle('show', analyticsOpen);
+            document.getElementById('analytics-toggle-btn').classList.toggle('btn-primary', analyticsOpen);
+            document.getElementById('analytics-toggle-btn').classList.toggle('btn-outline-primary', !analyticsOpen);
+            if (analyticsOpen) await renderCharts();
+        }
+
+        async function renderCharts() {
+            try {
+                const analytics = await getExpenseAnalytics();
+
+                // Category Pie
+                const catLabels = Object.keys(analytics.byCategory);
+                const catValues = Object.values(analytics.byCategory);
+                const palette = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6', '#ec4899', '#14b8a6'];
+                if (categoryChart) categoryChart.destroy();
+                categoryChart = new Chart(document.getElementById('categoryChart'), {
+                    type: 'doughnut',
+                    data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: palette, borderWidth: 2, borderColor: '#fff' }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } } } }
+                });
+
+                // Monthly Bar
+                const monthLabels = Object.keys(analytics.monthly);
+                const monthValues = Object.values(analytics.monthly);
+                if (monthlyChart) monthlyChart.destroy();
+                monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: monthLabels,
+                        datasets: [{ label: 'Total Expenses (AED)', data: monthValues, backgroundColor: 'rgba(99,102,241,.7)', borderRadius: 6, borderSkipped: false }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } }
+                    }
+                });
+            } catch (e) { console.error('Charts error:', e); }
+        }
+
+        // ── Sidebar Badge ──
+        async function updateSidebarBadge() {
+            try {
+                const count = await getPendingExpensesCount();
+                // Find (or create) the badge next to "Expenses" in the sidebar
+                const expLinks = document.querySelectorAll('.nav-dropdown-link');
+                expLinks.forEach(link => {
+                    if (link.textContent.trim().startsWith('Expenses')) {
+                        let badge = link.querySelector('.sidebar-pending-badge');
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'sidebar-pending-badge';
+                            link.appendChild(badge);
+                        }
+                        badge.style.display = count > 0 ? 'inline-block' : 'none';
+                        badge.textContent = count > 9 ? '9+' : count;
+                    }
+                });
+            } catch (e) { /* silent */ }
+        }
+
+        // ── Notifications ──
+        async function loadNotifications() {
+            try {
+                const notifs = await getNotifications(session.userId);
+                const unread = notifs.filter(n => !n.is_read);
+                const badge = document.getElementById('notifCount');
+                badge.textContent = unread.length > 9 ? '9+' : unread.length;
+                badge.classList.toggle('d-none', unread.length === 0);
+                const list = document.getElementById('notifList');
+                if (!notifs.length) {
+                    list.innerHTML = '<div class="notif-item"><p class="notif-msg text-center py-2">No notifications yet</p></div>';
+                    return;
+                }
+                list.innerHTML = notifs.map(n => `
+                    <div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="readNotif('${n.id}',this)">
+                        <div class="notif-title">${n.title}</div>
+                        <div class="notif-msg">${n.message}</div>
+                        <div class="notif-time">${new Date(n.created_at).toLocaleString()}</div>
+                    </div>`).join('');
+            } catch (e) { console.error('Notif error:', e); }
+        }
+
+        async function readNotif(id, el) {
+            el.classList.remove('unread');
+            await markNotificationRead(id).catch(() => { });
+            await loadNotifications();
+        }
+
+        async function markAllRead() {
+            await markAllNotificationsRead(session.userId).catch(() => { });
+            await loadNotifications();
+            document.getElementById('notifDropdown').classList.remove('show');
+        }
+
+        // Bell toggle
+        document.getElementById('notifBellWrapper').addEventListener('click', function (e) {
+            e.stopPropagation();
+            document.getElementById('notifDropdown').classList.toggle('show');
+        });
+        document.addEventListener('click', () => document.getElementById('notifDropdown').classList.remove('show'));
+
+        // Start
+        init();
+    </script>
+</body>
+
+</html>
