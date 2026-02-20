@@ -123,35 +123,37 @@ async function logoutFromSupabase() {
  * Single-Session Helpers
  */
 async function registerSessionToken(client, userId, token) {
-    await client.from('user_sessions').upsert(
-        { user_id: userId, session_token: token, updated_at: new Date().toISOString() },
-        { onConflict: 'user_id' }
-    );
+    // Store the session token in the user's own Supabase auth metadata.
+    // No extra DB table or SQL needed — auth.updateUser() writes server-side.
+    try {
+        await client.auth.updateUser({ data: { session_token: token } });
+    } catch (e) {
+        console.warn('Single-session: could not register token:', e.message);
+    }
 }
 
 async function validateSessionToken(userId, token) {
     try {
         const client = initSupabase();
-        const { data, error } = await client
-            .from('user_sessions')
-            .select('session_token')
-            .eq('user_id', userId)
-            .single();
+        // getUser() always fetches FRESH data from Supabase server — cannot be faked
+        const { data: { user }, error } = await client.auth.getUser();
 
-        // If there's a DB error (table missing, RLS issue, network glitch)
-        // — don't kick the user. Only kick on a CONFIRMED mismatch.
-        if (error || !data) return true;
+        if (error || !user) return true;  // can't reach server → keep session alive
 
-        return data.session_token === token;
+        const storedToken = user.user_metadata?.session_token;
+        if (!storedToken) return true;   // no token written yet → keep session alive
+
+        return storedToken === token;     // false only on CONFIRMED mismatch → kick
     } catch (e) {
-        return true; // any unexpected error — keep session alive
+        return true; // any network error → keep session alive
     }
 }
 
 async function clearSessionToken(client, userId) {
+    // Wipe the token from user metadata on logout
     try {
-        await client.from('user_sessions').delete().eq('user_id', userId);
-    } catch (e) { /* ignore */ }
+        await client.auth.updateUser({ data: { session_token: null } });
+    } catch (e) { /* ignore — user is logging out anyway */ }
 }
 
 /**
