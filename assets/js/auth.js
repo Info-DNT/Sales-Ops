@@ -187,7 +187,12 @@ function startSessionWatcher() {
     const session = getCurrentSession()
     if (!session) return
 
-    // ── 1. BroadcastChannel — same-browser tab enforcement ─────────
+    // ── 1. Strict One-Tab-Per-Browser Enforcement ──────────────
+    // Generate a unique ID for this specific page load in memory.
+    // Unlike sessionStorage, this survives "Duplicate Tab" without cloning.
+    const pageInstanceId = crypto.randomUUID()
+    const pageLoadTime = Date.now()
+
     if (window._sessionChannel) {
         window._sessionChannel.close()
     }
@@ -205,21 +210,35 @@ function startSessionWatcher() {
             return
         }
 
-        if (msg.type === 'SESSION_ACTIVE' && msg.userId === session.userId) {
-            // If another tab broadcasts a DIFFERENT session token for the same user,
-            // it means they logged in again on that tab. This tab should die.
+        // If another tab claims the session...
+        if (msg.type === 'CLAIM_SESSION' && msg.userId === session.userId) {
+
+            // Check if it's a completely different login session token
             if (msg.sessionToken && msg.sessionToken !== session.sessionToken) {
                 _doKick()
+                return
+            }
+
+            // If it's the exact same session but a DIFFERENT browser tab (pageInstanceId differs),
+            // we enforce "Last Tab Wins". The older tab kills itself.
+            if (msg.pageInstanceId !== pageInstanceId) {
+                if (msg.time > pageLoadTime) {
+                    _doKick() // We are older, so we die.
+                } else if (msg.time === pageLoadTime && msg.pageInstanceId > pageInstanceId) {
+                    _doKick() // Tie-breaker.
+                }
             }
         }
     }
 
-    // Broadcast that THIS tab's session is active
+    // Broadcast that THIS tab is now the active one
     if (session.sessionToken) {
         channel.postMessage({
-            type: 'SESSION_ACTIVE',
+            type: 'CLAIM_SESSION',
             userId: session.userId,
-            sessionToken: session.sessionToken
+            sessionToken: session.sessionToken,
+            pageInstanceId: pageInstanceId,
+            time: pageLoadTime
         })
     }
 
