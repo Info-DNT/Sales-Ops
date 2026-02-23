@@ -157,7 +157,10 @@ function _doKick() {
         clearInterval(window._sessionWatcherInterval)
         window._sessionWatcherInterval = null
     }
+
+    // Tell all other tabs to die immediately before closing our channel
     if (window._sessionChannel) {
+        window._sessionChannel.postMessage({ type: 'KICK_ALL' })
         window._sessionChannel.close()
         window._sessionChannel = null
     }
@@ -184,17 +187,7 @@ function startSessionWatcher() {
     const session = getCurrentSession()
     if (!session) return
 
-    // ── 1. Per-tab unique ID stored in sessionStorage ──────────────
-    // sessionStorage is isolated per tab (unlike localStorage)
-    // so each tab gets its own stable ID across page navigations
-    if (!sessionStorage.getItem('_salesTabId')) {
-        sessionStorage.setItem('_salesTabId', crypto.randomUUID())
-        sessionStorage.setItem('_salesTabTime', Date.now().toString())
-    }
-    const myTabId = sessionStorage.getItem('_salesTabId')
-    const myTabTime = parseInt(sessionStorage.getItem('_salesTabTime'))
-
-    // ── 2. BroadcastChannel — same-browser tab enforcement ─────────
+    // ── 1. BroadcastChannel — same-browser tab enforcement ─────────
     if (window._sessionChannel) {
         window._sessionChannel.close()
     }
@@ -202,27 +195,33 @@ function startSessionWatcher() {
     const channel = new BroadcastChannel('sales_ops_single_session')
     window._sessionChannel = channel
 
-    // Listen for other tabs announcing themselves
+    // Listen for other tabs announcing their session
     channel.onmessage = (event) => {
         const msg = event.data
-        if (
-            msg.type === 'TAB_ACTIVE' &&
-            msg.userId === session.userId &&      // same user
-            msg.tabId !== myTabId &&             // different tab
-            msg.tabTime > myTabTime               // newer tab wins
-        ) {
-            // A NEWER tab became active → kick THIS (older) tab
+
+        // If another tab was killed by the server poll, kill this one too
+        if (msg.type === 'KICK_ALL') {
             _doKick()
+            return
+        }
+
+        if (msg.type === 'SESSION_ACTIVE' && msg.userId === session.userId) {
+            // If another tab broadcasts a DIFFERENT session token for the same user,
+            // it means they logged in again on that tab. This tab should die.
+            if (msg.sessionToken && msg.sessionToken !== session.sessionToken) {
+                _doKick()
+            }
         }
     }
 
-    // Broadcast that THIS tab is now active
-    channel.postMessage({
-        type: 'TAB_ACTIVE',
-        userId: session.userId,
-        tabId: myTabId,
-        tabTime: myTabTime
-    })
+    // Broadcast that THIS tab's session is active
+    if (session.sessionToken) {
+        channel.postMessage({
+            type: 'SESSION_ACTIVE',
+            userId: session.userId,
+            sessionToken: session.sessionToken
+        })
+    }
 
     // ── 3. Polling — cross-browser/device enforcement ───────────────
     // Only poll if we have a sessionToken (i.e. user logged in fresh
