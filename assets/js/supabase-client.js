@@ -301,8 +301,9 @@ async function getLeads(userId, filters = {}) {
 
     let query = client
         .from('leads')
-        .select('*')
+        .select('*, users(name, email)')
         .eq('user_id', userId)
+        .not('is_converted', 'is', true)
         .order('created_at', { ascending: false });
 
     // Apply date filter if provided
@@ -314,10 +315,17 @@ async function getLeads(userId, filters = {}) {
         query = query.eq('status', filters.status);
     }
 
-    const { data, error } = await query;
-
-    if (error) throw error;
-    return data || [];
+    try {
+        const { data, error } = await query;
+        if (error) {
+            console.error('[getLeads] Supabase error:', JSON.stringify(error));
+            throw error;
+        }
+        return data || [];
+    } catch (e) {
+        console.error('[getLeads] Catch error:', JSON.stringify(e));
+        throw e;
+    }
 }
 
 /**
@@ -756,24 +764,6 @@ async function getUserById(userId) {
 }
 
 /**
- * Get all leads (admin only)
- */
-async function getAllLeadsAdmin() {
-    const client = initSupabase();
-
-    const { data, error } = await client
-        .from('leads')
-        .select(`
-            *,
-            users (name, email)
-        `)
-        .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-}
-
-/**
  * Get all work reports (admin only)
  */
 async function getAllWorkReportsAdmin() {
@@ -1122,11 +1112,7 @@ async function getAllCasesAdmin() {
 
     const { data, error } = await client
         .from('cases')
-        .select(`
-            *,
-            users (name, email),
-            leads (name, account_name)
-        `)
+        .select('*, users (name, email)')
         .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -1142,15 +1128,31 @@ async function getCasesForUser(userId) {
 
     const { data, error } = await client
         .from('cases')
-        .select(`
-            *,
-            leads (name, account_name)
-        `)
+        .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
+}
+
+/**
+ * Get lead details by lead ID (used when opening a case detail panel)
+ * @param {string} leadId
+ */
+async function getLeadByLeadId(leadId) {
+    if (!leadId) return null;
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('leads')
+        .select('name, contact, email, patient_name, client_relation, source_location, destination_location, lead_source, field, follow_up_date, expected_close, next_action, account_name, is_converted, converted_at')
+        .eq('id', leadId)
+        .maybeSingle();
+    if (error) {
+        console.warn('Could not fetch lead details:', error);
+        return null;
+    }
+    return data;
 }
 
 /**
@@ -1467,6 +1469,266 @@ async function getExpenseAnalytics() {
     });
 
     return { byCategory, monthly: monthlyMap };
+}
+
+// =============================================
+// LEAD FILES FUNCTIONS
+// =============================================
+
+/**
+ * Get all quotation/document files attached to a lead
+ * @param {string} leadId
+ */
+async function getLeadFiles(leadId) {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('lead_files')
+        .select('*')
+        .eq('lead_id', leadId)
+        .order('uploaded_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching lead files:', error);
+        return [];
+    }
+    return data || [];
+}
+
+/**
+ * Manually attach a file to a lead (for future manual-upload feature)
+ * @param {string} leadId
+ * @param {string} fileName
+ * @param {string} fileUrl
+ */
+async function attachLeadFile(leadId, fileName, fileUrl) {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('lead_files')
+        .insert({
+            lead_id: leadId,
+            file_name: fileName,
+            file_url: fileUrl,
+            source: 'manual'
+        })
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+// =============================================
+// LEAD → CASE CONVERSION
+// =============================================
+
+/**
+ * Get all leads for admin (active only, no converted)
+ */
+async function getAllLeadsAdmin() {
+    const client = initSupabase();
+    try {
+        const { data, error } = await client
+            .from('leads')
+            .select('*, users(name, email)')
+            .not('is_converted', 'is', true)
+            .order('created_at', { ascending: false });
+            
+        if (error) {
+            console.error('Supabase Error (getAllLeadsAdmin):', error);
+            throw error;
+        }
+        return data || [];
+    } catch (e) {
+        console.error('[getAllLeadsAdmin] Supabase error:', JSON.stringify(e));
+        throw e;
+    }
+}
+
+/**
+ * Convert a lead to a case
+ * @param {string} leadId
+ * @param {string} userId - the user performing the conversion
+ */
+async function convertLeadToCase(leadId, userId) {
+    const client = initSupabase();
+
+    // 1. Fetch full lead data
+    const { data: lead, error: leadError } = await client
+        .from('leads')
+        .select('*')
+        .eq('id', leadId)
+        .single();
+
+    if (leadError) throw leadError;
+
+    // 2. Build a rich description from all lead fields
+    const descParts = [];
+    if (lead.patient_name) descParts.push(`Patient: ${lead.patient_name}`);
+    if (lead.client_relation) descParts.push(`Client Relation: ${lead.client_relation}`);
+    if (lead.source_location) descParts.push(`From: ${lead.source_location}`);
+    if (lead.destination_location) descParts.push(`To: ${lead.destination_location}`);
+    if (lead.field) descParts.push(`Category: ${lead.field}`);
+    if (lead.lead_source) descParts.push(`Source: ${lead.lead_source}`);
+    if (lead.next_action) descParts.push(`Next Action: ${lead.next_action}`);
+    if (lead.follow_up_date) descParts.push(`Follow-up: ${lead.follow_up_date}`);
+    if (lead.expected_close) descParts.push(`Expected Close: ${lead.expected_close}`);
+    const description = descParts.join(' | ');
+
+    // 3. Create the case
+    const caseNumber = 'CASE-' + Date.now().toString().slice(-6);
+    const { data: newCase, error: caseError } = await client
+        .from('cases')
+        .insert({
+            case_number: caseNumber,
+            title: lead.name,
+            description: description,
+            lead_id: leadId,
+            user_id: lead.user_id,
+            status: 'In Progress',
+            priority: 'High'
+        })
+        .select()
+        .single();
+
+    if (caseError) throw caseError;
+
+    // 4. Mark lead as converted (stays in DB, hidden from UI)
+    const { error: updateError } = await client
+        .from('leads')
+        .update({
+            is_converted: true,
+            converted_at: new Date().toISOString(),
+            converted_case_id: newCase.id,
+            status: 'Qualified'
+        })
+        .eq('id', leadId);
+
+    if (updateError) throw updateError;
+
+    // 5. Log activity in lead history
+    await logLeadActivity(leadId, userId, 'Lead Converted to Case', {
+        case_number: caseNumber,
+        case_id: newCase.id,
+        summary: `Lead converted to ${caseNumber}`
+    });
+
+    return newCase;
+}
+
+// =============================================
+// CASE FILES (QUOTATION UPLOADS)
+// =============================================
+
+/**
+ * Get all uploaded quotation files for a case
+ * @param {string} caseId
+ */
+async function getCaseFiles(caseId) {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('case_files')
+        .select('*, users(name, email)')
+        .eq('case_id', caseId)
+        .order('uploaded_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Get file counts for multiple cases at once (for badge display)
+ * @param {string[]} caseIds
+ * @returns {object} { caseId: count }
+ */
+async function getCaseFileCounts(caseIds) {
+    if (!caseIds || caseIds.length === 0) return {};
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('case_files')
+        .select('case_id')
+        .in('case_id', caseIds);
+    if (error) return {};
+    const counts = {};
+    (data || []).forEach(row => {
+        counts[row.case_id] = (counts[row.case_id] || 0) + 1;
+    });
+    return counts;
+}
+
+/**
+ * Upload a quotation file to Supabase Storage and save record
+ * @param {string} caseId
+ * @param {string} userId
+ * @param {File} file - browser File object
+ * @param {Function} onProgress - optional progress callback(percent)
+ */
+async function uploadCaseFile(caseId, userId, file, onProgress) {
+    const client = initSupabase();
+
+    // Build storage path: caseId/timestamp-filename
+    const timestamp = Date.now();
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `${caseId}/${timestamp}-${safeName}`;
+
+    // Upload to Supabase Storage bucket 'case-quotations'
+    const { data: storageData, error: storageError } = await client.storage
+        .from('case-quotations')
+        .upload(storagePath, file, {
+            cacheControl: '3600',
+            upsert: false
+        });
+
+    if (storageError) throw storageError;
+
+    // Get a signed URL (valid 10 years)
+    const { data: urlData, error: urlError } = await client.storage
+        .from('case-quotations')
+        .createSignedUrl(storagePath, 60 * 60 * 24 * 365 * 10);
+
+    if (urlError) throw urlError;
+
+    // Save record in case_files table
+    const { data: fileRecord, error: dbError } = await client
+        .from('case_files')
+        .insert({
+            case_id: caseId,
+            file_name: file.name,
+            file_url: urlData.signedUrl,
+            file_size: file.size,
+            uploaded_by: userId,
+            storage_path: storagePath
+        })
+        .select()
+        .single();
+
+    if (dbError) throw dbError;
+    return fileRecord;
+}
+
+/**
+ * Delete a case file from Storage and database
+ * @param {string} fileId - case_files.id
+ * @param {string} storagePath - path in storage bucket
+ */
+async function deleteCaseFile(fileId, storagePath) {
+    const client = initSupabase();
+
+    // Remove from Supabase Storage
+    if (storagePath) {
+        await client.storage
+            .from('case-quotations')
+            .remove([storagePath]);
+    }
+
+    // Remove from database
+    const { error } = await client
+        .from('case_files')
+        .delete()
+        .eq('id', fileId);
+
+    if (error) throw error;
+    return true;
 }
 
 // Initialize on load

@@ -164,6 +164,7 @@
                                     <option value="Qualified">Qualified</option>
                                     <option value="Closed">Closed</option>
                                     <option value="Not Converted">Not Converted</option>
+                                    <option value="Converted">&#10003; Converted</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -228,6 +229,7 @@
             <ul class="nav nav-tabs-custom px-4" id="detailsTabs">
                 <li><a href="#" class="nav-link active" onclick="switchDetailsTab('overview')">Overview</a></li>
                 <li><a href="#" class="nav-link" onclick="switchDetailsTab('timeline')">Timeline</a></li>
+                <li><a href="#" class="nav-link" onclick="switchDetailsTab('files')"><i class="fas fa-paperclip me-1"></i>Quotations</a></li>
             </ul>
 
             <!-- Content Area -->
@@ -287,6 +289,7 @@
                                     <option value="Qualified">Qualified</option>
                                     <option value="Closed">Closed</option>
                                     <option value="Not Converted">Not Converted</option>
+                                    <option value="Converted">&#10003; Converted</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -321,6 +324,13 @@
                         <p class="text-muted text-center py-4">Loading history...</p>
                     </div>
                 </div>
+
+                <!-- Quotation Files Tab -->
+                <div id="tab-files" class="details-tab-content d-none">
+                    <div id="files-container">
+                        <p class="text-muted text-center py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading files...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -339,6 +349,37 @@
                         src="https://forms.zohopublic.in/digitalnexttechnolgy1/form/StartingForm/formperma/Z6YQKREPtFOzQUrq0sEHVUvmy2zQrhu8odzhV3g-PLA"
                         style="width: 100%; min-height: 600px; border: none;" frameborder="0" allowfullscreen>
                     </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lead → Case Conversion Confirmation Modal -->
+    <div class="modal fade" id="convertLeadModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:36px;height:36px;border-radius:9px;background:rgba(16,185,129,0.12);color:#10b981;display:flex;align-items:center;justify-content:center;font-size:1rem;">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <h6 class="modal-title mb-0">Convert Lead to Case?</h6>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-0">
+                        <strong id="convert-lead-name-display"></strong> will be moved to
+                        the <strong>Cases</strong> section with all details.
+                        The lead will no longer appear in your Leads list.
+                    </p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success btn-sm" id="confirm-convert-btn">
+                        <i class="fas fa-exchange-alt me-1"></i> Yes, Convert
+                        <span class="spinner-border spinner-border-sm ms-2 d-none" id="convert-spinner"></span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -375,6 +416,9 @@
 
         // Load leads
         async function loadLeads() {
+            const container = document.getElementById('leads-list')
+            if (container) container.innerHTML = '<p class="text-muted">Loading...</p>'
+
             try {
                 allLeads = await getLeads(session.userId)
                 leads = allLeads
@@ -382,6 +426,7 @@
             } catch (error) {
                 console.error('Error loading leads:', error)
                 showToast('Failed to load leads', 'error')
+                if (container) container.innerHTML = '<p class="text-danger">Error loading leads. Please check your connection or permissions.</p>'
             }
         }
 
@@ -683,18 +728,71 @@
         function switchDetailsTab(tab) {
             const overviewTab = document.getElementById('tab-overview');
             const timelineTab = document.getElementById('tab-timeline');
+            const filesTab   = document.getElementById('tab-files');
             const links = document.querySelectorAll('#detailsTabs .nav-link');
+
+            // Hide all, deactivate all links
+            [overviewTab, timelineTab, filesTab].forEach(t => t.classList.add('d-none'));
+            links.forEach(l => l.classList.remove('active'));
 
             if (tab === 'overview') {
                 overviewTab.classList.remove('d-none');
-                timelineTab.classList.add('d-none');
                 links[0].classList.add('active');
-                links[1].classList.remove('active');
-            } else {
-                overviewTab.classList.add('d-none');
+            } else if (tab === 'timeline') {
                 timelineTab.classList.remove('d-none');
-                links[0].classList.remove('active');
                 links[1].classList.add('active');
+            } else if (tab === 'files') {
+                filesTab.classList.remove('d-none');
+                links[2].classList.add('active');
+                loadLeadFiles(editingLeadId);
+            }
+        }
+
+        async function loadLeadFiles(leadId) {
+            const container = document.getElementById('files-container');
+            container.innerHTML = '<p class="text-muted text-center py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading files...</p>';
+
+            try {
+                const files = await getLeadFiles(leadId);
+
+                if (!files || files.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="mb-3" style="font-size: 3rem; color: #cbd5e1;">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <h6 class="text-muted">No quotations attached yet</h6>
+                            <p class="text-muted small">Quotations from Google Drive will appear here automatically once processed.</p>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="mb-3">
+                        <small class="text-muted">${files.length} quotation file${files.length !== 1 ? 's' : ''} attached</small>
+                    </div>
+                    ${files.map(f => `
+                        <div class="d-flex align-items-center gap-3 p-3 mb-2 rounded border bg-white" style="transition: box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+                            <div style="width:40px;height:40px;border-radius:8px;background:rgba(239,68,68,0.1);color:#ef4444;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="fw-600 text-truncate" style="font-size:0.875rem;color:#0f172a;">${f.file_name}</div>
+                                <div class="small text-muted">
+                                    <i class="fas fa-cloud me-1"></i>${f.source === 'drive' ? 'Google Drive' : 'Manual'}
+                                    &nbsp;•&nbsp;
+                                    ${new Date(f.uploaded_at).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'})}
+                                </div>
+                            </div>
+                            <a href="${f.file_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary flex-shrink-0">
+                                <i class="fas fa-external-link-alt me-1"></i>Open
+                            </a>
+                        </div>
+                    `).join('')}
+                `;
+            } catch (error) {
+                console.error('Error loading lead files:', error);
+                container.innerHTML = '<p class="text-danger text-center py-4">Error loading files.</p>';
             }
         }
 
@@ -730,6 +828,18 @@
 
         document.getElementById('edit-lead-form').addEventListener('submit', async function (e) {
             e.preventDefault();
+
+            const selectedStatus = document.getElementById('edit-lead-status').value;
+
+            // Intercept Converted status — show confirmation modal first
+            if (selectedStatus === 'Converted') {
+                const leadName = document.getElementById('edit-lead-name').value;
+                document.getElementById('convert-lead-name-display').textContent = leadName;
+                pendingConvertLeadId = editingLeadId;
+                new bootstrap.Modal(document.getElementById('convertLeadModal')).show();
+                return;
+            }
+
             const saveBtn = document.getElementById('save-lead-btn');
             saveBtn.disabled = true;
             saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
@@ -739,7 +849,7 @@
                     name: document.getElementById('edit-lead-name').value,
                     contact: document.getElementById('edit-lead-contact').value,
                     email: document.getElementById('edit-lead-email').value,
-                    status: document.getElementById('edit-lead-status').value,
+                    status: selectedStatus,
                     owner: document.getElementById('edit-lead-owner').value,
                     nextAction: document.getElementById('edit-lead-next-action').value,
                     followUpDate: document.getElementById('edit-lead-follow-up').value,
@@ -767,6 +877,41 @@
                 saveBtn.textContent = 'Save Changes';
             }
         })
+
+        // ── Pending conversion state ──
+        let pendingConvertLeadId = null;
+
+        // ── Handle confirm conversion ──
+        document.getElementById('confirm-convert-btn').addEventListener('click', async function () {
+            if (!pendingConvertLeadId) return;
+            const btn = this;
+            const spinner = document.getElementById('convert-spinner');
+            btn.disabled = true;
+            spinner.classList.remove('d-none');
+
+            try {
+                const newCase = await convertLeadToCase(pendingConvertLeadId, session.userId);
+
+                // Close both the modal and the offcanvas
+                bootstrap.Modal.getInstance(document.getElementById('convertLeadModal')).hide();
+                const oc = bootstrap.Offcanvas.getInstance(document.getElementById('leadDetailsOffcanvas'));
+                if (oc) oc.hide();
+
+                // Remove lead from local arrays & re-render
+                allLeads = allLeads.filter(l => l.id !== pendingConvertLeadId);
+                leads = leads.filter(l => l.id !== pendingConvertLeadId);
+                displayLeads();
+
+                showToast(`Lead converted to ${newCase.case_number} — view it in Cases`, 'success');
+            } catch (err) {
+                console.error('Conversion error:', err);
+                showToast('Conversion failed: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                spinner.classList.add('d-none');
+                pendingConvertLeadId = null;
+            }
+        });
 
         // Quotation Request Functions
         function openQuotationModal(leadId) {
@@ -864,6 +1009,8 @@
         loadLeads()
         setupRealtimeLeads()
     </script>
+
+
 </body>
 
 </html>

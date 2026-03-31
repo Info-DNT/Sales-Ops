@@ -14,8 +14,6 @@
 
 <body>
     <div id="app">
-        <!-- Sidebar will be inserted here -->
-
         <div class="main-content">
             <div class="page-header flex-wrap gap-3">
                 <div>
@@ -23,11 +21,11 @@
                     <p class="text-muted small mb-0">System-wide case overview and management</p>
                 </div>
                 <div class="d-flex flex-wrap gap-2 w-100-mobile align-items-center">
-                    <button class="btn btn-outline-primary" onclick="exportCases()">
-                        <i class="fas fa-file-export"></i> Upload Cases
+                    <button class="btn btn-outline-primary" onclick="exportCasesCSV()">
+                        <i class="fas fa-file-export me-1"></i> Export CSV
                     </button>
                     <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addCaseModal">
-                        <i class="fas fa-plus"></i> Create Case
+                        <i class="fas fa-plus me-1"></i> Create Case
                     </button>
                 </div>
             </div>
@@ -35,43 +33,39 @@
             <!-- Stats Overview -->
             <div class="dashboard-grid-horizontal mb-4">
                 <div class="stat-card-modern">
-                    <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                    <div class="stat-icon" style="background:rgba(99,102,241,0.1);color:#6366f1;">
                         <i class="fas fa-briefcase"></i>
                     </div>
                     <div class="stat-label">Total Cases</div>
                     <div class="stat-value" id="stats-total">0</div>
                     <div class="text-muted small">All time</div>
                 </div>
-
                 <div class="stat-card-modern">
-                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="stat-label">Converted</div>
+                    <div class="stat-value" id="stats-converted">0</div>
+                    <div class="text-muted small">From leads</div>
+                </div>
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-label">Completed</div>
                     <div class="stat-value" id="stats-completed">0</div>
                     <div class="text-muted small" id="stats-completed-percent">0%</div>
                 </div>
-
                 <div class="stat-card-modern">
-                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                    <div class="stat-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
                         <i class="fas fa-clock"></i>
                     </div>
-                    <div class="stat-label">Pending</div>
+                    <div class="stat-label">Pending / Active</div>
                     <div class="stat-value" id="stats-pending">0</div>
                     <div class="text-muted small">Requires action</div>
                 </div>
-
                 <div class="stat-card-modern">
-                    <div class="stat-icon" style="background: rgba(107, 114, 128, 0.1); color: #6b7280;">
-                        <i class="fas fa-pause-circle"></i>
-                    </div>
-                    <div class="stat-label">On Hold</div>
-                    <div class="stat-value" id="stats-onhold">0</div>
-                    <div class="text-muted small">Awaiting updates</div>
-                </div>
-
-                <div class="stat-card-modern">
-                    <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                    <div class="stat-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">
                         <i class="fas fa-times-circle"></i>
                     </div>
                     <div class="stat-label">Cancelled</div>
@@ -83,16 +77,16 @@
             <!-- Search/Filter -->
             <div class="content-card mb-3">
                 <div class="row g-3">
-                    <div class="col-lg-6">
+                    <div class="col-lg-4">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0">
                                 <i class="fas fa-search text-muted"></i>
                             </span>
                             <input type="text" class="form-control border-start-0" id="search-query"
-                                placeholder="Search cases..." oninput="filterCases()">
+                                placeholder="Search cases, client name..." oninput="filterCases()">
                         </div>
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-2">
                         <select class="form-select" id="filter-status" onchange="filterCases()">
                             <option value="">All Statuses</option>
                             <option value="Pending">Pending</option>
@@ -102,12 +96,24 @@
                             <option value="Cancelled">Cancelled</option>
                         </select>
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-2">
                         <select class="form-select" id="filter-priority" onchange="filterCases()">
                             <option value="">All Priorities</option>
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
                             <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <select class="form-select" id="filter-source" onchange="filterCases()">
+                            <option value="">All Sources</option>
+                            <option value="converted">Converted Leads</option>
+                            <option value="manual">Manual Cases</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <select class="form-select" id="filter-user" onchange="filterCases()">
+                            <option value="">All Users</option>
                         </select>
                     </div>
                 </div>
@@ -115,72 +121,231 @@
 
             <div class="content-card">
                 <div id="cases-list-container">
-                    <div class="text-center py-5" id="no-cases-message">
-                        <p class="text-muted mb-0">No cases found</p>
+                    <div class="text-center py-5 d-none" id="no-cases-message">
+                        <div class="mb-3" style="font-size:3rem;color:#cbd5e1;"><i class="fas fa-briefcase"></i></div>
+                        <h6 class="text-muted">No cases found</h6>
                     </div>
                     <div id="cases-list" class="leads-container">
-                        <!-- Case cards will be inserted here -->
+                        <div class="text-center py-4">
+                            <span class="spinner-border spinner-border-sm me-2"></span> Loading...
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Case Details Offcanvas (Edit/View) -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="caseDetailsOffcanvas" style="width: 500px;">
-        <div class="offcanvas-header border-bottom">
-            <h5 class="offcanvas-title" id="details-case-title">Case Details</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-        </div>
-        <div class="offcanvas-body">
-            <form id="edit-case-form">
-                <input type="hidden" id="edit-case-id">
-                <div class="mb-3">
-                    <label class="form-label">Case Title</label>
-                    <input type="text" class="form-control" id="edit-case-title" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-control" id="edit-case-description" rows="4"></textarea>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" id="edit-case-status">
-                            <option value="Pending">Pending</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                            <option value="On Hold">On Hold</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Priority</label>
-                        <select class="form-select" id="edit-case-priority">
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Assign To User</label>
-                        <select class="form-select" id="edit-case-user">
-                            <option value="">Loading users...</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Link to Lead</label>
-                        <select class="form-select" id="edit-case-lead">
-                            <option value="">None / Loading leads...</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary w-100 mt-2" id="save-case-btn">
-                    Save Changes
+    <!-- ============================================
+         CASE DETAIL OFFCANVAS — Admin (3 tabs + admin controls)
+         ============================================ -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="caseDetailsOffcanvas" style="width:540px;">
+        <div class="offcanvas-header border-bottom py-3">
+            <div>
+                <h5 class="offcanvas-title mb-0" id="offcanvas-case-title">Case Details</h5>
+                <small class="text-muted" id="offcanvas-case-number"></small>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-danger" id="delete-case-btn"
+                    onclick="handleDeleteCase(editingCaseId)">
+                    <i class="fas fa-trash"></i>
                 </button>
-            </form>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs-custom px-4" id="caseTabs">
+            <li><a href="#" class="nav-link active" onclick="switchCaseTab('overview', this); return false;">Overview</a></li>
+            <li><a href="#" class="nav-link" onclick="switchCaseTab('timeline', this); return false;">Timeline</a></li>
+            <li><a href="#" class="nav-link" onclick="switchCaseTab('quotations', this); return false;"><i class="fas fa-paperclip me-1"></i>Quotations</a></li>
+        </ul>
+
+        <div class="offcanvas-body p-0">
+            <div class="px-4 pb-4">
+
+                <!-- ─── TAB: OVERVIEW ─── -->
+                <div id="case-tab-overview" class="pt-3">
+                    <!-- Converted badge -->
+                    <div id="converted-badge-row" class="d-none mb-3">
+                        <span class="converted-case-badge"><i class="fas fa-exchange-alt me-1"></i>Converted from Lead</span>
+                        <small class="text-muted ms-2" id="converted-date-display"></small>
+                    </div>
+
+                    <!-- Client Details -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-user text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Client</span>
+                        </div>
+                        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="small text-muted">Name</div>
+                                    <div class="fw-600" id="detail-client-name">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Phone</div>
+                                    <div class="fw-600" id="detail-client-phone">—</div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="small text-muted">Email</div>
+                                    <div class="fw-600" id="detail-client-email">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Patient Details -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-procedures text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Patient</span>
+                        </div>
+                        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="small text-muted">Patient Name</div>
+                                    <div class="fw-600" id="detail-patient-name">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Client Relation</div>
+                                    <div class="fw-600" id="detail-client-relation">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Travel -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-plane text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Travel</span>
+                        </div>
+                        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="small text-muted">From</div>
+                                    <div class="fw-600" id="detail-source">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">To</div>
+                                    <div class="fw-600" id="detail-destination">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Category</div>
+                                    <div class="fw-600" id="detail-field">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Lead Source</div>
+                                    <div class="fw-600" id="detail-lead-source">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dates -->
+                    <div class="mb-3">
+                        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="small text-muted">Follow-up Date</div>
+                                    <div class="fw-600" id="detail-follow-up">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Expected Close</div>
+                                    <div class="fw-600" id="detail-expected-close">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Edit Form -->
+                    <hr class="my-3">
+                    <form id="edit-case-form">
+                        <input type="hidden" id="edit-case-id">
+                        <div class="row g-3 mb-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-600">Case Title</label>
+                                <input type="text" class="form-control" id="edit-case-title">
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-600">Status</label>
+                                <select class="form-select" id="edit-case-status">
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="On Hold">On Hold</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-600">Priority</label>
+                                <select class="form-select" id="edit-case-priority">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-600">Assign To User</label>
+                            <select class="form-select" id="edit-case-user">
+                                <option value="">Loading users...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-600">Notes / Description</label>
+                            <textarea class="form-control" id="edit-case-description" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="save-case-btn">
+                            <i class="fas fa-save me-1"></i> Save Changes
+                        </button>
+                    </form>
+                </div>
+
+                <!-- ─── TAB: TIMELINE ─── -->
+                <div id="case-tab-timeline" class="pt-3 d-none">
+                    <div id="case-timeline-container" class="timeline">
+                        <p class="text-muted text-center py-4">
+                            <span class="spinner-border spinner-border-sm me-2"></span> Loading history...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- ─── TAB: QUOTATIONS ─── -->
+                <div id="case-tab-quotations" class="pt-3 d-none">
+                    <!-- Admin upload -->
+                    <div class="upload-drop-zone mb-3" id="upload-drop-zone"
+                        onclick="document.getElementById('quotation-file-input').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Drop file here or <span class="browse-link">browse</span></p>
+                        <p class="mt-1" style="font-size:11px;color:#94a3b8;">PDF, DOC, DOCX, PNG, JPG — max 20 MB</p>
+                    </div>
+                    <input type="file" id="quotation-file-input" class="d-none"
+                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+
+                    <!-- Progress bar -->
+                    <div class="upload-progress-wrap" id="upload-progress-wrap">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted" id="upload-file-name">Uploading...</small>
+                            <small class="text-muted" id="upload-percent">0%</small>
+                        </div>
+                        <div class="upload-progress-track">
+                            <div class="upload-progress-bar" id="upload-progress-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- File list -->
+                    <div id="quotation-files-list">
+                        <p class="text-muted text-center py-3">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Loading...
+                        </p>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
@@ -204,8 +369,8 @@
                             <textarea class="form-control" id="case-description" rows="3"
                                 placeholder="Provide more details..."></textarea>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
                                 <label class="form-label">Status</label>
                                 <select class="form-select" id="case-status" required>
                                     <option value="Pending" selected>Pending</option>
@@ -215,7 +380,7 @@
                                     <option value="Cancelled">Cancelled</option>
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label class="form-label">Priority</label>
                                 <select class="form-select" id="case-priority" required>
                                     <option value="Low">Low</option>
@@ -224,24 +389,50 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Assign To</label>
-                                <select class="form-select" id="case-user-select" required>
-                                    <option value="">Select User</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Lead (Optional)</label>
-                                <select class="form-select" id="case-lead-select">
-                                    <option value="">None</option>
-                                </select>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label">Assign To User</label>
+                            <select class="form-select" id="case-user-select" required>
+                                <option value="">Select User</option>
+                            </select>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 mt-2" id="add-case-btn">
                             Create Case
                         </button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Quotation Quick Modal (from card button) -->
+    <div class="modal fade" id="uploadQuotationModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h6 class="modal-title mb-0"><i class="fas fa-upload me-2 text-success"></i>Upload Quotation</h6>
+                        <small class="text-muted" id="upload-modal-case-name"></small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="upload-drop-zone" id="quick-upload-zone"
+                        onclick="document.getElementById('quick-file-input').click()">
+                        <i class="fas fa-file-upload"></i>
+                        <p>Click to select file</p>
+                        <p style="font-size:11px;color:#94a3b8;">PDF, DOC, DOCX, PNG, JPG</p>
+                    </div>
+                    <input type="file" id="quick-file-input" class="d-none"
+                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+                    <div class="upload-progress-wrap mt-2" id="quick-progress-wrap">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted" id="quick-file-name">Uploading...</small>
+                            <small class="text-success" id="quick-percent">0%</small>
+                        </div>
+                        <div class="upload-progress-track">
+                            <div class="upload-progress-bar" id="quick-progress-bar" style="width:0%"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -253,186 +444,510 @@
     <script src="../assets/js/auth.js"></script>
     <script src="../assets/js/common.js"></script>
     <script>
-        // Check auth
-        if (!initAuthCheck('admin')) {
-            window.location.href = '../index.html';
-        }
-
-        // Insert Nav
+        if (!initAuthCheck('admin')) window.location.href = '../index.html';
         insertNav('admin', 'cases');
 
+        const session = getCurrentSession();
         let allCases = [];
         let filteredCases = [];
-        let allLeads = [];
         let allUsers = [];
+        let caseFileCounts = {};
         let editingCaseId = null;
+        let quickUploadCaseId = null;
 
-        // Load data
+        // ─────────────────────────────────────────────
+        // LOAD DATA
+        // ─────────────────────────────────────────────
         async function loadData() {
             try {
-                const [casesData, leadsData, usersData] = await Promise.all([
+                const [casesData, usersData] = await Promise.all([
                     getAllCasesAdmin(),
-                    getAllLeadsAdmin(),
                     getUsersAdmin()
                 ]);
-
                 allCases = casesData;
-                allLeads = leadsData;
                 allUsers = usersData;
 
-                populateDropdowns();
+                // File counts
+                const ids = allCases.map(c => c.id);
+                caseFileCounts = await getCaseFileCounts(ids);
+
+                populateUserDropdowns();
                 updateStats();
                 filterCases();
-            } catch (error) {
-                console.error('Error loading data:', error);
+            } catch (err) {
+                console.error('Error loading data:', err);
                 showToast('Failed to load data', 'error');
             }
         }
 
-        function populateDropdowns() {
-            const userOptions = allUsers.map(u => `<option value="${u.id}">${u.name || u.email}</option>`).join('');
-            const leadOptions = '<option value="">None</option>' + allLeads.map(l => `<option value="${l.id}">${l.name} (${l.account_name || 'N/A'})</option>`).join('');
+        function populateUserDropdowns() {
+            const opts = allUsers.map(u => `<option value="${u.id}">${u.name || u.email}</option>`).join('');
+            document.getElementById('case-user-select').innerHTML = '<option value="">Select User</option>' + opts;
+            document.getElementById('edit-case-user').innerHTML = opts;
 
-            document.getElementById('case-user-select').innerHTML = '<option value="">Select User</option>' + userOptions;
-            document.getElementById('edit-case-user').innerHTML = userOptions;
-
-            document.getElementById('case-lead-select').innerHTML = leadOptions;
-            document.getElementById('edit-case-lead').innerHTML = leadOptions;
+            // Filter by user dropdown
+            const filterOpts = allUsers.map(u => `<option value="${u.id}">${u.name || u.email}</option>`).join('');
+            document.getElementById('filter-user').innerHTML = '<option value="">All Users</option>' + filterOpts;
         }
 
         function updateStats() {
             const total = allCases.length;
+            const converted = allCases.filter(c => c.lead_id).length;
             const completed = allCases.filter(c => c.status === 'Completed').length;
             const pending = allCases.filter(c => c.status === 'Pending' || c.status === 'In Progress').length;
-            const onhold = allCases.filter(c => c.status === 'On Hold').length;
             const cancelled = allCases.filter(c => c.status === 'Cancelled').length;
+            const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
             document.getElementById('stats-total').textContent = total;
+            document.getElementById('stats-converted').textContent = converted;
             document.getElementById('stats-completed').textContent = completed;
+            document.getElementById('stats-completed-percent').textContent = pct + '%';
             document.getElementById('stats-pending').textContent = pending;
-            document.getElementById('stats-onhold').textContent = onhold;
             document.getElementById('stats-cancelled').textContent = cancelled;
-
-            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-            document.getElementById('stats-completed-percent').textContent = `${percent}%`;
         }
 
         function filterCases() {
             const query = document.getElementById('search-query').value.toLowerCase();
             const status = document.getElementById('filter-status').value;
             const priority = document.getElementById('filter-priority').value;
+            const source = document.getElementById('filter-source').value;
+            const userId = document.getElementById('filter-user').value;
 
             filteredCases = allCases.filter(c => {
                 const matchesQuery = !query ||
                     c.title.toLowerCase().includes(query) ||
-                    c.description?.toLowerCase().includes(query) ||
                     c.case_number.toLowerCase().includes(query) ||
-                    (c.leads?.name && c.leads.name.toLowerCase().includes(query));
-
+                    (c.leads?.name && c.leads.name.toLowerCase().includes(query)) ||
+                    (c.users?.name && c.users.name.toLowerCase().includes(query));
                 const matchesStatus = !status || c.status === status;
                 const matchesPriority = !priority || c.priority === priority;
-
-                return matchesQuery && matchesStatus && matchesPriority;
+                const matchesSource = !source ||
+                    (source === 'converted' && !!c.lead_id) ||
+                    (source === 'manual' && !c.lead_id);
+                const matchesUser = !userId || c.user_id === userId;
+                return matchesQuery && matchesStatus && matchesPriority && matchesSource && matchesUser;
             });
-
             displayCases();
         }
 
+        // ─────────────────────────────────────────────
+        // DISPLAY CASE CARDS
+        // ─────────────────────────────────────────────
         function displayCases() {
             const list = document.getElementById('cases-list');
-            const noCases = document.getElementById('no-cases-message');
+            const noMsg = document.getElementById('no-cases-message');
 
             if (filteredCases.length === 0) {
                 list.innerHTML = '';
-                noCases.classList.remove('d-none');
+                noMsg.classList.remove('d-none');
                 return;
             }
+            noMsg.classList.add('d-none');
 
-            noCases.classList.add('d-none');
+            const fileCount = id => caseFileCounts[id] || 0;
+
             list.innerHTML = filteredCases.map(c => `
-                <div class="lead-card">
+                <div class="lead-card ${c.lead_id ? 'converted-case' : ''}">
                     <div class="lead-header">
                         <div class="lead-title">
-                            <h6><span class="text-primary small me-2">#${c.case_number}</span>${c.title}</h6>
-                            <p class="text-muted small mb-0">Assigned: ${c.users?.name || c.users?.email || 'N/A'}</p>
+                            <h6 class="mb-0">
+                                <span class="text-primary small me-1">#${c.case_number}</span>
+                                ${c.title}
+                                ${c.lead_id ? '<span class="converted-case-badge ms-1"><i class="fas fa-exchange-alt"></i> Converted</span>' : ''}
+                            </h6>
+                            <p class="text-muted small mb-0">
+                                <i class="fas fa-user me-1"></i>${c.users?.name || c.users?.email || 'Unassigned'}
+                            </p>
                         </div>
-                        <div class="d-flex gap-2">
+                        <div class="d-flex gap-2 flex-shrink-0 flex-column align-items-end">
                             <span class="badge ${getPriorityBadge(c.priority)}">${c.priority}</span>
                             <span class="badge ${getStatusBadge(c.status)}">${c.status}</span>
                         </div>
                     </div>
 
                     <div class="lead-details mt-3">
-                        ${c.leads ? `
                         <div class="lead-detail-item">
-                            <span class="lead-detail-label">Linked Lead</span>
-                            <span class="lead-detail-value text-primary">${c.leads.name}</span>
+                            <span class="lead-detail-label"><i class="fas fa-user-tie me-1"></i>Client</span>
+                            <span class="lead-detail-value text-primary">${c.title}</span>
                         </div>
-                        ` : ''}
+                        ${c.description ? `
                         <div class="lead-detail-item">
-                            <span class="lead-detail-label">Created</span>
+                            <span class="lead-detail-label"><i class="fas fa-info-circle me-1"></i>Details</span>
+                            <span class="lead-detail-value text-truncate" style="max-width:200px;">${c.description.split(' | ')[0] || ''}</span>
+                        </div>` : ''}
+                        <div class="lead-detail-item">
+                            <span class="lead-detail-label"><i class="fas fa-calendar me-1"></i>Created</span>
                             <span class="lead-detail-value">${new Date(c.created_at).toLocaleDateString()}</span>
-                        </div>
-                        <div class="mt-2 small text-muted text-truncate" style="max-height: 40px;">
-                            ${c.description || 'No description provided.'}
                         </div>
                     </div>
 
-                    <div class="lead-actions mt-3">
-                        <button class="btn btn-sm btn-outline-primary" onclick="openCaseDetails('${c.id}')">
-                            <i class="fas fa-edit"></i> Edit
+                    <!-- Same action row as lead cards with "Request Quotation" -->
+                    <div class="mt-3 d-flex gap-2 align-items-center flex-wrap">
+                        <button class="btn btn-sm btn-outline-success"
+                            onclick="openQuickUpload('${c.id}', '${escHtml(c.title)}', event)">
+                            <i class="fas fa-upload me-1"></i> Upload Quotation
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteCase('${c.id}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        ${fileCount(c.id) > 0
+                            ? `<span class="case-file-badge">
+                                   <i class="fas fa-paperclip"></i>
+                                   ${fileCount(c.id)} quotation${fileCount(c.id) > 1 ? 's' : ''}
+                               </span>`
+                            : ''}
+                        <div class="ms-auto d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="openCaseDetails('${c.id}')">
+                                <i class="fas fa-edit me-1"></i> Manage
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteCase('${c.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }
 
+        function escHtml(str) {
+            return String(str || '').replace(/'/g, "\\'");
+        }
         function getStatusBadge(status) {
-            switch (status) {
-                case 'Completed': return 'bg-success';
-                case 'Pending': return 'bg-warning text-dark';
-                case 'In Progress': return 'bg-info text-white';
-                case 'On Hold': return 'bg-secondary';
-                case 'Cancelled': return 'bg-danger';
-                default: return 'bg-secondary';
-            }
+            const map = { 'Completed': 'bg-success', 'Pending': 'bg-warning text-dark',
+                'In Progress': 'bg-info text-white', 'On Hold': 'bg-secondary', 'Cancelled': 'bg-danger' };
+            return map[status] || 'bg-secondary';
         }
-
         function getPriorityBadge(priority) {
-            switch (priority) {
-                case 'High': return 'bg-danger';
-                case 'Medium': return 'bg-warning text-dark';
-                case 'Low': return 'bg-info text-white';
-                default: return 'bg-secondary';
+            const map = { 'High': 'bg-danger', 'Medium': 'bg-warning text-dark', 'Low': 'bg-info text-white' };
+            return map[priority] || 'bg-secondary';
+        }
+
+        // ─────────────────────────────────────────────
+        // OPEN CASE DETAILS (ADMIN)
+        // ─────────────────────────────────────────────
+        window.openCaseDetails = function(id) {
+            const c = allCases.find(x => x.id === id);
+            if (!c) return;
+            editingCaseId = id;
+
+            document.getElementById('offcanvas-case-title').textContent = c.title;
+            document.getElementById('offcanvas-case-number').textContent = '#' + c.case_number;
+
+            // Reset detail fields
+            const dash = '—';
+            ['detail-client-name','detail-client-phone','detail-client-email',
+             'detail-patient-name','detail-client-relation','detail-source',
+             'detail-destination','detail-field','detail-lead-source',
+             'detail-follow-up','detail-expected-close'].forEach(fid => {
+                document.getElementById(fid).textContent = c.lead_id ? '…' : dash;
+            });
+            document.getElementById('converted-badge-row').classList.add('d-none');
+
+            // Form values
+            document.getElementById('edit-case-id').value = c.id;
+            document.getElementById('edit-case-title').value = c.title;
+            document.getElementById('edit-case-status').value = c.status;
+            document.getElementById('edit-case-priority').value = c.priority;
+            document.getElementById('edit-case-description').value = c.description || '';
+            if (c.user_id) document.getElementById('edit-case-user').value = c.user_id;
+
+            switchCaseTab('overview', document.querySelector('#caseTabs .nav-link'));
+            new bootstrap.Offcanvas(document.getElementById('caseDetailsOffcanvas')).show();
+            loadCaseTimeline(id, c.lead_id);
+
+            // Lazily fetch lead details
+            if (c.lead_id) {
+                getLeadByLeadId(c.lead_id).then(L => {
+                    if (!L) return;
+                    if (L.is_converted) {
+                        document.getElementById('converted-badge-row').classList.remove('d-none');
+                        document.getElementById('converted-date-display').textContent =
+                            L.converted_at ? 'on ' + new Date(L.converted_at).toLocaleDateString() : '';
+                    }
+                    document.getElementById('detail-client-name').textContent = L.name || c.title || '—';
+                    document.getElementById('detail-client-phone').textContent = L.contact || '—';
+                    document.getElementById('detail-client-email').textContent = L.email || '—';
+                    document.getElementById('detail-patient-name').textContent = L.patient_name || '—';
+                    document.getElementById('detail-client-relation').textContent = L.client_relation || '—';
+                    document.getElementById('detail-source').textContent = L.source_location || '—';
+                    document.getElementById('detail-destination').textContent = L.destination_location || '—';
+                    document.getElementById('detail-field').textContent = L.field || '—';
+                    document.getElementById('detail-lead-source').textContent = L.lead_source || '—';
+                    document.getElementById('detail-follow-up').textContent = L.follow_up_date
+                        ? new Date(L.follow_up_date).toLocaleDateString() : '—';
+                    document.getElementById('detail-expected-close').textContent = L.expected_close
+                        ? new Date(L.expected_close).toLocaleDateString() : '—';
+                }).catch(() => {
+                    document.getElementById('detail-client-name').textContent = c.title;
+                });
+            } else {
+                document.getElementById('detail-client-name').textContent = c.title;
+            }
+        };
+
+        // ─────────────────────────────────────────────
+        // TAB SWITCHING
+        // ─────────────────────────────────────────────
+        window.switchCaseTab = function(tab, linkEl) {
+            ['overview', 'timeline', 'quotations'].forEach(t => {
+                document.getElementById('case-tab-' + t).classList.add('d-none');
+            });
+            document.querySelectorAll('#caseTabs .nav-link').forEach(l => l.classList.remove('active'));
+            document.getElementById('case-tab-' + tab).classList.remove('d-none');
+            if (linkEl) linkEl.classList.add('active');
+            if (tab === 'quotations') loadCaseFiles(editingCaseId);
+        };
+
+        // ─────────────────────────────────────────────
+        // TIMELINE
+        // ─────────────────────────────────────────────
+        async function loadCaseTimeline(caseId, leadId) {
+            const container = document.getElementById('case-timeline-container');
+            container.innerHTML = '<p class="text-muted text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading...</p>';
+            try {
+                let history = leadId ? await getLeadHistory(leadId) : [];
+                if (!history || history.length === 0) {
+                    container.innerHTML = '<p class="text-muted text-center py-4">No activity history yet.</p>';
+                    return;
+                }
+                container.innerHTML = history.map(item => `
+                    <div class="timeline-item">
+                        <div class="timeline-dot">
+                            <i class="fas ${item.action.includes('Converted') ? 'fa-exchange-alt' : item.action.includes('Created') ? 'fa-plus' : 'fa-edit'}"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-time">${new Date(item.created_at).toLocaleString()}</div>
+                            <div class="timeline-title">${item.action}</div>
+                            <div class="timeline-desc">${item.details?.summary || item.details?.status || (item.details?.changes ? item.details.changes.join(', ') : '') || ''}</div>
+                            <div class="small text-muted mt-1">by ${item.users?.name || item.users?.email || 'System'}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = '<p class="text-danger text-center py-4">Error loading history.</p>';
             }
         }
 
-        // CRUD Operations
-        document.getElementById('add-case-form').addEventListener('submit', async (e) => {
+        // ─────────────────────────────────────────────
+        // QUOTATION FILES  (admin — can delete any)
+        // ─────────────────────────────────────────────
+        async function loadCaseFiles(caseId) {
+            const container = document.getElementById('quotation-files-list');
+            container.innerHTML = '<p class="text-muted text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading...</p>';
+            try {
+                const files = await getCaseFiles(caseId);
+                renderFileList(container, files, caseId);
+            } catch (err) {
+                container.innerHTML = '<p class="text-danger text-center py-3">Error loading files.</p>';
+            }
+        }
+
+        function renderFileList(container, files, caseId) {
+            if (!files || files.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="mb-2" style="font-size:2.5rem;color:#cbd5e1;"><i class="fas fa-file-upload"></i></div>
+                        <p class="text-muted small mb-0">No quotations uploaded yet</p>
+                    </div>`;
+                return;
+            }
+            container.innerHTML = `
+                <div class="mb-2"><small class="text-muted">${files.length} quotation${files.length !== 1 ? 's' : ''} uploaded</small></div>
+                ${files.map(f => {
+                    const isPdf = f.file_name.toLowerCase().endsWith('.pdf');
+                    const iconClass = isPdf ? '' : 'generic';
+                    const iconName  = isPdf ? 'fa-file-pdf' : 'fa-file-alt';
+                    const sizeLabel = f.file_size
+                        ? (f.file_size > 1024*1024
+                            ? (f.file_size/1024/1024).toFixed(1) + ' MB'
+                            : (f.file_size/1024).toFixed(0) + ' KB')
+                        : '';
+                    return `
+                    <div class="quotation-file-row">
+                        <div class="quotation-file-icon ${iconClass}">
+                            <i class="fas ${iconName}"></i>
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="fw-600 text-truncate" style="font-size:.875rem;">${f.file_name}</div>
+                            <div class="small text-muted">
+                                ${sizeLabel}${sizeLabel ? ' &nbsp;•&nbsp; ' : ''}
+                                ${new Date(f.uploaded_at).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}
+                                ${f.users?.name ? ` &nbsp;•&nbsp; by ${f.users.name}` : ''}
+                            </div>
+                        </div>
+                        <a href="${f.file_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary flex-shrink-0">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger flex-shrink-0"
+                            onclick="handleDeleteCaseFile('${f.id}','${escHtml(f.storage_path)}','${caseId}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`;
+                }).join('')}`;
+        }
+
+        // ─────────────────────────────────────────────
+        // FILE UPLOAD — offcanvas & quick modal
+        // ─────────────────────────────────────────────
+        document.getElementById('quotation-file-input').addEventListener('change', async function() {
+            const file = this.files[0];
+            if (!file || !editingCaseId) return;
+            await runUpload(file, editingCaseId, 'offcanvas');
+            this.value = '';
+        });
+
+        const dropZone = document.getElementById('upload-drop-zone');
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', async e => {
+            e.preventDefault(); dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && editingCaseId) await runUpload(file, editingCaseId, 'offcanvas');
+        });
+
+        document.getElementById('quick-file-input').addEventListener('change', async function() {
+            const file = this.files[0];
+            if (!file || !quickUploadCaseId) return;
+            await runUpload(file, quickUploadCaseId, 'quick');
+            this.value = '';
+        });
+
+        async function runUpload(file, caseId, context) {
+            const isOffcanvas = context === 'offcanvas';
+            const progressWrap = document.getElementById(isOffcanvas ? 'upload-progress-wrap' : 'quick-progress-wrap');
+            const progressBar  = document.getElementById(isOffcanvas ? 'upload-progress-bar' : 'quick-progress-bar');
+            const fileNameEl   = document.getElementById(isOffcanvas ? 'upload-file-name' : 'quick-file-name');
+            const percentEl    = document.getElementById(isOffcanvas ? 'upload-percent' : 'quick-percent');
+
+            if (file.size > 20 * 1024 * 1024) {
+                showToast('File too large. Max 20 MB.', 'error'); return;
+            }
+
+            progressWrap.classList.add('show');
+            fileNameEl.textContent = file.name;
+            let pct = 0;
+            const ticker = setInterval(() => {
+                pct = Math.min(pct + 5, 80);
+                progressBar.style.width = pct + '%';
+                percentEl.textContent = pct + '%';
+            }, 150);
+
+            try {
+                await uploadCaseFile(caseId, session.userId, file);
+                clearInterval(ticker);
+                progressBar.style.width = '100%';
+                percentEl.textContent = '100%';
+
+                showToast('Quotation uploaded successfully!', 'success');
+                caseFileCounts[caseId] = (caseFileCounts[caseId] || 0) + 1;
+                displayCases();
+
+                if (isOffcanvas) await loadCaseFiles(caseId);
+                else {
+                    setTimeout(() => {
+                        bootstrap.Modal.getInstance(document.getElementById('uploadQuotationModal'))?.hide();
+                    }, 800);
+                }
+            } catch (err) {
+                clearInterval(ticker);
+                console.error('Upload error:', err);
+                showToast('Upload failed: ' + err.message, 'error');
+            } finally {
+                setTimeout(() => {
+                    progressWrap.classList.remove('show');
+                    progressBar.style.width = '0%';
+                    percentEl.textContent = '0%';
+                }, 1500);
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        // QUICK UPLOAD FROM CARD
+        // ─────────────────────────────────────────────
+        window.openQuickUpload = function(caseId, caseTitle, event) {
+            if (event) event.stopPropagation();
+            quickUploadCaseId = caseId;
+            document.getElementById('upload-modal-case-name').textContent = caseTitle;
+            new bootstrap.Modal(document.getElementById('uploadQuotationModal')).show();
+        };
+
+        // ─────────────────────────────────────────────
+        // DELETE FILE (admin can delete any)
+        // ─────────────────────────────────────────────
+        window.handleDeleteCaseFile = async function(fileId, storagePath, caseId) {
+            if (!confirm('Delete this quotation file?')) return;
+            try {
+                await deleteCaseFile(fileId, storagePath);
+                caseFileCounts[caseId] = Math.max((caseFileCounts[caseId] || 1) - 1, 0);
+                displayCases();
+                await loadCaseFiles(caseId);
+                showToast('File deleted', 'success');
+            } catch (err) {
+                showToast('Failed to delete file', 'error');
+            }
+        };
+
+        // ─────────────────────────────────────────────
+        // SAVE CASE (ADMIN)
+        // ─────────────────────────────────────────────
+        document.getElementById('edit-case-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('save-case-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+            try {
+                await updateCase(editingCaseId, {
+                    title: document.getElementById('edit-case-title').value,
+                    description: document.getElementById('edit-case-description').value,
+                    status: document.getElementById('edit-case-status').value,
+                    priority: document.getElementById('edit-case-priority').value,
+                    userId: document.getElementById('edit-case-user').value
+                });
+                showToast('Case updated successfully', 'success');
+                bootstrap.Offcanvas.getInstance(document.getElementById('caseDetailsOffcanvas')).hide();
+                await loadData();
+            } catch (err) {
+                showToast('Failed to update case', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
+            }
+        });
+
+        // ─────────────────────────────────────────────
+        // DELETE CASE
+        // ─────────────────────────────────────────────
+        window.handleDeleteCase = async function(id) {
+            if (!confirm('Delete this case permanently?')) return;
+            try {
+                await deleteCase(id);
+                showToast('Case deleted', 'success');
+                const oc = bootstrap.Offcanvas.getInstance(document.getElementById('caseDetailsOffcanvas'));
+                if (oc) oc.hide();
+                await loadData();
+            } catch (err) {
+                showToast('Failed to delete case', 'error');
+            }
+        };
+
+        // ─────────────────────────────────────────────
+        // CREATE CASE (ADMIN)
+        // ─────────────────────────────────────────────
+        document.getElementById('add-case-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('add-case-btn');
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Creating...';
-
             try {
                 await createCase({
                     title: document.getElementById('case-title').value,
                     description: document.getElementById('case-description').value,
                     status: document.getElementById('case-status').value,
                     priority: document.getElementById('case-priority').value,
-                    userId: document.getElementById('case-user-select').value,
-                    leadId: document.getElementById('case-lead-select').value
+                    userId: document.getElementById('case-user-select').value
                 });
-
                 showToast('Case created successfully', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('addCaseModal')).hide();
-                e.target.reset();
-                loadData();
+                this.reset();
+                await loadData();
             } catch (err) {
-                console.error(err);
                 showToast('Failed to create case', 'error');
             } finally {
                 btn.disabled = false;
@@ -440,65 +955,26 @@
             }
         });
 
-        window.openCaseDetails = (id) => {
-            const c = allCases.find(x => x.id === id);
-            if (!c) return;
-
-            editingCaseId = id;
-            document.getElementById('edit-case-id').value = c.id;
-            document.getElementById('edit-case-title').value = c.title;
-            document.getElementById('edit-case-description').value = c.description || '';
-            document.getElementById('edit-case-status').value = c.status;
-            document.getElementById('edit-case-priority').value = c.priority;
-            document.getElementById('edit-case-user').value = c.user_id;
-            document.getElementById('edit-case-lead').value = c.lead_id || '';
-
-            const offcanvas = new bootstrap.Offcanvas(document.getElementById('caseDetailsOffcanvas'));
-            offcanvas.show();
+        // ─────────────────────────────────────────────
+        // EXPORT CSV
+        // ─────────────────────────────────────────────
+        window.exportCasesCSV = function() {
+            const headers = ['Case #','Title','Status','Priority','Assigned To','Client','Route','Created'];
+            const rows = filteredCases.map(c => ({
+                'Case #': c.case_number,
+                'Title': c.title,
+                'Status': c.status,
+                'Priority': c.priority,
+                'Assigned To': c.users?.name || c.users?.email || '',
+                'Client': c.leads?.name || '',
+                'Route': c.leads?.source_location
+                    ? `${c.leads.source_location} → ${c.leads.destination_location || ''}`
+                    : '',
+                'Created': new Date(c.created_at).toLocaleString()
+            }));
+            exportToCSV(rows, 'All_Cases', headers);
         };
 
-        document.getElementById('edit-case-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('save-case-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
-
-            try {
-                await updateCase(editingCaseId, {
-                    title: document.getElementById('edit-case-title').value,
-                    description: document.getElementById('edit-case-description').value,
-                    status: document.getElementById('edit-case-status').value,
-                    priority: document.getElementById('edit-case-priority').value,
-                    userId: document.getElementById('edit-case-user').value,
-                    leadId: document.getElementById('edit-case-lead').value
-                });
-
-                showToast('Case updated successfully', 'success');
-                bootstrap.Offcanvas.getInstance(document.getElementById('caseDetailsOffcanvas')).hide();
-                loadData();
-            } catch (err) {
-                console.error(err);
-                showToast('Failed to update case', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Save Changes';
-            }
-        });
-
-        window.handleDeleteCase = async (id) => {
-            if (!confirm('Are you sure you want to delete this case?')) return;
-
-            try {
-                await deleteCase(id);
-                showToast('Case deleted successfully', 'success');
-                loadData();
-            } catch (err) {
-                console.error(err);
-                showToast('Failed to delete case', 'error');
-            }
-        };
-
-        // Initialize
         loadData();
     </script>
 </body>
