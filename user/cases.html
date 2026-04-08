@@ -117,9 +117,15 @@
 
         <!-- Tabs Navigation -->
         <ul class="nav nav-tabs-custom px-4" id="caseTabs">
-            <li><a href="#" class="nav-link active" onclick="switchCaseTab('overview', this); return false;">Overview</a></li>
+            <li><a href="#" class="nav-link active"
+                    onclick="switchCaseTab('overview', this); return false;">Overview</a></li>
             <li><a href="#" class="nav-link" onclick="switchCaseTab('timeline', this); return false;">Timeline</a></li>
-            <li><a href="#" class="nav-link" onclick="switchCaseTab('quotations', this); return false;"><i class="fas fa-paperclip me-1"></i>Quotations</a></li>
+            <li><a href="#" class="nav-link" onclick="switchCaseTab('quotations', this); return false;"><i
+                        class="fas fa-paperclip me-1"></i>Quotations</a></li>
+            <li><a href="#" class="nav-link" onclick="switchCaseTab('invoices', this); return false;"><i
+                        class="fas fa-file-invoice me-1"></i>Invoices</a></li>
+            <li><a href="#" class="nav-link" onclick="switchCaseTab('receipts', this); return false;"><i
+                        class="fas fa-receipt me-1"></i>Receipts</a></li>
         </ul>
 
         <div class="offcanvas-body p-0">
@@ -129,7 +135,8 @@
                 <div id="case-tab-overview" class="pt-3">
                     <!-- Converted badge row -->
                     <div id="converted-badge-row" class="d-none mb-3">
-                        <span class="converted-case-badge"><i class="fas fa-exchange-alt me-1"></i>Converted from Lead</span>
+                        <span class="converted-case-badge"><i class="fas fa-exchange-alt me-1"></i>Converted from
+                            Lead</span>
                         <small class="text-muted ms-2" id="converted-date-display"></small>
                     </div>
 
@@ -137,7 +144,8 @@
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-user text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Client</span>
+                            <span class="fw-600 small text-uppercase text-muted"
+                                style="letter-spacing:.5px;">Client</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
                             <div class="row g-2">
@@ -161,7 +169,8 @@
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-procedures text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Patient</span>
+                            <span class="fw-600 small text-uppercase text-muted"
+                                style="letter-spacing:.5px;">Patient</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
                             <div class="row g-2">
@@ -181,7 +190,8 @@
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-plane text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Travel</span>
+                            <span class="fw-600 small text-uppercase text-muted"
+                                style="letter-spacing:.5px;">Travel</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
                             <div class="row g-2">
@@ -247,7 +257,8 @@
                         </div>
                         <div class="mb-3 mt-3">
                             <label class="form-label small fw-600">Notes</label>
-                            <textarea class="form-control" id="edit-case-description" rows="3" placeholder="Add notes..."></textarea>
+                            <textarea class="form-control" id="edit-case-description" rows="3"
+                                placeholder="Add notes..."></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary w-100" id="save-case-btn">
                             <i class="fas fa-save me-1"></i> Save Changes
@@ -267,7 +278,8 @@
                 <!-- ─── TAB: QUOTATIONS ─── -->
                 <div id="case-tab-quotations" class="pt-3 d-none">
                     <!-- Drop zone -->
-                    <div class="upload-drop-zone mb-3" id="upload-drop-zone" onclick="document.getElementById('quotation-file-input').click()">
+                    <div class="upload-drop-zone mb-3" id="upload-drop-zone"
+                        onclick="document.getElementById('quotation-file-input').click()">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p>Drop file here or <span class="browse-link">browse</span></p>
                         <p class="mt-1" style="font-size:11px;color:#94a3b8;">PDF, DOC, DOCX, PNG, JPG — max 20 MB</p>
@@ -288,6 +300,72 @@
 
                     <!-- File list -->
                     <div id="quotation-files-list">
+                        <p class="text-muted text-center py-3">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Loading...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- ─── TAB: INVOICES ─── -->
+                <div id="case-tab-invoices" class="pt-3 d-none">
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="upload-drop-zone flex-grow-1" id="invoice-oc-drop-zone"
+                            onclick="document.getElementById('offcanvas-invoice-input').click()">
+                            <i class="fas fa-file-invoice"></i>
+                            <p>Drop invoice here or <span class="browse-link">browse</span></p>
+                            <p class="mt-1" style="font-size:11px;color:#94a3b8;">PDF, DOC, DOCX, PNG, JPG — max 20 MB</p>
+                        </div>
+                        <button class="btn btn-outline-primary d-flex flex-column align-items-center justify-content-center px-3" 
+                                onclick="handleRequestWhatsApp('invoice')" style="border-style:dashed; border-width:2px; min-width:100px;">
+                            <i class="fab fa-whatsapp mb-1" style="font-size:1.2rem;"></i>
+                            <span class="small fw-600">Request Invoice</span>
+                        </button>
+                    </div>
+                    <input type="file" id="offcanvas-invoice-input" class="d-none"
+                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+                    <div class="upload-progress-wrap" id="invoice-oc-progress-wrap">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted" id="invoice-oc-file-name">Uploading...</small>
+                            <small class="text-warning" id="invoice-oc-percent">0%</small>
+                        </div>
+                        <div class="upload-progress-track">
+                            <div class="upload-progress-bar" id="invoice-oc-progress-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div id="invoice-files-list">
+                        <p class="text-muted text-center py-3">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Loading...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- ─── TAB: RECEIPTS ─── -->
+                <div id="case-tab-receipts" class="pt-3 d-none">
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="upload-drop-zone flex-grow-1" id="receipt-oc-drop-zone"
+                            onclick="document.getElementById('offcanvas-receipt-input').click()">
+                            <i class="fas fa-receipt"></i>
+                            <p>Drop receipt here or <span class="browse-link">browse</span></p>
+                            <p class="mt-1" style="font-size:11px;color:#94a3b8;">PDF, PNG, JPG — max 20 MB</p>
+                        </div>
+                        <button class="btn btn-outline-primary d-flex flex-column align-items-center justify-content-center px-3" 
+                                onclick="handleRequestWhatsApp('receipt')" style="border-style:dashed; border-width:2px; min-width:100px;">
+                            <i class="fab fa-whatsapp mb-1" style="font-size:1.2rem;"></i>
+                            <span class="small fw-600">Request Receipt</span>
+                        </button>
+                    </div>
+                    <input type="file" id="offcanvas-receipt-input" class="d-none"
+                        accept=".pdf,.png,.jpg,.jpeg">
+                    <div class="upload-progress-wrap" id="receipt-oc-progress-wrap">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted" id="receipt-oc-file-name">Uploading...</small>
+                            <small class="text-info" id="receipt-oc-percent">0%</small>
+                        </div>
+                        <div class="upload-progress-track">
+                            <div class="upload-progress-bar bg-info" id="receipt-oc-progress-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div id="receipt-files-list">
                         <p class="text-muted text-center py-3">
                             <span class="spinner-border spinner-border-sm me-2"></span>Loading...
                         </p>
@@ -339,7 +417,8 @@
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
                     <div>
-                        <h6 class="modal-title mb-0"><i class="fas fa-upload me-2 text-success"></i>Upload Quotation</h6>
+                        <h6 class="modal-title mb-0"><i class="fas fa-upload me-2 text-success"></i>Upload Quotation
+                        </h6>
                         <small class="text-muted" id="upload-modal-case-name"></small>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -351,8 +430,7 @@
                         <p>Click to select file</p>
                         <p style="font-size:11px;color:#94a3b8;">PDF, DOC, DOCX, PNG, JPG</p>
                     </div>
-                    <input type="file" id="quick-file-input" class="d-none"
-                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+                    <input type="file" id="quick-file-input" class="d-none" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
                     <div class="upload-progress-wrap mt-2" id="quick-progress-wrap">
                         <div class="d-flex justify-content-between mb-1">
                             <small class="text-muted" id="quick-file-name">Uploading...</small>
@@ -362,6 +440,81 @@
                             <div class="upload-progress-bar" id="quick-progress-bar" style="width:0%"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         UPLOAD INVOICE QUICK MODAL
+         ============================================ -->
+    <div class="modal fade" id="uploadInvoiceModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h6 class="modal-title mb-0"><i class="fas fa-file-invoice me-2 text-warning"></i>Upload Invoice
+                        </h6>
+                        <small class="text-muted" id="invoice-modal-case-name"></small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="upload-drop-zone" id="invoice-quick-zone"
+                        onclick="document.getElementById('invoice-file-input').click()">
+                        <i class="fas fa-file-invoice"></i>
+                        <p>Click to select invoice file</p>
+                        <p style="font-size:11px;color:#94a3b8;">PDF, DOC, DOCX, PNG, JPG</p>
+                    </div>
+                    <input type="file" id="invoice-file-input" class="d-none" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+                    <div class="upload-progress-wrap mt-2" id="invoice-progress-wrap">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted" id="invoice-file-name">Uploading...</small>
+                            <small class="text-warning" id="invoice-percent">0%</small>
+                        </div>
+                        <div class="upload-progress-track">
+                            <div class="upload-progress-bar" id="invoice-progress-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         REQUEST RECEIPT MODAL (Zoho Form + WhatsApp)
+         ============================================ -->
+    <div class="modal fade" id="requestReceiptModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0"><i class="fas fa-receipt me-2 text-info"></i>Request Receipt</h5>
+                        <small class="text-muted" id="receipt-modal-case-name"></small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info py-2 mb-3" style="font-size:0.875rem;">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Fill the form below, then click <strong>Send Request</strong> to notify the Accounts team on
+                        WhatsApp.
+                    </div>
+                    <!-- Replace 'about:blank' with your Zoho Form URL when available -->
+                    <iframe src="https://zfrmz.in/7L0RGUbuwMb3PkgdxK4E" id="receipt-zoho-iframe"
+                        style="width:100%;min-height:400px;border:none;border-radius:8px;background:#f8fafc;"
+                        frameborder="0" allowfullscreen>
+                    </iframe>
+                    <p class="text-muted small text-center mt-2 mb-0" id="receipt-iframe-placeholder">
+                        <i class="fas fa-clock me-1"></i>Zoho Form will appear here once the URL is configured.
+                    </p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-info text-white" id="confirm-receipt-btn"
+                        onclick="sendReceiptRequest()">
+                        <i class="fas fa-paper-plane me-1"></i> Send Request
+                    </button>
                 </div>
             </div>
         </div>
@@ -379,9 +532,14 @@
         const session = getCurrentSession();
         let myCases = [];
         let filteredCases = [];
-        let caseFileCounts = {};   // { caseId: count }
+        let caseFileCounts = {};    // { caseId: count }
+        let caseInvoiceCounts = {}; // { caseId: count }
+        let caseReceiptCounts = {}; // { caseId: count }
+        let caseLeadCache = {};     // { caseId: leadData } — cached for WhatsApp
         let editingCaseId = null;
         let quickUploadCaseId = null;
+        let invoiceUploadCaseId = null;
+        let receiptRequestCaseId = null;
 
         // ─────────────────────────────────────────────
         // LOAD DATA
@@ -389,9 +547,12 @@
         async function loadData() {
             try {
                 myCases = await getCasesForUser(session.userId);
-                // Load file counts for all cases
                 const ids = myCases.map(c => c.id);
-                caseFileCounts = await getCaseFileCounts(ids);
+                [caseFileCounts, caseInvoiceCounts, caseReceiptCounts] = await Promise.all([
+                    getCaseFileCounts(ids),
+                    getCaseInvoiceCounts(ids),
+                    getCaseReceiptCounts(ids)
+                ]);
                 updateStats();
                 filterCases();
             } catch (err) {
@@ -441,8 +602,11 @@
             noMsg.classList.add('d-none');
             const isConverted = c => !!c.lead_id;
             const fileCount = id => caseFileCounts[id] || 0;
+            const invoiceCount = id => caseInvoiceCounts[id] || 0;
 
-            list.innerHTML = filteredCases.map(c => `
+            list.innerHTML = filteredCases.map(c => {
+                const hasInvoice = c.invoice_uploaded === true || invoiceCount(c.id) > 0;
+                return `
                 <div class="lead-card ${isConverted(c) ? 'converted-case' : ''}">
                     <div class="lead-header">
                         <div class="lead-title">
@@ -474,25 +638,30 @@
                         </div>
                     </div>
 
-                    <!-- Case Actions — same style/position as "Request Quotation" on lead cards -->
-                    <div class="mt-3 d-flex gap-2 align-items-center">
+                    <!-- Case Actions -->
+                    <div class="mt-3 d-flex gap-2 align-items-center flex-wrap">
                         <button class="btn btn-sm btn-outline-success"
                             onclick="openQuickUpload('${c.id}', '${escHtml(c.title)}', event)">
                             <i class="fas fa-upload me-1"></i> Upload Quotation
                         </button>
-                        ${fileCount(c.id) > 0
-                            ? `<span class="case-file-badge">
-                                   <i class="fas fa-paperclip"></i>
-                                   ${fileCount(c.id)} quotation${fileCount(c.id) > 1 ? 's' : ''}
-                               </span>`
-                            : ''}
+                        ${fileCount(c.id) > 0 ? `<span class="case-file-badge"><i class="fas fa-paperclip"></i> ${fileCount(c.id)} quotation${fileCount(c.id) > 1 ? 's' : ''}</span>` : ''}
+                        <button class="btn btn-sm btn-invoice-request"
+                            onclick="handleRequestInvoice('${c.id}', event)">
+                            <i class="fas fa-file-invoice me-1"></i> Request Invoice
+                        </button>
+                        ${invoiceCount(c.id) > 0 ? `<span class="case-invoice-badge"><i class="fas fa-file-invoice"></i> ${invoiceCount(c.id)} invoice${invoiceCount(c.id) > 1 ? 's' : ''}</span>` : ''}
+                        <button class="btn btn-sm ${hasInvoice ? 'btn-receipt-request' : 'btn-receipt-disabled'}"
+                            ${hasInvoice ? `onclick="openReceiptRequestModal('${c.id}', '${escHtml(c.title)}', event)"` : 'disabled'}
+                            title="${hasInvoice ? 'Request a receipt from Accounts team' : 'Upload an Invoice first to enable this'}">
+                            <i class="fas fa-receipt me-1"></i> Request Receipt
+                        </button>
                         <button class="btn btn-sm btn-outline-primary ms-auto"
                             onclick="openCaseDetails('${c.id}')">
                             <i class="fas fa-eye me-1"></i> Details
                         </button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         function escHtml(str) {
@@ -500,8 +669,10 @@
         }
 
         function getStatusBadge(status) {
-            const map = { 'Completed': 'bg-success', 'Pending': 'bg-warning text-dark',
-                'In Progress': 'bg-info text-white', 'On Hold': 'bg-secondary', 'Cancelled': 'bg-danger' };
+            const map = {
+                'Completed': 'bg-success', 'Pending': 'bg-warning text-dark',
+                'In Progress': 'bg-info text-white', 'On Hold': 'bg-secondary', 'Cancelled': 'bg-danger'
+            };
             return map[status] || 'bg-secondary';
         }
         function getPriorityBadge(priority) {
@@ -512,7 +683,7 @@
         // ─────────────────────────────────────────────
         // OPEN CASE DETAIL OFFCANVAS
         // ─────────────────────────────────────────────
-        window.openCaseDetails = function(id) {
+        window.openCaseDetails = function (id) {
             const c = myCases.find(x => x.id === id);
             if (!c) return;
             editingCaseId = id;
@@ -523,12 +694,12 @@
 
             // Clear detail fields with loading state
             const dash = '—';
-            ['detail-client-name','detail-client-phone','detail-client-email',
-             'detail-patient-name','detail-client-relation','detail-source',
-             'detail-destination','detail-field','detail-lead-source',
-             'detail-follow-up','detail-expected-close'].forEach(id => {
-                document.getElementById(id).textContent = c.lead_id ? '…' : dash;
-            });
+            ['detail-client-name', 'detail-client-phone', 'detail-client-email',
+                'detail-patient-name', 'detail-client-relation', 'detail-source',
+                'detail-destination', 'detail-field', 'detail-lead-source',
+                'detail-follow-up', 'detail-expected-close'].forEach(id => {
+                    document.getElementById(id).textContent = c.lead_id ? '…' : dash;
+                });
             document.getElementById('converted-badge-row').classList.add('d-none');
 
             // Form values
@@ -580,8 +751,8 @@
         // ─────────────────────────────────────────────
         // TAB SWITCHING
         // ─────────────────────────────────────────────
-        window.switchCaseTab = function(tab, linkEl) {
-            ['overview', 'timeline', 'quotations'].forEach(t => {
+        window.switchCaseTab = function (tab, linkEl) {
+            ['overview', 'timeline', 'quotations', 'invoices', 'receipts'].forEach(t => {
                 document.getElementById('case-tab-' + t).classList.add('d-none');
             });
             document.querySelectorAll('#caseTabs .nav-link').forEach(l => l.classList.remove('active'));
@@ -589,6 +760,8 @@
             if (linkEl) linkEl.classList.add('active');
 
             if (tab === 'quotations') loadCaseFiles(editingCaseId);
+            if (tab === 'invoices') loadCaseInvoiceFiles(editingCaseId);
+            if (tab === 'receipts') loadCaseReceiptFiles(editingCaseId);
         };
 
         // ─────────────────────────────────────────────
@@ -651,38 +824,38 @@
             container.innerHTML = `
                 <div class="mb-2"><small class="text-muted">${files.length} quotation${files.length !== 1 ? 's' : ''} uploaded</small></div>
                 ${files.map(f => {
-                    const isPdf = f.file_name.toLowerCase().endsWith('.pdf');
-                    const iconClass = isPdf ? '' : 'generic';
-                    const iconName = isPdf ? 'fa-file-pdf' : 'fa-file-alt';
-                    const sizeKb = f.file_size ? (f.file_size > 1024*1024
-                        ? (f.file_size/1024/1024).toFixed(1) + ' MB'
-                        : (f.file_size/1024).toFixed(0) + ' KB') : '';
-                    const deleteBtn = isAdmin
-                        ? `<button class="btn btn-sm btn-outline-danger" onclick="handleDeleteCaseFile('${f.id}','${escHtml(f.storage_path)}','${caseId}')">
+                const isPdf = f.file_name.toLowerCase().endsWith('.pdf');
+                const iconClass = isPdf ? '' : 'generic';
+                const iconName = isPdf ? 'fa-file-pdf' : 'fa-file-alt';
+                const sizeKb = f.file_size ? (f.file_size > 1024 * 1024
+                    ? (f.file_size / 1024 / 1024).toFixed(1) + ' MB'
+                    : (f.file_size / 1024).toFixed(0) + ' KB') : '';
+                const deleteBtn = isAdmin
+                    ? `<button class="btn btn-sm btn-outline-danger" onclick="handleDeleteCaseFile('${f.id}','${escHtml(f.storage_path)}','${caseId}')">
                                <i class="fas fa-trash"></i></button>`
-                        : `<button class="btn btn-sm btn-outline-danger" onclick="handleDeleteCaseFile('${f.id}','${escHtml(f.storage_path)}','${caseId}')">
+                    : `<button class="btn btn-sm btn-outline-danger" onclick="handleDeleteCaseFile('${f.id}','${escHtml(f.storage_path)}','${caseId}')">
                                <i class="fas fa-trash"></i></button>`;
-                    return `
+                return `
                     <div class="quotation-file-row">
                         <div class="quotation-file-icon ${iconClass}">
                             <i class="fas ${iconName}"></i>
                         </div>
                         <div class="flex-grow-1 overflow-hidden">
                             <div class="fw-600 text-truncate" style="font-size:.875rem;">${f.file_name}</div>
-                            <div class="small text-muted">${sizeKb}${sizeKb ? ' &nbsp;•&nbsp; ' : ''}${new Date(f.uploaded_at).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}</div>
+                            <div class="small text-muted">${sizeKb}${sizeKb ? ' &nbsp;•&nbsp; ' : ''}${new Date(f.uploaded_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                         </div>
                         <a href="${f.file_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary flex-shrink-0">
                             <i class="fas fa-external-link-alt"></i>
                         </a>
                         ${deleteBtn}
                     </div>`;
-                }).join('')}`;
+            }).join('')}`;
         }
 
         // ─────────────────────────────────────────────
         // FILE UPLOAD — From offcanvas Quotations tab
         // ─────────────────────────────────────────────
-        document.getElementById('quotation-file-input').addEventListener('change', async function() {
+        document.getElementById('quotation-file-input').addEventListener('change', async function () {
             const file = this.files[0];
             if (!file || !editingCaseId) return;
             await runUpload(file, editingCaseId, 'offcanvas');
@@ -702,9 +875,9 @@
         async function runUpload(file, caseId, context) {
             const isOffcanvas = context === 'offcanvas';
             const progressWrap = document.getElementById(isOffcanvas ? 'upload-progress-wrap' : 'quick-progress-wrap');
-            const progressBar  = document.getElementById(isOffcanvas ? 'upload-progress-bar' : 'quick-progress-bar');
-            const fileNameEl   = document.getElementById(isOffcanvas ? 'upload-file-name' : 'quick-file-name');
-            const percentEl    = document.getElementById(isOffcanvas ? 'upload-percent' : 'quick-percent');
+            const progressBar = document.getElementById(isOffcanvas ? 'upload-progress-bar' : 'quick-progress-bar');
+            const fileNameEl = document.getElementById(isOffcanvas ? 'upload-file-name' : 'quick-file-name');
+            const percentEl = document.getElementById(isOffcanvas ? 'upload-percent' : 'quick-percent');
 
             // Validate size (20 MB)
             if (file.size > 20 * 1024 * 1024) {
@@ -759,7 +932,7 @@
         // ─────────────────────────────────────────────
         // DELETE FILE
         // ─────────────────────────────────────────────
-        window.handleDeleteCaseFile = async function(fileId, storagePath, caseId) {
+        window.handleDeleteCaseFile = async function (fileId, storagePath, caseId) {
             if (!confirm('Delete this quotation file?')) return;
             try {
                 await deleteCaseFile(fileId, storagePath);
@@ -775,14 +948,14 @@
         // ─────────────────────────────────────────────
         // QUICK UPLOAD (from card button)
         // ─────────────────────────────────────────────
-        window.openQuickUpload = function(caseId, caseTitle, event) {
+        window.openQuickUpload = function (caseId, caseTitle, event) {
             if (event) event.stopPropagation();
             quickUploadCaseId = caseId;
             document.getElementById('upload-modal-case-name').textContent = caseTitle;
             new bootstrap.Modal(document.getElementById('uploadQuotationModal')).show();
         };
 
-        document.getElementById('quick-file-input').addEventListener('change', async function() {
+        document.getElementById('quick-file-input').addEventListener('change', async function () {
             const file = this.files[0];
             if (!file || !quickUploadCaseId) return;
             await runUpload(file, quickUploadCaseId, 'quick');
@@ -792,7 +965,7 @@
         // ─────────────────────────────────────────────
         // SAVE CASE (STATUS/PRIORITY/NOTES)
         // ─────────────────────────────────────────────
-        document.getElementById('edit-case-form').addEventListener('submit', async function(e) {
+        document.getElementById('edit-case-form').addEventListener('submit', async function (e) {
             e.preventDefault();
             const btn = document.getElementById('save-case-btn');
             btn.disabled = true;
@@ -819,7 +992,7 @@
         // ─────────────────────────────────────────────
         // ADD CASE (MANUAL)
         // ─────────────────────────────────────────────
-        document.getElementById('add-case-form').addEventListener('submit', async function(e) {
+        document.getElementById('add-case-form').addEventListener('submit', async function (e) {
             e.preventDefault();
             const btn = document.getElementById('add-case-btn');
             btn.disabled = true;
@@ -841,6 +1014,380 @@
                 btn.disabled = false;
             }
         });
+
+        // ─────────────────────────────────────────────
+        // REQUEST INVOICE — send WhatsApp to Accounts team
+        // ─────────────────────────────────────────────
+        window.handleRequestInvoice = async function (caseId, event) {
+            if (event) event.stopPropagation();
+            const c = myCases.find(x => x.id === caseId);
+            if (!c) return;
+
+            const btn = event?.target?.closest('button');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...'; }
+
+            try {
+                const caseDetails = {
+                    caseNumber: c.case_number,
+                    title: c.title,
+                    status: c.status,
+                    priority: c.priority
+                };
+                // Enrich with lead data if available
+                if (c.lead_id) {
+                    let lead = caseLeadCache[caseId];
+                    if (!lead) {
+                        lead = await getLeadByLeadId(c.lead_id);
+                        if (lead) caseLeadCache[caseId] = lead;
+                    }
+                    if (lead) {
+                        caseDetails.clientName = lead.name;
+                        caseDetails.clientPhone = lead.contact;
+                        caseDetails.clientEmail = lead.email;
+                        caseDetails.patientName = lead.patient_name;
+                        caseDetails.sourceLocation = lead.source_location;
+                        caseDetails.destinationLocation = lead.destination_location;
+                        caseDetails.field = lead.field;
+                    }
+                }
+                const requester = { name: session.name || '', email: session.email || '' };
+                await sendWhatsAppRequest('invoice_request', caseDetails, requester);
+                await markInvoiceRequested(caseId);
+                const caseObj = myCases.find(x => x.id === caseId);
+                if (caseObj) caseObj.invoice_requested = true;
+                showToast('✅ Invoice request sent to Accounts team! They will contact you shortly.', 'success');
+            } catch (err) {
+                console.error('Invoice request error:', err);
+                showToast('Failed to send invoice request: ' + err.message, 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-invoice me-1"></i> Request Invoice'; }
+            }
+        };
+
+        // ─────────────────────────────────────────────
+        // RECEIPT REQUEST MODAL
+        // ─────────────────────────────────────────────
+        window.openReceiptRequestModal = function (caseId, caseTitle, event) {
+            if (event) event.stopPropagation();
+            receiptRequestCaseId = caseId;
+            document.getElementById('receipt-modal-case-name').textContent = ' — ' + caseTitle;
+            new bootstrap.Modal(document.getElementById('requestReceiptModal')).show();
+        };
+
+        window.sendReceiptRequest = async function () {
+            const caseId = receiptRequestCaseId;
+            if (!caseId) return;
+            const c = myCases.find(x => x.id === caseId);
+            if (!c) return;
+
+            const btn = document.getElementById('confirm-receipt-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
+            try {
+                const caseDetails = { caseNumber: c.case_number, title: c.title, status: c.status, priority: c.priority };
+                if (c.lead_id) {
+                    let lead = caseLeadCache[caseId] || await getLeadByLeadId(c.lead_id);
+                    if (lead) {
+                        caseLeadCache[caseId] = lead;
+                        Object.assign(caseDetails, { clientName: lead.name, clientPhone: lead.contact, clientEmail: lead.email, patientName: lead.patient_name, sourceLocation: lead.source_location, destinationLocation: lead.destination_location, field: lead.field });
+                    }
+                }
+                await sendWhatsAppRequest('receipt_request', caseDetails, { name: session.name || '', email: session.email || '' });
+                bootstrap.Modal.getInstance(document.getElementById('requestReceiptModal')).hide();
+                showToast('✅ Receipt request sent to Accounts team! Please wait for approval.', 'success');
+            } catch (err) {
+                console.error('Receipt request error:', err);
+                showToast('Failed to send receipt request: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send Request';
+            }
+        };
+
+        // ─────────────────────────────────────────────
+        // INVOICE UPLOAD (quick modal from card button)
+        // ─────────────────────────────────────────────
+        window.openInvoiceUpload = function (caseId, caseTitle, event) {
+            if (event) event.stopPropagation();
+            invoiceUploadCaseId = caseId;
+            document.getElementById('invoice-modal-case-name').textContent = caseTitle;
+            new bootstrap.Modal(document.getElementById('uploadInvoiceModal')).show();
+        };
+
+        document.getElementById('invoice-file-input').addEventListener('change', async function () {
+            const file = this.files[0];
+            if (!file || !invoiceUploadCaseId) return;
+            await runInvoiceUpload(file, invoiceUploadCaseId, 'quick');
+            this.value = '';
+        });
+
+        document.getElementById('offcanvas-invoice-input').addEventListener('change', async function () {
+            const file = this.files[0];
+            if (!file || !editingCaseId) return;
+            await runInvoiceUpload(file, editingCaseId, 'offcanvas');
+            this.value = '';
+        });
+
+        // Drag-and-drop on offcanvas invoice zone
+        const invoiceOcZone = document.getElementById('invoice-oc-drop-zone');
+        invoiceOcZone.addEventListener('dragover', e => { e.preventDefault(); invoiceOcZone.classList.add('dragover'); });
+        invoiceOcZone.addEventListener('dragleave', () => invoiceOcZone.classList.remove('dragover'));
+        invoiceOcZone.addEventListener('drop', async e => {
+            e.preventDefault(); invoiceOcZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && editingCaseId) await runInvoiceUpload(file, editingCaseId, 'offcanvas');
+        });
+
+        async function handleRequestWhatsApp(type) {
+            if (!editingCaseId) return;
+            const caseObj = myCases.find(c => c.id === editingCaseId);
+            if (!caseObj) return;
+
+            const btn = event.currentTarget;
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm mb-1"></span><span class="small fw-600">Sending...</span>';
+
+            try {
+                const requester = session?.email || 'A sales team member';
+                await sendWhatsAppRequest(type, {
+                    caseNumber: caseObj.case_number,
+                    clientName: caseObj.name,
+                    clientPhone: caseObj.contact || caseObj.phone,
+                    clientEmail: caseObj.email,
+                    patientName: caseObj.patient_name,
+                    sourceLocation: caseObj.source_location,
+                    destinationLocation: caseObj.destination_location,
+                    field: caseObj.field,
+                    status: caseObj.status,
+                    priority: caseObj.priority
+                }, { name: session.name || session.email, email: session.email });
+                
+                showToast(`WhatsApp ${type} request sent to Accounts team!`, 'success');
+            } catch (err) {
+                console.error('WhatsApp Error:', err);
+                showToast('Failed to send WhatsApp request: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        }
+
+        async function runInvoiceUpload(file, caseId, context) {
+            const isOffcanvas = context === 'offcanvas';
+            const progressWrap = document.getElementById(isOffcanvas ? 'invoice-oc-progress-wrap' : 'invoice-progress-wrap');
+            const progressBar = document.getElementById(isOffcanvas ? 'invoice-oc-progress-bar' : 'invoice-progress-bar');
+            const fileNameEl = document.getElementById(isOffcanvas ? 'invoice-oc-file-name' : 'invoice-file-name');
+            const percentEl = document.getElementById(isOffcanvas ? 'invoice-oc-percent' : 'invoice-percent');
+
+            if (file.size > 20 * 1024 * 1024) { showToast('File too large. Max 20 MB.', 'error'); return; }
+            progressWrap.classList.add('show');
+            fileNameEl.textContent = file.name;
+            let pct = 0;
+            const ticker = setInterval(() => {
+                pct = Math.min(pct + 5, 80);
+                progressBar.style.width = pct + '%';
+                percentEl.textContent = pct + '%';
+            }, 150);
+            try {
+                await uploadCaseInvoice(caseId, session.userId, file);
+                clearInterval(ticker);
+                progressBar.style.width = '100%';
+                percentEl.textContent = '100%';
+                caseInvoiceCounts[caseId] = (caseInvoiceCounts[caseId] || 0) + 1;
+                const caseObj = myCases.find(c => c.id === caseId);
+                if (caseObj) caseObj.invoice_uploaded = true;
+                displayCases();
+                showToast('Invoice uploaded successfully!', 'success');
+                if (isOffcanvas) await loadCaseInvoiceFiles(caseId);
+                else setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('uploadInvoiceModal'))?.hide(), 800);
+            } catch (err) {
+                clearInterval(ticker);
+                showToast('Upload failed: ' + err.message, 'error');
+            } finally {
+                setTimeout(() => { progressWrap.classList.remove('show'); progressBar.style.width = '0%'; percentEl.textContent = '0%'; }, 1500);
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        // INVOICE FILES — In offcanvas Invoices tab
+        // ─────────────────────────────────────────────
+        async function loadCaseInvoiceFiles(caseId) {
+            const container = document.getElementById('invoice-files-list');
+            container.innerHTML = '<p class="text-muted text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading...</p>';
+            try {
+                const files = await getCaseInvoices(caseId);
+                renderInvoiceFileList(container, files, caseId);
+            } catch (err) {
+                container.innerHTML = '<p class="text-danger text-center py-3">Error loading invoices.</p>';
+            }
+        }
+
+        function renderInvoiceFileList(container, files, caseId) {
+            if (!files || files.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="mb-2" style="font-size:2.5rem;color:#cbd5e1;"><i class="fas fa-file-invoice"></i></div>
+                        <p class="text-muted small mb-0">No invoices uploaded yet</p>
+                        <p class="text-muted small">Use the drop zone above or the <strong>Upload Invoice</strong> button on the card.</p>
+                    </div>`;
+                return;
+            }
+            container.innerHTML = `
+                <div class="mb-2"><small class="text-muted">${files.length} invoice${files.length !== 1 ? 's' : ''} uploaded</small></div>
+                ${files.map(f => {
+                const isPdf = f.file_name.toLowerCase().endsWith('.pdf');
+                const iconClass = isPdf ? '' : 'generic';
+                const iconName = isPdf ? 'fa-file-pdf' : 'fa-file-alt';
+                const sizeKb = f.file_size ? (f.file_size > 1024 * 1024 ? (f.file_size / 1024 / 1024).toFixed(1) + ' MB' : (f.file_size / 1024).toFixed(0) + ' KB') : '';
+                return `
+                    <div class="quotation-file-row">
+                        <div class="quotation-file-icon ${iconClass}"><i class="fas ${iconName}"></i></div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="fw-600 text-truncate" style="font-size:.875rem;">${f.file_name}</div>
+                            <div class="small text-muted">${sizeKb}${sizeKb ? ' &nbsp;•&nbsp; ' : ''}${new Date(f.uploaded_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                        </div>
+                        <a href="${f.file_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary flex-shrink-0">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteInvoiceFile('${f.id}','${escHtml(f.storage_path)}','${caseId}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`;
+            }).join('')}`;
+        }
+
+        window.handleDeleteInvoiceFile = async function (fileId, storagePath, caseId) {
+            if (!confirm('Delete this invoice file?')) return;
+            try {
+                await deleteCaseInvoice(fileId, storagePath, caseId);
+                caseInvoiceCounts[caseId] = Math.max((caseInvoiceCounts[caseId] || 1) - 1, 0);
+                if (caseInvoiceCounts[caseId] === 0) {
+                    const caseObj = myCases.find(c => c.id === caseId);
+                    if (caseObj) caseObj.invoice_uploaded = false;
+                }
+                displayCases();
+                await loadCaseInvoiceFiles(caseId);
+                showToast('Invoice deleted', 'success');
+            } catch (err) {
+                showToast('Failed to delete invoice', 'error');
+            }
+        };
+
+        // ─────────────────────────────────────────────
+        // RECEIPT FILES — In offcanvas Receipts tab
+        // ─────────────────────────────────────────────
+
+        document.getElementById('offcanvas-receipt-input').addEventListener('change', async function () {
+            const file = this.files[0];
+            if (!file || !editingCaseId) return;
+            await runReceiptUpload(file, editingCaseId);
+            this.value = '';
+        });
+
+        const receiptOcZone = document.getElementById('receipt-oc-drop-zone');
+        receiptOcZone.addEventListener('dragover', e => { e.preventDefault(); receiptOcZone.classList.add('dragover'); });
+        receiptOcZone.addEventListener('dragleave', () => receiptOcZone.classList.remove('dragover'));
+        receiptOcZone.addEventListener('drop', async e => {
+            e.preventDefault(); receiptOcZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && editingCaseId) await runReceiptUpload(file, editingCaseId);
+        });
+
+        async function runReceiptUpload(file, caseId) {
+            const progressWrap = document.getElementById('receipt-oc-progress-wrap');
+            const progressBar = document.getElementById('receipt-oc-progress-bar');
+            const fileNameEl = document.getElementById('receipt-oc-file-name');
+            const percentEl = document.getElementById('receipt-oc-percent');
+
+            if (file.size > 20 * 1024 * 1024) { showToast('File too large. Max 20 MB.', 'error'); return; }
+            progressWrap.classList.add('show');
+            fileNameEl.textContent = file.name;
+            let pct = 0;
+            const ticker = setInterval(() => {
+                pct = Math.min(pct + 5, 80);
+                progressBar.style.width = pct + '%';
+                percentEl.textContent = pct + '%';
+            }, 150);
+            try {
+                await uploadCaseReceipt(caseId, session.userId, file);
+                clearInterval(ticker);
+                progressBar.style.width = '100%';
+                percentEl.textContent = '100%';
+                caseReceiptCounts[caseId] = (caseReceiptCounts[caseId] || 0) + 1;
+                const caseObj = myCases.find(c => c.id === caseId);
+                if (caseObj) caseObj.receipt_uploaded = true;
+                displayCases();
+                showToast('Receipt uploaded successfully!', 'success');
+                await loadCaseReceiptFiles(caseId);
+            } catch (err) {
+                clearInterval(ticker);
+                showToast('Upload failed: ' + err.message, 'error');
+            } finally {
+                setTimeout(() => { progressWrap.classList.remove('show'); progressBar.style.width = '0%'; percentEl.textContent = '0%'; }, 1500);
+            }
+        }
+
+        async function loadCaseReceiptFiles(caseId) {
+            const container = document.getElementById('receipt-files-list');
+            container.innerHTML = '<p class="text-muted text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading...</p>';
+            try {
+                const files = await getCaseReceipts(caseId);
+                renderReceiptFileList(container, files, caseId);
+            } catch (err) {
+                container.innerHTML = '<p class="text-danger text-center py-3">Error loading receipts.</p>';
+            }
+        }
+
+        function renderReceiptFileList(container, files, caseId) {
+            if (!files || files.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="mb-2" style="font-size:2.5rem;color:#cbd5e1;"><i class="fas fa-receipt"></i></div>
+                        <p class="text-muted small mb-0">No receipts uploaded yet</p>
+                    </div>`;
+                return;
+            }
+            container.innerHTML = `
+                <div class="mb-2"><small class="text-muted">${files.length} receipt${files.length !== 1 ? 's' : ''} uploaded</small></div>
+                ${files.map(f => {
+                const isPdf = f.file_name.toLowerCase().endsWith('.pdf');
+                const iconClass = isPdf ? '' : 'generic';
+                const iconName = isPdf ? 'fa-file-pdf' : 'fa-file-alt';
+                const sizeKb = f.file_size ? (f.file_size > 1024 * 1024 ? (f.file_size / 1024 / 1024).toFixed(1) + ' MB' : (f.file_size / 1024).toFixed(0) + ' KB') : '';
+                return `
+                    <div class="quotation-file-row">
+                        <div class="quotation-file-icon ${iconClass}"><i class="fas ${iconName}"></i></div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="fw-600 text-truncate" style="font-size:.875rem;">${f.file_name}</div>
+                            <div class="small text-muted">${sizeKb}${sizeKb ? ' &nbsp;•&nbsp; ' : ''}${new Date(f.uploaded_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                        </div>
+                        <a href="${f.file_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary flex-shrink-0">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteReceiptFile('${f.id}','${escHtml(f.storage_path)}','${caseId}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`;
+            }).join('')}`;
+        }
+
+        window.handleDeleteReceiptFile = async function (fileId, storagePath, caseId) {
+            if (!confirm('Delete this receipt file?')) return;
+            try {
+                await deleteCaseReceipt(fileId, storagePath, caseId);
+                caseReceiptCounts[caseId] = Math.max((caseReceiptCounts[caseId] || 1) - 1, 0);
+                if (caseReceiptCounts[caseId] === 0) {
+                    const caseObj = myCases.find(c => c.id === caseId);
+                    if (caseObj) caseObj.receipt_uploaded = false;
+                }
+                displayCases();
+                await loadCaseReceiptFiles(caseId);
+                showToast('Receipt deleted', 'success');
+            } catch (err) {
+                showToast('Failed to delete receipt', 'error');
+            }
+        };
 
         loadData();
     </script>

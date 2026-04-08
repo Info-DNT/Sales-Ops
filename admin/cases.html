@@ -38,7 +38,6 @@
                     </div>
                     <div class="stat-label">Total Cases</div>
                     <div class="stat-value" id="stats-total">0</div>
-                    <div class="text-muted small">All time</div>
                 </div>
                 <div class="stat-card-modern">
                     <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
@@ -46,7 +45,6 @@
                     </div>
                     <div class="stat-label">Converted</div>
                     <div class="stat-value" id="stats-converted">0</div>
-                    <div class="text-muted small">From leads</div>
                 </div>
                 <div class="stat-card-modern">
                     <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
@@ -54,7 +52,6 @@
                     </div>
                     <div class="stat-label">Completed</div>
                     <div class="stat-value" id="stats-completed">0</div>
-                    <div class="text-muted small" id="stats-completed-percent">0%</div>
                 </div>
                 <div class="stat-card-modern">
                     <div class="stat-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
@@ -62,7 +59,6 @@
                     </div>
                     <div class="stat-label">Pending / Active</div>
                     <div class="stat-value" id="stats-pending">0</div>
-                    <div class="text-muted small">Requires action</div>
                 </div>
                 <div class="stat-card-modern">
                     <div class="stat-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">
@@ -70,7 +66,6 @@
                     </div>
                     <div class="stat-label">Cancelled</div>
                     <div class="stat-value" id="stats-cancelled">0</div>
-                    <div class="text-muted small">Closed</div>
                 </div>
             </div>
 
@@ -135,9 +130,7 @@
         </div>
     </div>
 
-    <!-- ============================================
-         CASE DETAIL OFFCANVAS — Admin (3 tabs + admin controls)
-         ============================================ -->
+    <!-- Case Detail Offcanvas -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="caseDetailsOffcanvas" style="width:540px;">
         <div class="offcanvas-header border-bottom py-3">
             <div>
@@ -153,29 +146,32 @@
             </div>
         </div>
 
-        <!-- Tabs -->
         <ul class="nav nav-tabs-custom px-4" id="caseTabs">
-            <li><a href="#" class="nav-link active" onclick="switchCaseTab('overview', this); return false;">Overview</a></li>
+            <li><a href="#" class="nav-link active"
+                    onclick="switchCaseTab('overview', this); return false;">Overview</a></li>
             <li><a href="#" class="nav-link" onclick="switchCaseTab('timeline', this); return false;">Timeline</a></li>
-            <li><a href="#" class="nav-link" onclick="switchCaseTab('quotations', this); return false;"><i class="fas fa-paperclip me-1"></i>Quotations</a></li>
+            <li><a href="#" class="nav-link" onclick="switchCaseTab('quotations', this); return false;"><i
+                        class="fas fa-paperclip me-1"></i>Quotations</a></li>
+            <li><a href="#" class="nav-link" onclick="switchCaseTab('invoices', this); return false;"><i
+                        class="fas fa-file-invoice me-1"></i>Invoices</a></li>
+            <li><a href="#" class="nav-link" onclick="switchCaseTab('receipts', this); return false;"><i
+                        class="fas fa-receipt me-1"></i>Receipts</a></li>
         </ul>
 
         <div class="offcanvas-body p-0">
             <div class="px-4 pb-4">
-
-                <!-- ─── TAB: OVERVIEW ─── -->
                 <div id="case-tab-overview" class="pt-3">
-                    <!-- Converted badge -->
                     <div id="converted-badge-row" class="d-none mb-3">
-                        <span class="converted-case-badge"><i class="fas fa-exchange-alt me-1"></i>Converted from Lead</span>
+                        <span class="converted-case-badge"><i class="fas fa-exchange-alt me-1"></i>Converted from
+                            Lead</span>
                         <small class="text-muted ms-2" id="converted-date-display"></small>
                     </div>
 
-                    <!-- Client Details -->
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-user text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Client</span>
+                            <span class="fw-600 small text-uppercase text-muted"
+                                style="letter-spacing:.5px;">Client</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
                             <div class="row g-2">
@@ -195,11 +191,11 @@
                         </div>
                     </div>
 
-                    <!-- Patient Details -->
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-procedures text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Patient</span>
+                            <span class="fw-600 small text-uppercase text-muted"
+                                style="letter-spacing:.5px;">Patient</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
                             <div class="row g-2">
@@ -208,18 +204,18 @@
                                     <div class="fw-600" id="detail-patient-name">—</div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="small text-muted">Client Relation</div>
+                                    <div class="small text-muted">Relation</div>
                                     <div class="fw-600" id="detail-client-relation">—</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Travel -->
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-plane text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Travel</span>
+                            <span class="fw-600 small text-uppercase text-muted"
+                                style="letter-spacing:.5px;">Travel</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
                             <div class="row g-2">
@@ -243,31 +239,11 @@
                         </div>
                     </div>
 
-                    <!-- Dates -->
-                    <div class="mb-3">
-                        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <div class="small text-muted">Follow-up Date</div>
-                                    <div class="fw-600" id="detail-follow-up">—</div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="small text-muted">Expected Close</div>
-                                    <div class="fw-600" id="detail-expected-close">—</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Admin Edit Form -->
-                    <hr class="my-3">
                     <form id="edit-case-form">
                         <input type="hidden" id="edit-case-id">
-                        <div class="row g-3 mb-3">
-                            <div class="col-12">
-                                <label class="form-label small fw-600">Case Title</label>
-                                <input type="text" class="form-control" id="edit-case-title">
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-600">Case Title</label>
+                            <input type="text" class="form-control" id="edit-case-title">
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-6">
@@ -305,51 +281,76 @@
                     </form>
                 </div>
 
-                <!-- ─── TAB: TIMELINE ─── -->
                 <div id="case-tab-timeline" class="pt-3 d-none">
-                    <div id="case-timeline-container" class="timeline">
-                        <p class="text-muted text-center py-4">
-                            <span class="spinner-border spinner-border-sm me-2"></span> Loading history...
-                        </p>
-                    </div>
+                    <div id="case-timeline-container" class="timeline"></div>
                 </div>
 
-                <!-- ─── TAB: QUOTATIONS ─── -->
                 <div id="case-tab-quotations" class="pt-3 d-none">
-                    <!-- Admin upload -->
                     <div class="upload-drop-zone mb-3" id="upload-drop-zone"
                         onclick="document.getElementById('quotation-file-input').click()">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p>Drop file here or <span class="browse-link">browse</span></p>
-                        <p class="mt-1" style="font-size:11px;color:#94a3b8;">PDF, DOC, DOCX, PNG, JPG — max 20 MB</p>
                     </div>
                     <input type="file" id="quotation-file-input" class="d-none"
                         accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
-
-                    <!-- Progress bar -->
                     <div class="upload-progress-wrap" id="upload-progress-wrap">
-                        <div class="d-flex justify-content-between mb-1">
-                            <small class="text-muted" id="upload-file-name">Uploading...</small>
-                            <small class="text-muted" id="upload-percent">0%</small>
-                        </div>
                         <div class="upload-progress-track">
                             <div class="upload-progress-bar" id="upload-progress-bar" style="width:0%"></div>
                         </div>
                     </div>
-
-                    <!-- File list -->
-                    <div id="quotation-files-list">
-                        <p class="text-muted text-center py-3">
-                            <span class="spinner-border spinner-border-sm me-2"></span>Loading...
-                        </p>
-                    </div>
+                    <div id="quotation-files-list"></div>
                 </div>
 
+                <div id="case-tab-invoices" class="pt-3 d-none">
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="upload-drop-zone flex-grow-1"
+                            onclick="document.getElementById('offcanvas-invoice-input').click()">
+                            <i class="fas fa-file-invoice"></i>
+                            <p>Drop invoice here or <span class="browse-link">browse</span></p>
+                        </div>
+                        <button class="btn btn-outline-primary d-flex flex-column align-items-center justify-content-center px-3" 
+                                onclick="handleRequestWhatsApp('invoice')" style="border-style:dashed; border-width:2px; min-width:100px;">
+                            <i class="fab fa-whatsapp mb-1" style="font-size:1.2rem;"></i>
+                            <span class="small fw-600">Request Invoice</span>
+                        </button>
+                    </div>
+                    <input type="file" id="offcanvas-invoice-input" class="d-none"
+                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+                    <div class="upload-progress-wrap" id="invoice-oc-progress-wrap">
+                        <div class="upload-progress-track">
+                            <div class="upload-progress-bar" id="invoice-oc-progress-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div id="invoice-files-list"></div>
+                </div>
+
+                <div id="case-tab-receipts" class="pt-3 d-none">
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="upload-drop-zone flex-grow-1"
+                            onclick="document.getElementById('offcanvas-receipt-input').click()">
+                            <i class="fas fa-receipt"></i>
+                            <p>Drop receipt here or <span class="browse-link">browse</span></p>
+                        </div>
+                        <button class="btn btn-outline-primary d-flex flex-column align-items-center justify-content-center px-3" 
+                                onclick="handleRequestWhatsApp('receipt')" style="border-style:dashed; border-width:2px; min-width:100px;">
+                            <i class="fab fa-whatsapp mb-1" style="font-size:1.2rem;"></i>
+                            <span class="small fw-600">Request Receipt</span>
+                        </button>
+                    </div>
+                    <input type="file" id="offcanvas-receipt-input" class="d-none"
+                        accept=".pdf,.png,.jpg,.jpeg">
+                    <div class="upload-progress-wrap" id="receipt-oc-progress-wrap">
+                        <div class="upload-progress-track">
+                            <div class="upload-progress-bar bg-info" id="receipt-oc-progress-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div id="receipt-files-list"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Add Case Modal -->
+    <!-- Modals -->
     <div class="modal fade" id="addCaseModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -359,80 +360,69 @@
                 </div>
                 <div class="modal-body">
                     <form id="add-case-form">
-                        <div class="mb-3">
-                            <label class="form-label">Title</label>
-                            <input type="text" class="form-control" id="case-title"
-                                placeholder="Brief summary of the case" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" id="case-description" rows="3"
-                                placeholder="Provide more details..."></textarea>
-                        </div>
+                        <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control"
+                                id="case-title" required></div>
+                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control"
+                                id="case-description" rows="3"></textarea></div>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Status</label>
-                                <select class="form-select" id="case-status" required>
-                                    <option value="Pending" selected>Pending</option>
+                            <div class="col-md-6"><label class="form-label">Status</label><select class="form-select"
+                                    id="case-status" required>
+                                    <option value="Pending">Pending</option>
                                     <option value="In Progress">In Progress</option>
                                     <option value="Completed">Completed</option>
-                                    <option value="On Hold">On Hold</option>
-                                    <option value="Cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Priority</label>
-                                <select class="form-select" id="case-priority" required>
+                                </select></div>
+                            <div class="col-md-6"><label class="form-label">Priority</label><select class="form-select"
+                                    id="case-priority" required>
                                     <option value="Low">Low</option>
                                     <option value="Medium" selected>Medium</option>
                                     <option value="High">High</option>
-                                </select>
-                            </div>
+                                </select></div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Assign To User</label>
-                            <select class="form-select" id="case-user-select" required>
-                                <option value="">Select User</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100 mt-2" id="add-case-btn">
-                            Create Case
-                        </button>
+                        <div class="mb-3"><label class="form-label">Assign To User</label><select class="form-select"
+                                id="case-user-select" required></select></div>
+                        <button type="submit" class="btn btn-primary w-100" id="add-case-btn">Create Case</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Upload Quotation Quick Modal (from card button) -->
     <div class="modal fade" id="uploadQuotationModal" tabindex="-1">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
-                    <div>
-                        <h6 class="modal-title mb-0"><i class="fas fa-upload me-2 text-success"></i>Upload Quotation</h6>
-                        <small class="text-muted" id="upload-modal-case-name"></small>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h6 class="modal-title">Upload Quotation</h6><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="upload-drop-zone" id="quick-upload-zone"
-                        onclick="document.getElementById('quick-file-input').click()">
-                        <i class="fas fa-file-upload"></i>
-                        <p>Click to select file</p>
-                        <p style="font-size:11px;color:#94a3b8;">PDF, DOC, DOCX, PNG, JPG</p>
+                    <div class="upload-drop-zone" onclick="document.getElementById('quick-file-input').click()"><i
+                            class="fas fa-file-upload"></i>
+                        <p>Click to select</p>
                     </div>
-                    <input type="file" id="quick-file-input" class="d-none"
-                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+                    <input type="file" id="quick-file-input" class="d-none" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
                     <div class="upload-progress-wrap mt-2" id="quick-progress-wrap">
-                        <div class="d-flex justify-content-between mb-1">
-                            <small class="text-muted" id="quick-file-name">Uploading...</small>
-                            <small class="text-success" id="quick-percent">0%</small>
-                        </div>
                         <div class="upload-progress-track">
                             <div class="upload-progress-bar" id="quick-progress-bar" style="width:0%"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Receipt Modal -->
+    <div class="modal fade" id="requestReceiptModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Request Receipt <small class="text-muted"
+                            id="receipt-modal-case-name"></small></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe src="https://zfrmz.in/7L0RGUbuwMb3PkgdxK4E"
+                        style="width: 100%; min-height: 600px; border: none;" frameborder="0" allowfullscreen
+                        id="receipt-form-iframe"></iframe>
                 </div>
             </div>
         </div>
@@ -448,199 +438,119 @@
         insertNav('admin', 'cases');
 
         const session = getCurrentSession();
-        let allCases = [];
-        let filteredCases = [];
-        let allUsers = [];
-        let caseFileCounts = {};
-        let editingCaseId = null;
-        let quickUploadCaseId = null;
+        let allCases = [], filteredCases = [], allUsers = [], caseFileCounts = {}, caseInvoiceCounts = {}, caseReceiptCounts = {}, caseLeadCache = {}, editingCaseId = null, quickUploadCaseId = null, receiptRequestCaseId = null;
 
-        // ─────────────────────────────────────────────
-        // LOAD DATA
-        // ─────────────────────────────────────────────
         async function loadData() {
             try {
-                const [casesData, usersData] = await Promise.all([
-                    getAllCasesAdmin(),
-                    getUsersAdmin()
-                ]);
-                allCases = casesData;
-                allUsers = usersData;
-
-                // File counts
+                const [casesData, usersData] = await Promise.all([getAllCasesAdmin(), getUsersAdmin()]);
+                allCases = casesData; allUsers = usersData;
                 const ids = allCases.map(c => c.id);
-                caseFileCounts = await getCaseFileCounts(ids);
-
-                populateUserDropdowns();
-                updateStats();
-                filterCases();
-            } catch (err) {
-                console.error('Error loading data:', err);
-                showToast('Failed to load data', 'error');
-            }
+                [caseFileCounts, caseInvoiceCounts, caseReceiptCounts] = await Promise.all([getCaseFileCounts(ids), getCaseInvoiceCounts(ids), getCaseReceiptCounts(ids)]);
+                populateUserDropdowns(); updateStats(); filterCases();
+            } catch (err) { console.error(err); showToast('Load error', 'error'); }
         }
 
         function populateUserDropdowns() {
             const opts = allUsers.map(u => `<option value="${u.id}">${u.name || u.email}</option>`).join('');
             document.getElementById('case-user-select').innerHTML = '<option value="">Select User</option>' + opts;
             document.getElementById('edit-case-user').innerHTML = opts;
-
-            // Filter by user dropdown
-            const filterOpts = allUsers.map(u => `<option value="${u.id}">${u.name || u.email}</option>`).join('');
-            document.getElementById('filter-user').innerHTML = '<option value="">All Users</option>' + filterOpts;
+            document.getElementById('filter-user').innerHTML = '<option value="">All Users</option>' + opts;
         }
 
         function updateStats() {
             const total = allCases.length;
-            const converted = allCases.filter(c => c.lead_id).length;
             const completed = allCases.filter(c => c.status === 'Completed').length;
-            const pending = allCases.filter(c => c.status === 'Pending' || c.status === 'In Progress').length;
+            const active = allCases.filter(c => c.status !== 'Completed' && c.status !== 'Cancelled').length;
+            const converted = allCases.filter(c => !!c.lead_id).length;
             const cancelled = allCases.filter(c => c.status === 'Cancelled').length;
-            const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-            document.getElementById('stats-total').textContent = total;
-            document.getElementById('stats-converted').textContent = converted;
-            document.getElementById('stats-completed').textContent = completed;
-            document.getElementById('stats-completed-percent').textContent = pct + '%';
-            document.getElementById('stats-pending').textContent = pending;
-            document.getElementById('stats-cancelled').textContent = cancelled;
+            if (document.getElementById('stats-total')) document.getElementById('stats-total').textContent = total;
+            if (document.getElementById('stats-completed')) document.getElementById('stats-completed').textContent = completed;
+            if (document.getElementById('stats-active')) document.getElementById('stats-active').textContent = active;
+            if (document.getElementById('stats-converted')) document.getElementById('stats-converted').textContent = converted;
+            if (document.getElementById('stats-cancelled')) document.getElementById('stats-cancelled').textContent = cancelled;
         }
 
         function filterCases() {
-            const query = document.getElementById('search-query').value.toLowerCase();
-            const status = document.getElementById('filter-status').value;
-            const priority = document.getElementById('filter-priority').value;
-            const source = document.getElementById('filter-source').value;
-            const userId = document.getElementById('filter-user').value;
+            const q = document.getElementById('search-query').value.toLowerCase();
+            const s = document.getElementById('filter-status').value;
+            const u = document.getElementById('filter-user').value;
+            const p = document.getElementById('filter-priority').value;
+            const src = document.getElementById('filter-source').value;
 
             filteredCases = allCases.filter(c => {
-                const matchesQuery = !query ||
-                    c.title.toLowerCase().includes(query) ||
-                    c.case_number.toLowerCase().includes(query) ||
-                    (c.leads?.name && c.leads.name.toLowerCase().includes(query)) ||
-                    (c.users?.name && c.users.name.toLowerCase().includes(query));
-                const matchesStatus = !status || c.status === status;
-                const matchesPriority = !priority || c.priority === priority;
-                const matchesSource = !source ||
-                    (source === 'converted' && !!c.lead_id) ||
-                    (source === 'manual' && !c.lead_id);
-                const matchesUser = !userId || c.user_id === userId;
-                return matchesQuery && matchesStatus && matchesPriority && matchesSource && matchesUser;
+                const matchesSearch = (!q || c.title.toLowerCase().includes(q) || c.case_number.toLowerCase().includes(q));
+                const matchesStatus = (!s || c.status === s);
+                const matchesUser = (!u || c.user_id === u);
+                const matchesPriority = (!p || c.priority === p);
+                const matchesSource = !src || (src === 'converted' ? !!c.lead_id : !c.lead_id);
+                return matchesSearch && matchesStatus && matchesUser && matchesPriority && matchesSource;
             });
             displayCases();
         }
 
-        // ─────────────────────────────────────────────
-        // DISPLAY CASE CARDS
-        // ─────────────────────────────────────────────
         function displayCases() {
             const list = document.getElementById('cases-list');
-            const noMsg = document.getElementById('no-cases-message');
-
-            if (filteredCases.length === 0) {
-                list.innerHTML = '';
-                noMsg.classList.remove('d-none');
-                return;
-            }
-            noMsg.classList.add('d-none');
-
-            const fileCount = id => caseFileCounts[id] || 0;
-
             list.innerHTML = filteredCases.map(c => `
                 <div class="lead-card ${c.lead_id ? 'converted-case' : ''}">
                     <div class="lead-header">
                         <div class="lead-title">
                             <h6 class="mb-0">
-                                <span class="text-primary small me-1">#${c.case_number}</span>
+                                <span class="text-primary small me-1">#${c.case_number}</span> 
                                 ${c.title}
                                 ${c.lead_id ? '<span class="converted-case-badge ms-1"><i class="fas fa-exchange-alt"></i> Converted</span>' : ''}
                             </h6>
-                            <p class="text-muted small mb-0">
-                                <i class="fas fa-user me-1"></i>${c.users?.name || c.users?.email || 'Unassigned'}
-                            </p>
+                            <p class="text-muted small mb-0"><i class="fas fa-user me-1"></i>${c.users?.name || c.users?.email || 'Unassigned'}</p>
                         </div>
-                        <div class="d-flex gap-2 flex-shrink-0 flex-column align-items-end">
-                            <span class="badge ${getPriorityBadge(c.priority)}">${c.priority}</span>
-                            <span class="badge ${getStatusBadge(c.status)}">${c.status}</span>
-                        </div>
+                        <span class="lead-status-badge ${c.status.toLowerCase().replace(' ', '-')}">${c.status}</span>
                     </div>
 
                     <div class="lead-details mt-3">
                         <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-user-tie me-1"></i>Client</span>
-                            <span class="lead-detail-value text-primary">${c.title}</span>
+                            <span class="lead-detail-label"><i class="fas fa-phone me-1 text-muted"></i>Phone</span>
+                            <span class="lead-detail-value detail-phone-${c.id}">...</span>
                         </div>
-                        ${c.description ? `
                         <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-info-circle me-1"></i>Details</span>
-                            <span class="lead-detail-value text-truncate" style="max-width:200px;">${c.description.split(' | ')[0] || ''}</span>
-                        </div>` : ''}
-                        <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-calendar me-1"></i>Created</span>
-                            <span class="lead-detail-value">${new Date(c.created_at).toLocaleDateString()}</span>
+                            <span class="lead-detail-label"><i class="fas fa-envelope me-1 text-muted"></i>Email</span>
+                            <span class="lead-detail-value detail-email-${c.id}">...</span>
                         </div>
                     </div>
 
-                    <!-- Same action row as lead cards with "Request Quotation" -->
-                    <div class="mt-3 d-flex gap-2 align-items-center flex-wrap">
-                        <button class="btn btn-sm btn-outline-success"
-                            onclick="openQuickUpload('${c.id}', '${escHtml(c.title)}', event)">
-                            <i class="fas fa-upload me-1"></i> Upload Quotation
+                    <div class="mt-3 d-flex gap-2 flex-wrap align-items-center">
+                        <button class="btn btn-sm btn-outline-success" onclick="openQuickUpload('${c.id}','${escHtml(c.title)}',event)"><i class="fas fa-upload me-1"></i> Quotation</button>
+                        ${caseFileCounts[c.id] > 0 ? `<span class="case-file-badge"><i class="fas fa-paperclip"></i> ${caseFileCounts[c.id]}</span>` : ''}
+                        
+                        <button class="btn btn-sm btn-invoice-request" onclick="handleRequestInvoice('${c.id}',event)"><i class="fas fa-file-invoice me-1"></i> Request Invoice</button>
+                        ${caseInvoiceCounts[c.id] > 0 ? `<span class="case-invoice-badge"><i class="fas fa-file-invoice"></i> ${caseInvoiceCounts[c.id]}</span>` : ''}
+                        
+                        <button class="btn btn-sm ${(c.invoice_uploaded || caseInvoiceCounts[c.id] > 0) ? 'btn-receipt-request' : 'btn-receipt-disabled'}" 
+                            ${(c.invoice_uploaded || caseInvoiceCounts[c.id] > 0) ? `onclick="openReceiptRequestModal('${c.id}','${escHtml(c.title)}',event)"` : 'disabled'}>
+                            <i class="fas fa-receipt me-1"></i> Request Receipt
                         </button>
-                        ${fileCount(c.id) > 0
-                            ? `<span class="case-file-badge">
-                                   <i class="fas fa-paperclip"></i>
-                                   ${fileCount(c.id)} quotation${fileCount(c.id) > 1 ? 's' : ''}
-                               </span>`
-                            : ''}
-                        <div class="ms-auto d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-primary" onclick="openCaseDetails('${c.id}')">
-                                <i class="fas fa-edit me-1"></i> Manage
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteCase('${c.id}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+                        <div class="ms-auto"><button class="btn btn-sm btn-outline-primary" onclick="openCaseDetails('${c.id}')"><i class="fas fa-edit me-1"></i> Manage</button></div>
                     </div>
                 </div>
             `).join('');
-        }
 
-        function escHtml(str) {
-            return String(str || '').replace(/'/g, "\\'");
-        }
-        function getStatusBadge(status) {
-            const map = { 'Completed': 'bg-success', 'Pending': 'bg-warning text-dark',
-                'In Progress': 'bg-info text-white', 'On Hold': 'bg-secondary', 'Cancelled': 'bg-danger' };
-            return map[status] || 'bg-secondary';
-        }
-        function getPriorityBadge(priority) {
-            const map = { 'High': 'bg-danger', 'Medium': 'bg-warning text-dark', 'Low': 'bg-info text-white' };
-            return map[priority] || 'bg-secondary';
-        }
-
-        // ─────────────────────────────────────────────
-        // OPEN CASE DETAILS (ADMIN)
-        // ─────────────────────────────────────────────
-        window.openCaseDetails = function(id) {
-            const c = allCases.find(x => x.id === id);
-            if (!c) return;
-            editingCaseId = id;
-
-            document.getElementById('offcanvas-case-title').textContent = c.title;
-            document.getElementById('offcanvas-case-number').textContent = '#' + c.case_number;
-
-            // Reset detail fields
-            const dash = '—';
-            ['detail-client-name','detail-client-phone','detail-client-email',
-             'detail-patient-name','detail-client-relation','detail-source',
-             'detail-destination','detail-field','detail-lead-source',
-             'detail-follow-up','detail-expected-close'].forEach(fid => {
-                document.getElementById(fid).textContent = c.lead_id ? '…' : dash;
+            // Background fetch lead phones for card
+            filteredCases.forEach(c => {
+                if (c.lead_id) {
+                    getLeadByLeadId(c.lead_id).then(L => {
+                        if (L) {
+                            document.querySelectorAll(`.detail-phone-${c.id}`).forEach(el => el.textContent = L.contact || 'N/A');
+                            document.querySelectorAll(`.detail-email-${c.id}`).forEach(el => el.textContent = L.email || 'N/A');
+                        }
+                    });
+                } else {
+                    document.querySelectorAll(`.detail-phone-${c.id}`).forEach(el => el.textContent = 'N/A');
+                    document.querySelectorAll(`.detail-email-${c.id}`).forEach(el => el.textContent = 'N/A');
+                }
             });
-            document.getElementById('converted-badge-row').classList.add('d-none');
+        }
 
-            // Form values
+        window.openCaseDetails = function (id) {
+            const c = allCases.find(x => x.id === id); if (!c) return; editingCaseId = id;
+            document.getElementById('offcanvas-case-title').textContent = c.title;
             document.getElementById('edit-case-id').value = c.id;
             document.getElementById('edit-case-title').value = c.title;
             document.getElementById('edit-case-status').value = c.status;
@@ -648,332 +558,275 @@
             document.getElementById('edit-case-description').value = c.description || '';
             if (c.user_id) document.getElementById('edit-case-user').value = c.user_id;
 
-            switchCaseTab('overview', document.querySelector('#caseTabs .nav-link'));
+            const dash = '—';
+            ['detail-client-name', 'detail-client-phone', 'detail-client-email', 'detail-patient-name', 'detail-client-relation', 'detail-source', 'detail-destination', 'detail-field', 'detail-lead-source'].forEach(fid => {
+                const el = document.getElementById(fid); if (el) el.textContent = c.lead_id ? '…' : dash;
+            });
+            document.getElementById('converted-badge-row').classList.toggle('d-none', !c.lead_id);
+
+            switchCaseTab('overview');
             new bootstrap.Offcanvas(document.getElementById('caseDetailsOffcanvas')).show();
             loadCaseTimeline(id, c.lead_id);
 
-            // Lazily fetch lead details
             if (c.lead_id) {
                 getLeadByLeadId(c.lead_id).then(L => {
                     if (!L) return;
-                    if (L.is_converted) {
-                        document.getElementById('converted-badge-row').classList.remove('d-none');
-                        document.getElementById('converted-date-display').textContent =
-                            L.converted_at ? 'on ' + new Date(L.converted_at).toLocaleDateString() : '';
-                    }
-                    document.getElementById('detail-client-name').textContent = L.name || c.title || '—';
-                    document.getElementById('detail-client-phone').textContent = L.contact || '—';
-                    document.getElementById('detail-client-email').textContent = L.email || '—';
-                    document.getElementById('detail-patient-name').textContent = L.patient_name || '—';
-                    document.getElementById('detail-client-relation').textContent = L.client_relation || '—';
-                    document.getElementById('detail-source').textContent = L.source_location || '—';
-                    document.getElementById('detail-destination').textContent = L.destination_location || '—';
-                    document.getElementById('detail-field').textContent = L.field || '—';
-                    document.getElementById('detail-lead-source').textContent = L.lead_source || '—';
-                    document.getElementById('detail-follow-up').textContent = L.follow_up_date
-                        ? new Date(L.follow_up_date).toLocaleDateString() : '—';
-                    document.getElementById('detail-expected-close').textContent = L.expected_close
-                        ? new Date(L.expected_close).toLocaleDateString() : '—';
-                }).catch(() => {
-                    document.getElementById('detail-client-name').textContent = c.title;
+                    const setVal = (fid, val) => { const el = document.getElementById(fid); if (el) el.textContent = val || dash; };
+                    setVal('detail-client-name', L.name || c.title);
+                    setVal('detail-client-phone', L.contact);
+                    setVal('detail-client-email', L.email);
+                    setVal('detail-patient-name', L.patient_name);
+                    setVal('detail-client-relation', L.client_relation);
+                    setVal('detail-source', L.source_location);
+                    setVal('detail-destination', L.destination_location);
+                    setVal('detail-field', L.field);
+                    setVal('detail-lead-source', L.lead_source);
                 });
-            } else {
-                document.getElementById('detail-client-name').textContent = c.title;
             }
         };
 
-        // ─────────────────────────────────────────────
-        // TAB SWITCHING
-        // ─────────────────────────────────────────────
-        window.switchCaseTab = function(tab, linkEl) {
-            ['overview', 'timeline', 'quotations'].forEach(t => {
-                document.getElementById('case-tab-' + t).classList.add('d-none');
+        window.switchCaseTab = function (tab, linkEl) {
+            ['overview', 'timeline', 'quotations', 'invoices', 'receipts'].forEach(t => {
+                const el = document.getElementById('case-tab-' + t); if (el) el.classList.add('d-none');
             });
             document.querySelectorAll('#caseTabs .nav-link').forEach(l => l.classList.remove('active'));
-            document.getElementById('case-tab-' + tab).classList.remove('d-none');
             if (linkEl) linkEl.classList.add('active');
+            else {
+                const activeLink = Array.from(document.querySelectorAll('#caseTabs .nav-link')).find(l => l.textContent.toLowerCase().includes(tab));
+                if (activeLink) activeLink.classList.add('active');
+            }
+
             if (tab === 'quotations') loadCaseFiles(editingCaseId);
+            if (tab === 'invoices') loadCaseInvoiceFiles(editingCaseId);
+            if (tab === 'receipts') loadCaseReceiptFiles(editingCaseId);
+            const target = document.getElementById('case-tab-' + tab);
+            if (target) target.classList.remove('d-none');
         };
 
-        // ─────────────────────────────────────────────
-        // TIMELINE
-        // ─────────────────────────────────────────────
-        async function loadCaseTimeline(caseId, leadId) {
+        async function loadCaseTimeline(cid, lid) {
             const container = document.getElementById('case-timeline-container');
-            container.innerHTML = '<p class="text-muted text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading...</p>';
+            container.innerHTML = '<div class="text-center py-4"><span class="spinner-border spinner-border-sm"></span></div>';
             try {
-                let history = leadId ? await getLeadHistory(leadId) : [];
-                if (!history || history.length === 0) {
-                    container.innerHTML = '<p class="text-muted text-center py-4">No activity history yet.</p>';
-                    return;
-                }
-                container.innerHTML = history.map(item => `
+                let history = lid ? await getLeadHistory(lid) : [];
+                if (!history.length) { container.innerHTML = '<p class="text-muted text-center py-4">No activity yet</p>'; return; }
+                container.innerHTML = history.map(h => `
                     <div class="timeline-item">
-                        <div class="timeline-dot">
-                            <i class="fas ${item.action.includes('Converted') ? 'fa-exchange-alt' : item.action.includes('Created') ? 'fa-plus' : 'fa-edit'}"></i>
-                        </div>
+                        <div class="timeline-dot"><i class="fas fa-history"></i></div>
                         <div class="timeline-content">
-                            <div class="timeline-time">${new Date(item.created_at).toLocaleString()}</div>
-                            <div class="timeline-title">${item.action}</div>
-                            <div class="timeline-desc">${item.details?.summary || item.details?.status || (item.details?.changes ? item.details.changes.join(', ') : '') || ''}</div>
-                            <div class="small text-muted mt-1">by ${item.users?.name || item.users?.email || 'System'}</div>
+                            <div class="timeline-time">${new Date(h.created_at).toLocaleString()}</div>
+                            <div class="timeline-title">${h.action}</div>
+                            <div class="timeline-desc text-muted small">${h.details?.summary || ''}</div>
                         </div>
                     </div>
                 `).join('');
-            } catch (err) {
-                container.innerHTML = '<p class="text-danger text-center py-4">Error loading history.</p>';
-            }
+            } catch (err) { container.innerHTML = 'Error loading timeline'; }
         }
 
-        // ─────────────────────────────────────────────
-        // QUOTATION FILES  (admin — can delete any)
-        // ─────────────────────────────────────────────
-        async function loadCaseFiles(caseId) {
-            const container = document.getElementById('quotation-files-list');
-            container.innerHTML = '<p class="text-muted text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading...</p>';
+        async function loadCaseFiles(cid) {
+            const container = document.getElementById('quotation-files-list'); container.innerHTML = 'Loading...';
             try {
-                const files = await getCaseFiles(caseId);
-                renderFileList(container, files, caseId);
-            } catch (err) {
-                container.innerHTML = '<p class="text-danger text-center py-3">Error loading files.</p>';
-            }
-        }
-
-        function renderFileList(container, files, caseId) {
-            if (!files || files.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-4">
-                        <div class="mb-2" style="font-size:2.5rem;color:#cbd5e1;"><i class="fas fa-file-upload"></i></div>
-                        <p class="text-muted small mb-0">No quotations uploaded yet</p>
-                    </div>`;
-                return;
-            }
-            container.innerHTML = `
-                <div class="mb-2"><small class="text-muted">${files.length} quotation${files.length !== 1 ? 's' : ''} uploaded</small></div>
-                ${files.map(f => {
-                    const isPdf = f.file_name.toLowerCase().endsWith('.pdf');
-                    const iconClass = isPdf ? '' : 'generic';
-                    const iconName  = isPdf ? 'fa-file-pdf' : 'fa-file-alt';
-                    const sizeLabel = f.file_size
-                        ? (f.file_size > 1024*1024
-                            ? (f.file_size/1024/1024).toFixed(1) + ' MB'
-                            : (f.file_size/1024).toFixed(0) + ' KB')
-                        : '';
-                    return `
-                    <div class="quotation-file-row">
-                        <div class="quotation-file-icon ${iconClass}">
-                            <i class="fas ${iconName}"></i>
-                        </div>
+                const files = await getCaseFiles(cid);
+                if (!files.length) { container.innerHTML = '<p class="text-muted small text-center py-3">No quotations</p>'; return; }
+                container.innerHTML = files.map(f => `
+                    <div class="d-flex align-items-center gap-3 p-3 mb-2 rounded border bg-white">
                         <div class="flex-grow-1 overflow-hidden">
-                            <div class="fw-600 text-truncate" style="font-size:.875rem;">${f.file_name}</div>
-                            <div class="small text-muted">
-                                ${sizeLabel}${sizeLabel ? ' &nbsp;•&nbsp; ' : ''}
-                                ${new Date(f.uploaded_at).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}
-                                ${f.users?.name ? ` &nbsp;•&nbsp; by ${f.users.name}` : ''}
-                            </div>
+                            <div class="fw-600 text-truncate" style="font-size:0.875rem;">${f.file_name}</div>
+                            <div class="small text-muted">${new Date(f.uploaded_at).toLocaleDateString()}</div>
                         </div>
-                        <a href="${f.file_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary flex-shrink-0">
-                            <i class="fas fa-external-link-alt"></i>
-                        </a>
-                        <button class="btn btn-sm btn-outline-danger flex-shrink-0"
-                            onclick="handleDeleteCaseFile('${f.id}','${escHtml(f.storage_path)}','${caseId}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>`;
-                }).join('')}`;
+                        <a href="${f.file_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i></a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteFile('${f.id}','${f.storage_path}','${cid}')"><i class="fas fa-trash"></i></button>
+                    </div>`).join('');
+            } catch (err) { container.innerHTML = 'Error'; }
         }
 
-        // ─────────────────────────────────────────────
-        // FILE UPLOAD — offcanvas & quick modal
-        // ─────────────────────────────────────────────
-        document.getElementById('quotation-file-input').addEventListener('change', async function() {
-            const file = this.files[0];
-            if (!file || !editingCaseId) return;
-            await runUpload(file, editingCaseId, 'offcanvas');
-            this.value = '';
-        });
-
-        const dropZone = document.getElementById('upload-drop-zone');
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-        dropZone.addEventListener('drop', async e => {
-            e.preventDefault(); dropZone.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            if (file && editingCaseId) await runUpload(file, editingCaseId, 'offcanvas');
-        });
-
-        document.getElementById('quick-file-input').addEventListener('change', async function() {
-            const file = this.files[0];
-            if (!file || !quickUploadCaseId) return;
-            await runUpload(file, quickUploadCaseId, 'quick');
-            this.value = '';
-        });
-
-        async function runUpload(file, caseId, context) {
-            const isOffcanvas = context === 'offcanvas';
-            const progressWrap = document.getElementById(isOffcanvas ? 'upload-progress-wrap' : 'quick-progress-wrap');
-            const progressBar  = document.getElementById(isOffcanvas ? 'upload-progress-bar' : 'quick-progress-bar');
-            const fileNameEl   = document.getElementById(isOffcanvas ? 'upload-file-name' : 'quick-file-name');
-            const percentEl    = document.getElementById(isOffcanvas ? 'upload-percent' : 'quick-percent');
-
-            if (file.size > 20 * 1024 * 1024) {
-                showToast('File too large. Max 20 MB.', 'error'); return;
-            }
-
-            progressWrap.classList.add('show');
-            fileNameEl.textContent = file.name;
-            let pct = 0;
-            const ticker = setInterval(() => {
-                pct = Math.min(pct + 5, 80);
-                progressBar.style.width = pct + '%';
-                percentEl.textContent = pct + '%';
-            }, 150);
-
+        async function loadCaseInvoiceFiles(cid) {
+            const container = document.getElementById('invoice-files-list'); container.innerHTML = 'Loading...';
             try {
-                await uploadCaseFile(caseId, session.userId, file);
-                clearInterval(ticker);
-                progressBar.style.width = '100%';
-                percentEl.textContent = '100%';
-
-                showToast('Quotation uploaded successfully!', 'success');
-                caseFileCounts[caseId] = (caseFileCounts[caseId] || 0) + 1;
-                displayCases();
-
-                if (isOffcanvas) await loadCaseFiles(caseId);
-                else {
-                    setTimeout(() => {
-                        bootstrap.Modal.getInstance(document.getElementById('uploadQuotationModal'))?.hide();
-                    }, 800);
-                }
-            } catch (err) {
-                clearInterval(ticker);
-                console.error('Upload error:', err);
-                showToast('Upload failed: ' + err.message, 'error');
-            } finally {
-                setTimeout(() => {
-                    progressWrap.classList.remove('show');
-                    progressBar.style.width = '0%';
-                    percentEl.textContent = '0%';
-                }, 1500);
-            }
+                const files = await getCaseInvoices(cid);
+                if (!files.length) { container.innerHTML = '<p class="text-muted small text-center py-3">No invoices</p>'; return; }
+                container.innerHTML = files.map(f => `
+                    <div class="d-flex align-items-center gap-3 p-3 mb-2 rounded border bg-white">
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="fw-600 text-truncate" style="font-size:0.875rem;">${f.file_name}</div>
+                            <div class="small text-muted">${new Date(f.uploaded_at).toLocaleDateString()}</div>
+                        </div>
+                        <a href="${f.file_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i></a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteInvoiceFile('${f.id}','${f.storage_path}','${cid}')"><i class="fas fa-trash"></i></button>
+                    </div>`).join('');
+            } catch (err) { container.innerHTML = 'Error'; }
         }
 
-        // ─────────────────────────────────────────────
-        // QUICK UPLOAD FROM CARD
-        // ─────────────────────────────────────────────
-        window.openQuickUpload = function(caseId, caseTitle, event) {
-            if (event) event.stopPropagation();
-            quickUploadCaseId = caseId;
-            document.getElementById('upload-modal-case-name').textContent = caseTitle;
-            new bootstrap.Modal(document.getElementById('uploadQuotationModal')).show();
-        };
-
-        // ─────────────────────────────────────────────
-        // DELETE FILE (admin can delete any)
-        // ─────────────────────────────────────────────
-        window.handleDeleteCaseFile = async function(fileId, storagePath, caseId) {
-            if (!confirm('Delete this quotation file?')) return;
+        async function loadCaseReceiptFiles(cid) {
+            const container = document.getElementById('receipt-files-list'); container.innerHTML = 'Loading...';
             try {
-                await deleteCaseFile(fileId, storagePath);
-                caseFileCounts[caseId] = Math.max((caseFileCounts[caseId] || 1) - 1, 0);
-                displayCases();
-                await loadCaseFiles(caseId);
-                showToast('File deleted', 'success');
-            } catch (err) {
-                showToast('Failed to delete file', 'error');
-            }
-        };
+                const files = await getCaseReceipts(cid);
+                if (!files.length) { container.innerHTML = '<p class="text-muted small text-center py-3">No receipts</p>'; return; }
+                container.innerHTML = files.map(f => `
+                    <div class="d-flex align-items-center gap-3 p-3 mb-2 rounded border bg-white">
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="fw-600 text-truncate" style="font-size:0.875rem;">${f.file_name}</div>
+                            <div class="small text-muted">${new Date(f.uploaded_at).toLocaleDateString()}</div>
+                        </div>
+                        <a href="${f.file_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i></a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteReceiptFile('${f.id}','${f.storage_path}','${cid}')"><i class="fas fa-trash"></i></button>
+                    </div>`).join('');
+            } catch (err) { container.innerHTML = 'Error'; }
+        }
 
-        // ─────────────────────────────────────────────
-        // SAVE CASE (ADMIN)
-        // ─────────────────────────────────────────────
-        document.getElementById('edit-case-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('save-case-btn');
+        async function handleRequestWhatsApp(type) {
+            if (!editingCaseId) return;
+            const c = allCases.find(x => x.id === editingCaseId);
+            if (!c) return;
+
+            const btn = event.currentTarget;
+            const originalContent = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm mb-1"></span><span class="small fw-600">Sending...</span>';
+
             try {
-                await updateCase(editingCaseId, {
+                const requester = session?.email || 'Admin';
+                await sendWhatsAppRequest(type, {
+                    caseNumber: c.case_number,
+                    clientName: c.name,
+                    clientPhone: c.contact || c.phone,
+                    clientEmail: c.email,
+                    patientName: c.patient_name,
+                    sourceLocation: c.source_location,
+                    destinationLocation: c.destination_location,
+                    field: c.field,
+                    status: c.status,
+                    priority: c.priority
+                }, { name: session.name || session.email, email: session.email });
+                
+                showToast(`WhatsApp ${type} request sent to Accounts team!`, 'success');
+            } catch (err) {
+                console.error('WhatsApp Error:', err);
+                showToast('Failed to send WhatsApp request: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        }
+
+        window.handleRequestInvoice = async function (id, e) {
+            if (e) e.stopPropagation(); const c = allCases.find(x => x.id === id); if (!c) return;
+            const btn = e.currentTarget; btn.disabled = true;
+            try {
+                let caseDetails = { caseNumber: c.case_number, title: c.title };
+                if (c.lead_id) {
+                    const lead = await getLeadByLeadId(c.lead_id);
+                    if (lead) Object.assign(caseDetails, { clientName: lead.name, clientPhone: lead.contact });
+                }
+                await sendWhatsAppRequest('invoice_request', caseDetails, { name: session.name || 'Admin' });
+                await markInvoiceRequested(id); showToast('Invoice request sent', 'success');
+            } catch (err) { showToast('WhatsApp error', 'error'); }
+            btn.disabled = false;
+        };
+
+        window.openReceiptRequestModal = function (id, title, e) {
+            if (e) e.stopPropagation(); receiptRequestCaseId = id;
+            document.getElementById('receipt-modal-case-name').textContent = ' — ' + title;
+            document.getElementById('receipt-form-iframe').src = 'https://forms.zohopublic.in/digitalnexttechnolgy1/form/ReceiptRequest/formperma/placeholder'; // Placeholder
+            new bootstrap.Modal(document.getElementById('requestReceiptModal')).show();
+            // Automatically send WhatsApp request when modal opens or have a button?
+            // Existing pattern has a Send Request button in footer in my previous minimal fix,
+            // but for Zoho forms we usually just let them fill it.
+            // However, the user said "when user click on this a request receipt message will sent to the accounts team on whatsapp"
+            // So I'll send the WA message when they click the button that opens the modal, or add a button in modal.
+            // I'll add a "Send WhatsApp Notification" button in the modal footer.
+        };
+
+        window.sendReceiptRequest = async function () {
+            const c = allCases.find(x => x.id === receiptRequestCaseId); if (!c) return;
+            const btn = document.getElementById('confirm-receipt-btn'); btn.disabled = true;
+            try {
+                let caseDetails = { caseNumber: c.case_number, title: c.title };
+                if (c.lead_id) {
+                    const lead = await getLeadByLeadId(c.lead_id);
+                    if (lead) Object.assign(caseDetails, { clientName: lead.name, clientPhone: lead.contact });
+                }
+                await sendWhatsAppRequest('receipt_request', caseDetails, { name: session.name || 'Admin' });
+                showToast('WhatsApp Notification Sent', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('requestReceiptModal')).hide();
+            } catch (err) { showToast('Error', 'error'); }
+            btn.disabled = false;
+        };
+
+        window.openQuickUpload = function (id, title, e) { if (e) e.stopPropagation(); quickUploadCaseId = id; new bootstrap.Modal(document.getElementById('uploadQuotationModal')).show(); };
+
+        document.getElementById('quick-file-input').addEventListener('change', async function () {
+            const file = this.files[0]; if (!file || !quickUploadCaseId) return;
+            const bar = document.getElementById('quick-progress-bar');
+            bar.parentElement.parentElement.classList.add('show'); bar.style.width = '50%';
+            try {
+                await uploadCaseFile(quickUploadCaseId, session.userId, file);
+                bar.style.width = '100%'; caseFileCounts[quickUploadCaseId]++; displayCases();
+                showToast('Uploaded', 'success'); setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('uploadQuotationModal')).hide(), 500);
+            } catch (err) { showToast('Error', 'error'); }
+            setTimeout(() => { bar.style.width = '0%'; bar.parentElement.parentElement.classList.remove('show'); }, 1000);
+        });
+
+        document.getElementById('offcanvas-invoice-input').addEventListener('change', async function () {
+            const file = this.files[0]; if (!file || !editingCaseId) return;
+            const bar = document.getElementById('invoice-oc-progress-bar');
+            bar.parentElement.parentElement.classList.add('show'); bar.style.width = '50%';
+            try {
+                await uploadCaseInvoice(editingCaseId, session.userId, file);
+                bar.style.width = '100%'; caseInvoiceCounts[editingCaseId]++; displayCases();
+                showToast('Invoice Uploaded', 'success'); loadCaseInvoiceFiles(editingCaseId);
+            } catch (err) { showToast('Error', 'error'); }
+            setTimeout(() => { bar.style.width = '0%'; bar.parentElement.parentElement.classList.remove('show'); }, 1000);
+        });
+
+        document.getElementById('offcanvas-receipt-input').addEventListener('change', async function () {
+            const file = this.files[0]; if (!file || !editingCaseId) return;
+            const bar = document.getElementById('receipt-oc-progress-bar');
+            bar.parentElement.parentElement.classList.add('show'); bar.style.width = '50%';
+            try {
+                await uploadCaseReceipt(editingCaseId, session.userId, file);
+                bar.style.width = '100%'; caseReceiptCounts[editingCaseId] = (caseReceiptCounts[editingCaseId] || 0) + 1; displayCases();
+                showToast('Receipt Uploaded', 'success'); loadCaseReceiptFiles(editingCaseId);
+            } catch (err) { showToast('Error', 'error'); }
+            setTimeout(() => { bar.style.width = '0%'; bar.parentElement.parentElement.classList.remove('show'); }, 1000);
+        });
+
+        window.handleDeleteFile = async function (fid, path, cid) {
+            if (!confirm('Delete quotation?')) return;
+            try { await deleteCaseFile(fid, path); caseFileCounts[cid]--; displayCases(); loadCaseFiles(cid); } catch (err) { showToast('Error', 'error'); }
+        };
+
+        window.handleDeleteInvoiceFile = async function (fid, path, cid) {
+            if (!confirm('Delete invoice?')) return;
+            try { await deleteCaseInvoice(fid, path, cid); caseInvoiceCounts[cid]--; displayCases(); loadCaseInvoiceFiles(cid); } catch (err) { showToast('Error', 'error'); }
+        };
+
+        window.handleDeleteReceiptFile = async function (fid, path, cid) {
+            if (!confirm('Delete receipt?')) return;
+            try { await deleteCaseReceipt(fid, path, cid); caseReceiptCounts[cid]--; displayCases(); loadCaseReceiptFiles(cid); } catch (err) { showToast('Error', 'error'); }
+        };
+
+        document.getElementById('edit-case-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('save-case-btn'); btn.disabled = true;
+            try {
+                await updateCaseAdmin(editingCaseId, {
                     title: document.getElementById('edit-case-title').value,
-                    description: document.getElementById('edit-case-description').value,
                     status: document.getElementById('edit-case-status').value,
                     priority: document.getElementById('edit-case-priority').value,
+                    description: document.getElementById('edit-case-description').value,
                     userId: document.getElementById('edit-case-user').value
                 });
-                showToast('Case updated successfully', 'success');
+                showToast('Updated', 'success'); loadData();
                 bootstrap.Offcanvas.getInstance(document.getElementById('caseDetailsOffcanvas')).hide();
-                await loadData();
-            } catch (err) {
-                showToast('Failed to update case', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
-            }
+            } catch (err) { showToast('Update failed', 'error'); }
+            btn.disabled = false;
         });
 
-        // ─────────────────────────────────────────────
-        // DELETE CASE
-        // ─────────────────────────────────────────────
-        window.handleDeleteCase = async function(id) {
-            if (!confirm('Delete this case permanently?')) return;
-            try {
-                await deleteCase(id);
-                showToast('Case deleted', 'success');
-                const oc = bootstrap.Offcanvas.getInstance(document.getElementById('caseDetailsOffcanvas'));
-                if (oc) oc.hide();
-                await loadData();
-            } catch (err) {
-                showToast('Failed to delete case', 'error');
-            }
-        };
-
-        // ─────────────────────────────────────────────
-        // CREATE CASE (ADMIN)
-        // ─────────────────────────────────────────────
-        document.getElementById('add-case-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('add-case-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Creating...';
-            try {
-                await createCase({
-                    title: document.getElementById('case-title').value,
-                    description: document.getElementById('case-description').value,
-                    status: document.getElementById('case-status').value,
-                    priority: document.getElementById('case-priority').value,
-                    userId: document.getElementById('case-user-select').value
-                });
-                showToast('Case created successfully', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('addCaseModal')).hide();
-                this.reset();
-                await loadData();
-            } catch (err) {
-                showToast('Failed to create case', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Create Case';
-            }
-        });
-
-        // ─────────────────────────────────────────────
-        // EXPORT CSV
-        // ─────────────────────────────────────────────
-        window.exportCasesCSV = function() {
-            const headers = ['Case #','Title','Status','Priority','Assigned To','Client','Route','Created'];
-            const rows = filteredCases.map(c => ({
-                'Case #': c.case_number,
-                'Title': c.title,
-                'Status': c.status,
-                'Priority': c.priority,
-                'Assigned To': c.users?.name || c.users?.email || '',
-                'Client': c.leads?.name || '',
-                'Route': c.leads?.source_location
-                    ? `${c.leads.source_location} → ${c.leads.destination_location || ''}`
-                    : '',
-                'Created': new Date(c.created_at).toLocaleString()
-            }));
-            exportToCSV(rows, 'All_Cases', headers);
-        };
+        function getStatusBadge(s) {
+            const map = { 'Completed': 'bg-success', 'Pending': 'bg-warning text-dark', 'In Progress': 'bg-info', 'Cancelled': 'bg-danger' };
+            return map[s] || 'bg-secondary';
+        }
+        function escHtml(s) { return s ? s.replace(/'/g, "\\'") : ''; }
 
         loadData();
     </script>

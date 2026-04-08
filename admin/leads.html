@@ -89,55 +89,125 @@
             <div class="px-4 pb-4">
                 <!-- Overview Tab -->
                 <div id="tab-overview" class="details-tab-content">
+                    
+                    <!-- Leads Detail Standardized Layout -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-user text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Client Information</span>
+                        </div>
+                        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="small text-muted">Client Name</div>
+                                    <div class="fw-600" id="detail-display-name">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Phone</div>
+                                    <div class="fw-600" id="detail-display-phone">—</div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="small text-muted">Email</div>
+                                    <div class="fw-600 text-truncate" id="detail-display-email">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-procedures text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Patient Information</span>
+                        </div>
+                        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="small text-muted">Patient Name</div>
+                                    <div class="fw-600" id="detail-display-patient">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Relation</div>
+                                    <div class="fw-600" id="detail-display-relation">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-plane text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Travel & Category</span>
+                        </div>
+                        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="small text-muted">From</div>
+                                    <div class="fw-600" id="detail-display-source">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">To</div>
+                                    <div class="fw-600" id="detail-display-destination">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Category</div>
+                                    <div class="fw-600" id="detail-display-field">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Lead Source</div>
+                                    <div class="fw-600" id="detail-display-source-name">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h6 class="mb-3 text-muted small fw-bold text-uppercase">Edit Lead Details</h6>
                     <form id="edit-lead-form">
                         <input type="hidden" id="edit-lead-id">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Client Name</label>
+                                <label class="form-label small fw-600">Client Name</label>
                                 <input type="text" class="form-control" id="edit-lead-name" placeholder="Client Name"
                                     required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Client Phone</label>
+                                <label class="form-label small fw-600">Client Phone</label>
                                 <input type="tel" class="form-control" id="edit-lead-contact" placeholder="Client Phone"
                                     required>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Client Email</label>
+                            <label class="form-label small fw-600">Client Email</label>
                             <input type="email" class="form-control" id="edit-lead-email" placeholder="Client Email">
                         </div>
 
-                        <hr class="my-3">
-                        <h6>Patient Information</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Patient Name</label>
+                                <label class="form-label small fw-600">Patient Name</label>
                                 <input type="text" class="form-control" id="edit-patient-name"
                                     placeholder="Patient Name">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Client Relation</label>
+                                <label class="form-label small fw-600">Client Relation</label>
                                 <input type="text" class="form-control" id="edit-client-relation"
                                     placeholder="Relation with client">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Source Location</label>
+                                <label class="form-label small fw-600">Source Location</label>
                                 <input type="text" class="form-control" id="edit-source-location"
                                     placeholder="Source Location">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Destination Location</label>
+                                <label class="form-label small fw-600">Destination Location</label>
                                 <input type="text" class="form-control" id="edit-destination-location"
                                     placeholder="Destination Location">
                             </div>
                         </div>
-                        <hr class="my-3">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Status</label>
+                                <label class="form-label small fw-600">Status</label>
                                 <select class="form-control" id="edit-lead-status">
                                     <option value="New">New</option>
                                     <option value="In Progress">In Progress</option>
@@ -148,28 +218,31 @@
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Assign To User</label>
+                                <label class="form-label small fw-600">Assign To User</label>
                                 <select class="form-control" id="edit-lead-owner-select">
                                     <option value="">Loading users...</option>
                                 </select>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Next Action</label>
+                            <label class="form-label small fw-600">Next Action</label>
                             <textarea class="form-control" id="edit-lead-next-action" rows="3"></textarea>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Follow-up Date</label>
+                                <label class="form-label small fw-600">Follow-up Date</label>
                                 <input type="date" class="form-control" id="edit-lead-follow-up">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Expected Close</label>
+                                <label class="form-label small fw-600">Expected Close</label>
                                 <input type="date" class="form-control" id="edit-lead-expected-close">
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 mt-2" id="save-lead-btn">
-                            Save Changes
+                            <i class="fas fa-save me-1"></i> Save Changes
+                        </button>
+                        <button type="button" class="btn btn-outline-success w-100 mt-2" onclick="openConvertModal(editingLeadId)">
+                            <i class="fas fa-exchange-alt me-1"></i> Convert to Case
                         </button>
                     </form>
                 </div>
@@ -548,13 +621,13 @@
                     <div class="lead-details mt-2">
                         <div class="row">
                             <div class="col-md-4">
-                                <small><strong>Client Phone:</strong> ${lead.contact || 'N/A'}</small>
+                                <small><i class="fas fa-phone me-1 text-muted"></i><strong>Phone:</strong> ${lead.contact || 'N/A'}</small>
                             </div>
                             <div class="col-md-4">
-                                <small><strong>Client Email:</strong> ${lead.email || 'N/A'}</small>
+                                <small><i class="fas fa-envelope me-1 text-muted"></i><strong>Email:</strong> ${lead.email || 'N/A'}</small>
                             </div>
                             <div class="col-md-4">
-                                <small><strong>Follow-up:</strong> <span class="${isUrgent ? 'text-danger fw-bold' : ''}">${lead.follow_up_date || 'N/A'}</span></small>
+                                <small><i class="fas fa-calendar-check me-1 text-muted"></i><strong>Follow-up:</strong> <span class="${isUrgent ? 'text-danger fw-bold' : ''}">${lead.follow_up_date || 'N/A'}</span></small>
                             </div>
                         </div>
                     </div>
@@ -708,8 +781,22 @@
             const lead = allLeads.find(l => l.id === leadId);
             if (!lead) return;
 
-            // Fill overview form
+            // Fill overview form and display fields
+            const dash = '—';
             document.getElementById('details-lead-name').textContent = lead.name;
+
+            // Display Info
+            document.getElementById('detail-display-name').textContent = lead.name || dash;
+            document.getElementById('detail-display-phone').textContent = lead.contact || dash;
+            document.getElementById('detail-display-email').textContent = lead.email || dash;
+            document.getElementById('detail-display-patient').textContent = lead.patient_name || dash;
+            document.getElementById('detail-display-relation').textContent = lead.client_relation || dash;
+            document.getElementById('detail-display-source').textContent = lead.source_location || dash;
+            document.getElementById('detail-display-destination').textContent = lead.destination_location || dash;
+            document.getElementById('detail-display-field').textContent = lead.field || dash;
+            document.getElementById('detail-display-source-name').textContent = lead.lead_source || dash;
+
+            // Form Fields
             document.getElementById('edit-lead-id').value = lead.id;
             document.getElementById('edit-lead-name').value = lead.name;
             document.getElementById('edit-lead-contact').value = lead.contact;
@@ -892,6 +979,15 @@
                 saveBtn.textContent = 'Save Changes';
             }
         })
+
+        function openConvertModal(leadId) {
+            const lead = allLeads.find(l => l.id === leadId);
+            if (!lead) return;
+            pendingConvertLeadId = leadId;
+            document.getElementById('convert-lead-name-display').textContent = lead.name;
+            const modal = new bootstrap.Modal(document.getElementById('convertLeadModal'));
+            modal.show();
+        }
 
         // ── Pending conversion state ──
         let pendingConvertLeadId = null;

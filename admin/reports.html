@@ -52,6 +52,22 @@
                     <div class="stat-label">Total Calls</div>
                     <div class="stat-value" id="total-calls">0</div>
                 </div>
+
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                        <i class="fas fa-briefcase-medical"></i>
+                    </div>
+                    <div class="stat-label">Total Cases</div>
+                    <div class="stat-value" id="total-cases">0</div>
+                </div>
+
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-label">Approved Expenses</div>
+                    <div class="stat-value" id="total-expenses">0</div>
+                </div>
             </div>
 
             <!-- Analytics Row 1 -->
@@ -110,6 +126,34 @@
                 </div>
             </div>
 
+            <!-- Analytics Row 3 (Cases & Expenses) -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="saas-card">
+                        <div class="saas-card-header">
+                            <h5><i class="fas fa-briefcase-medical text-primary me-2"></i> Cases Pipeline</h5>
+                        </div>
+                        <div class="saas-card-body">
+                            <div style="height: 250px; position: relative;">
+                                <canvas id="casesPipelineChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="saas-card">
+                        <div class="saas-card-header">
+                            <h5><i class="fas fa-receipt text-warning me-2"></i> Expenses By Category</h5>
+                        </div>
+                        <div class="saas-card-body">
+                            <div style="height: 250px; position: relative;">
+                                <canvas id="expenseCategoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Work Reports Table -->
             <div class="content-card">
                 <h5 class="mb-3"><i class="fas fa-table text-muted me-2"></i> Detailed Work Reports</h5>
@@ -141,12 +185,21 @@
                 const allCalls = await getAllCallsAdmin()
                 const allMeetings = await getAllMeetingsAdmin()
                 const workReports = await getAllWorkReportsAdmin()
+                const allCases = await getAllCasesAdmin()
+                const allExpenses = await getAllExpensesAdmin()
+
+                document.getElementById('total-cases').textContent = allCases.length
+                const approvedExpenses = allExpenses.filter(e => e.status === 'approved')
+                const totalExpenseAmount = approvedExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0)
+                document.getElementById('total-expenses').textContent = 'AED ' + totalExpenseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
                 // Render Analytics
                 renderLeadPipeline(allLeads)
                 renderActivityTrend(allCalls, allMeetings)
                 renderLeadSources(allLeads)
                 renderPerformerRanking(workReports)
+                renderCasesPipeline(allCases)
+                renderExpenseBreakdown(allExpenses)
 
                 // Display detailed table
                 displayWorkReports(workReports)
@@ -302,6 +355,76 @@
                     },
                     plugins: {
                         legend: { display: false }
+                    }
+                }
+            })
+        }
+
+        function renderCasesPipeline(cases) {
+            const statusCounts = { 'Pending': 0, 'In Progress': 0, 'Completed': 0, 'On Hold': 0, 'Cancelled': 0 }
+            cases.forEach(c => { if (statusCounts.hasOwnProperty(c.status)) statusCounts[c.status]++ })
+
+            const ctx = document.getElementById('casesPipelineChart').getContext('2d')
+            if (window.casesChart) window.casesChart.destroy()
+            window.casesChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#f59e0b', '#06b6d4', '#10b981', '#64748b', '#ef4444'],
+                        borderWidth: 0,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { size: 11 } } }
+                    },
+                    cutout: '70%'
+                }
+            })
+        }
+
+        function renderExpenseBreakdown(expenses) {
+            const approved = expenses.filter(e => e.status === 'approved')
+            const categories = {}
+            approved.forEach(e => {
+                const cat = e.category || 'Other'
+                categories[cat] = (categories[cat] || 0) + parseFloat(e.amount || 0)
+            })
+
+            const ctx = document.getElementById('expenseCategoryChart').getContext('2d')
+            if (window.expenseCatChart) window.expenseCatChart.destroy()
+            window.expenseCatChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(categories),
+                    datasets: [{
+                        data: Object.values(categories),
+                        backgroundColor: ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6', '#ec4899', '#14b8a6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { usePointStyle: true, padding: 20, font: { size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed !== null) {
+                                        label += 'AED ' + context.parsed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
                     }
                 }
             })

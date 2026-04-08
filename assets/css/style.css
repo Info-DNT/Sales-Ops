@@ -1665,3 +1665,77 @@ body {
   cursor: pointer;
   text-decoration: underline;
 }
+
+/* =============================================
+   INVOICE / RECEIPT REQUEST BUTTONS
+   ============================================= */
+
+.btn-invoice-request {
+  background: rgba(245, 158, 11, 0.08);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-invoice-request:hover {
+  background: #f59e0b;
+  color: #fff;
+  border-color: #f59e0b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(245,158,11,0.3);
+}
+
+.btn-receipt-request {
+  background: rgba(14, 165, 233, 0.08);
+  color: #0284c7;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-receipt-request:hover {
+  background: #0ea5e9;
+  color: #fff;
+  border-color: #0ea5e9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(14,165,233,0.3);
+}
+
+.btn-receipt-disabled {
+  background: transparent;
+  color: #cbd5e1;
+  border: 1px solid #e2e8f0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  white-space: nowrap;
+  opacity: 0.65;
+}
+
+/* Invoice file count badge on case card */
+.case-invoice-badge {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* Success state for invoice-requested icon on card */
+.invoice-requested-indicator {
+  font-size: 11px;
+  color: #10b981;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}

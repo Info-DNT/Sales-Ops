@@ -1731,6 +1731,273 @@ async function deleteCaseFile(fileId, storagePath) {
     return true;
 }
 
+// =============================================
+// CASE INVOICES FUNCTIONS
+// =============================================
+
+/**
+ * Get all uploaded invoice files for a case
+ * @param {string} caseId
+ */
+async function getCaseInvoices(caseId) {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('case_invoices')
+        .select('*, users(name, email)')
+        .eq('case_id', caseId)
+        .order('uploaded_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Get invoice counts for multiple cases (for badge display)
+ * @param {string[]} caseIds
+ * @returns {object} { caseId: count }
+ */
+async function getCaseInvoiceCounts(caseIds) {
+    if (!caseIds || caseIds.length === 0) return {};
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('case_invoices')
+        .select('case_id')
+        .in('case_id', caseIds);
+    if (error) return {};
+    const counts = {};
+    (data || []).forEach(row => {
+        counts[row.case_id] = (counts[row.case_id] || 0) + 1;
+    });
+    return counts;
+}
+
+/**
+ * Upload an invoice file to Supabase Storage and save record
+ * Also marks cases.invoice_uploaded = true
+ * @param {string} caseId
+ * @param {string} userId
+ * @param {File} file
+ */
+async function uploadCaseInvoice(caseId, userId, file) {
+    const client = initSupabase();
+
+    const timestamp = Date.now();
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `${caseId}/${timestamp}-${safeName}`;
+
+    // Upload to Storage bucket 'case-invoices'
+    const { data: storageData, error: storageError } = await client.storage
+        .from('case-invoices')
+        .upload(storagePath, file, { cacheControl: '3600', upsert: false });
+
+    if (storageError) throw storageError;
+
+    // Get signed URL (10 years)
+    const { data: urlData, error: urlError } = await client.storage
+        .from('case-invoices')
+        .createSignedUrl(storagePath, 60 * 60 * 24 * 365 * 10);
+
+    if (urlError) throw urlError;
+
+    // Save record in case_invoices table
+    const { data: fileRecord, error: dbError } = await client
+        .from('case_invoices')
+        .insert({
+            case_id: caseId,
+            file_name: file.name,
+            file_url: urlData.signedUrl,
+            file_size: file.size,
+            uploaded_by: userId,
+            storage_path: storagePath
+        })
+        .select()
+        .single();
+
+    if (dbError) throw dbError;
+
+    // Mark the case as having an invoice uploaded
+    await client.from('cases')
+        .update({ invoice_uploaded: true })
+        .eq('id', caseId);
+
+    return fileRecord;
+}
+
+/**
+ * Delete a case invoice file from Storage and database
+ * @param {string} fileId
+ * @param {string} storagePath
+ * @param {string} caseId - used to check if more invoices exist
+ */
+async function deleteCaseInvoice(fileId, storagePath, caseId) {
+    const client = initSupabase();
+
+    if (storagePath) {
+        await client.storage.from('case-invoices').remove([storagePath]);
+    }
+
+    const { error } = await client
+        .from('case_invoices')
+        .delete()
+        .eq('id', fileId);
+
+    if (error) throw error;
+
+    // If no more invoices, mark invoice_uploaded = false
+    const { count } = await client
+        .from('case_invoices')
+        .select('id', { count: 'exact', head: true })
+        .eq('case_id', caseId);
+
+    if (count === 0) {
+        await client.from('cases')
+            .update({ invoice_uploaded: false })
+            .eq('id', caseId);
+    }
+
+    return true;
+}
+
+/**
+ * Mark a case as having had an invoice requested (to prevent duplicate sends)
+ * @param {string} caseId
+ */
+async function markInvoiceRequested(caseId) {
+    const client = initSupabase();
+    const { error } = await client
+        .from('cases')
+        .update({ invoice_requested: true })
+        .eq('id', caseId);
+    if (error) throw error;
+    return true;
+}
+
+/**
+ * Send a WhatsApp message to the Accounts team via the Whapi Netlify function
+ * @param {'invoice'|'receipt'|'invoice_request'|'receipt_request'} type
+ * @param {object} caseDetails
+ * @param {object} requester - { name, email }
+ */
+async function sendWhatsAppRequest(type, caseDetails, requester) {
+    // Standardize types if needed
+    const normalizedType = type.includes('_request') ? type : `${type}_request`;
+
+    try {
+        const response = await fetch('/.netlify/functions/whapi-send-message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: normalizedType, caseDetails, requester })
+        });
+
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.error || 'WhatsApp send failed');
+            }
+            return result;
+        } else {
+            // Non-JSON response (likely 404/500 from proxy or local server)
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error('WhatsApp service endpoint not found. Ensure Netlify functions are running.');
+                }
+                const text = await response.text();
+                throw new Error(`Server error (${response.status}): ${text.slice(0, 100)}`);
+            }
+            return { success: true };
+        }
+    } catch (error) {
+        console.error('sendWhatsAppRequest catch:', error);
+        throw error;
+    }
+}
+
+// =============================================
+// CASE RECEIPTS FUNCTIONS
+// =============================================
+
+async function getCaseReceipts(caseId) {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('case_receipts')
+        .select('*, users(name, email)')
+        .eq('case_id', caseId)
+        .order('uploaded_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+}
+
+async function getCaseReceiptCounts(caseIds) {
+    if (!caseIds || caseIds.length === 0) return {};
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('case_receipts')
+        .select('case_id')
+        .in('case_id', caseIds);
+    if (error) return {};
+    const counts = {};
+    (data || []).forEach(row => {
+        counts[row.case_id] = (counts[row.case_id] || 0) + 1;
+    });
+    return counts;
+}
+
+async function uploadCaseReceipt(caseId, userId, file) {
+    const client = initSupabase();
+    const timestamp = Date.now();
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `${caseId}/${timestamp}-${safeName}`;
+
+    const { data: storageData, error: storageError } = await client.storage
+        .from('case-receipts')
+        .upload(storagePath, file, { cacheControl: '3600', upsert: false });
+
+    if (storageError) throw storageError;
+
+    const { data: urlData, error: urlError } = await client.storage
+        .from('case-receipts')
+        .createSignedUrl(storagePath, 60 * 60 * 24 * 365 * 10);
+
+    if (urlError) throw urlError;
+
+    const { data: fileRecord, error: dbError } = await client
+        .from('case_receipts')
+        .insert({
+            case_id: caseId,
+            file_name: file.name,
+            file_url: urlData.signedUrl,
+            file_size: file.size,
+            uploaded_by: userId,
+            storage_path: storagePath
+        })
+        .select()
+        .single();
+
+    if (dbError) throw dbError;
+
+    await client.from('cases')
+        .update({ receipt_uploaded: true })
+        .eq('id', caseId);
+
+    return fileRecord;
+}
+
+async function deleteCaseReceipt(fileId, storagePath, caseId) {
+    const client = initSupabase();
+    if (storagePath) {
+        await client.storage.from('case-receipts').remove([storagePath]);
+    }
+    const { error } = await client.from('case_receipts').delete().eq('id', fileId);
+    if (error) throw error;
+
+    const { count } = await client.from('case_receipts').select('id', { count: 'exact', head: true }).eq('case_id', caseId);
+    if (count === 0) {
+        await client.from('cases').update({ receipt_uploaded: false }).eq('id', caseId);
+    }
+    return true;
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     initSupabase();
