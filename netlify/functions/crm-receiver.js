@@ -84,12 +84,39 @@ exports.handler = async (event) => {
             console.error('Admin lookup failed:', e);
         }
 
-        // Check if a lead with this Zoho ID already exists
-        const { data: existingLead } = await supabase
+        // Step 1: Try to find existing lead by zoho_lead_id
+        let existingLead = null;
+        const { data: byZohoId } = await supabase
             .from('leads')
             .select('id, user_id')
             .eq('zoho_lead_id', String(zohoLeadId))
             .maybeSingle();
+
+        existingLead = byZohoId;
+
+        // Step 2: If not found by zoho_lead_id, fallback to matching by email or phone
+        if (!existingLead) {
+            const email = payload.Email || '';
+            const phone = payload.Phone || payload.Mobile || '';
+
+            if (email) {
+                const { data: byEmail } = await supabase
+                    .from('leads')
+                    .select('id, user_id')
+                    .eq('email', email)
+                    .maybeSingle();
+                existingLead = byEmail;
+            }
+
+            if (!existingLead && phone) {
+                const { data: byPhone } = await supabase
+                    .from('leads')
+                    .select('id, user_id')
+                    .eq('contact', phone)
+                    .maybeSingle();
+                existingLead = byPhone;
+            }
+        }
 
         const isUpdate = !!existingLead;
         console.log(isUpdate
@@ -118,10 +145,11 @@ exports.handler = async (event) => {
 
         if (isUpdate) {
             // UPDATE existing lead — preserve user_id and other local-only fields
+            // Also ensures zoho_lead_id is saved back if this was matched by email/phone fallback
             ({ data, error } = await supabase
                 .from('leads')
                 .update(leadData)
-                .eq('zoho_lead_id', String(zohoLeadId))
+                .eq('id', existingLead.id)
                 .select());
         } else {
             // INSERT new lead — assign to admin by default

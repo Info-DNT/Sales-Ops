@@ -494,7 +494,14 @@ async function updateLead(leadId, updates, userId) {
                         next_action: updates.nextAction,
                         assignedTo: updates.owner,
                         followUpDate: updates.followUpDate,
-                        expectedClose: updates.expectedClose
+                        expectedClose: updates.expectedClose,
+                        // Additional fields
+                        patientName: updates.patientName,
+                        clientRelation: updates.clientRelation,
+                        sourceLocation: updates.sourceLocation,
+                        destinationLocation: updates.destinationLocation,
+                        leadSource: updates.leadSource,
+                        field: updates.field
                     }
                 })
             }).catch(err => {
@@ -1817,6 +1824,55 @@ async function uploadCaseInvoice(caseId, userId, file) {
     // Mark the case as having an invoice uploaded
     await client.from('cases')
         .update({ invoice_uploaded: true })
+        .eq('id', caseId);
+
+    return fileRecord;
+}
+
+/**
+ * Upload a proforma invoice for a case
+ */
+async function uploadCaseProforma(caseId, userId, file) {
+    const client = initSupabase();
+
+    const timestamp = Date.now();
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `${caseId}/${timestamp}-${safeName}`;
+
+    // Upload to Storage bucket 'case-invoices' (reusing same bucket)
+    const { data: storageData, error: storageError } = await client.storage
+        .from('case-invoices')
+        .upload(storagePath, file, { cacheControl: '3600', upsert: false });
+
+    if (storageError) throw storageError;
+
+    // Get signed URL
+    const { data: urlData, error: urlError } = await client.storage
+        .from('case-invoices')
+        .createSignedUrl(storagePath, 60 * 60 * 24 * 365 * 10);
+
+    if (urlError) throw urlError;
+
+    // Save record in case_invoices table
+    // Mark the file name as PROFORMA to distinguish it
+    const { data: fileRecord, error: dbError } = await client
+        .from('case_invoices')
+        .insert({
+            case_id: caseId,
+            file_name: `PROFORMA: ${file.name}`,
+            file_url: urlData.signedUrl,
+            file_size: file.size,
+            uploaded_by: userId,
+            storage_path: storagePath
+        })
+        .select()
+        .single();
+
+    if (dbError) throw dbError;
+
+    // Mark the case as having a proforma uploaded
+    await client.from('cases')
+        .update({ proforma_uploaded: true })
         .eq('id', caseId);
 
     return fileRecord;

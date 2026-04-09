@@ -120,10 +120,40 @@ async function syncLeadToZoho(updates, zohoLeadId = null) {
         leadData['Next Action'] = updates.next_action;
     }
 
+    // Extended fields
+    if (updates.patientName) {
+        leadData.Patient_Name = updates.patientName;
+        leadData['Patient Name'] = updates.patientName;
+    }
+
+    if (updates.clientRelation) {
+        leadData.Client_Relation = updates.clientRelation;
+        leadData['Client Relation'] = updates.clientRelation;
+    }
+
+    if (updates.sourceLocation) {
+        leadData.Source_Location = updates.sourceLocation;
+        leadData['Source Location'] = updates.sourceLocation;
+    }
+
+    if (updates.destinationLocation) {
+        leadData.Destination_Location = updates.destinationLocation;
+        leadData['Destination Location'] = updates.destinationLocation;
+    }
+
+    if (updates.leadSource) {
+        leadData.Lead_Source = updates.leadSource;
+        leadData['Lead Source'] = updates.leadSource;
+    }
+
+    if (updates.field) {
+        leadData.Field = updates.field;
+        leadData['Field'] = updates.field;
+    }
+
     // Set source for new leads
     if (!zohoLeadId) {
-        leadData.Lead_Source = 'Web App';
-        leadData['Lead Source'] = 'Web App';
+        if (!leadData.Lead_Source) leadData.Lead_Source = 'Web App';
         // New leads must have a Company in Zoho, fallback to name or "Web App"
         if (!leadData.Company) leadData.Company = updates.name || 'Web App';
     } else {
