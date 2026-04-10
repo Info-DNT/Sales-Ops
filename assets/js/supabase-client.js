@@ -1152,20 +1152,40 @@ async function getCasesForUser(userId) {
 async function getLeadByLeadId(leadId) {
     if (!leadId) return null;
     const client = initSupabase();
+
+    // Fetch core lead fields (always present)
     const { data, error } = await client
         .from('leads')
         .select(`
-            name, contact, email, patient_name, client_relation, 
-            source_location, destination_location, lead_source, field, 
-            follow_up_date, expected_close, next_action, account_name, 
-            is_converted, converted_at, serial_no_1, serial_no_2
+            name, contact, email, patient_name, client_relation,
+            source_location, destination_location, lead_source, field,
+            follow_up_date, expected_close, next_action, account_name,
+            is_converted, converted_at
         `)
         .eq('id', leadId)
         .maybeSingle();
+
     if (error) {
         console.warn('Could not fetch lead details:', error);
         return null;
     }
+
+    if (data) {
+        // Fetch serial numbers separately — these columns may not exist yet in the DB.
+        // If the query fails, we silently skip and leave them null.
+        try {
+            const { data: sn } = await client
+                .from('leads')
+                .select('serial_no_1, serial_no_2')
+                .eq('id', leadId)
+                .maybeSingle();
+            if (sn) {
+                data.serial_no_1 = sn.serial_no_1;
+                data.serial_no_2 = sn.serial_no_2;
+            }
+        } catch (_) { /* columns not yet added to DB — ignore */ }
+    }
+
     return data;
 }
 
