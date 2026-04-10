@@ -151,6 +151,11 @@ async function syncLeadToZoho(updates, zohoLeadId = null) {
         leadData['Field'] = updates.field;
     }
 
+    if (updates.serial_no_2) {
+        leadData.Serial_No_2 = updates.serial_no_2;
+        leadData['Serial No. 2'] = updates.serial_no_2;
+    }
+
     // Set source for new leads
     if (!zohoLeadId) {
         if (!leadData.Lead_Source) leadData.Lead_Source = 'Web App';

@@ -155,6 +155,14 @@
                                     <div class="small text-muted">Email</div>
                                     <div class="fw-600" id="detail-client-email">—</div>
                                 </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Serial No. 1 (CRM)</div>
+                                    <div class="fw-600 font-monospace text-primary" id="detail-serial-1">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Serial No. 2 (Generated)</div>
+                                    <div class="fw-600 font-monospace text-success" id="detail-serial-2">—</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -864,6 +872,9 @@
                         ? new Date(L.follow_up_date).toLocaleDateString() : '—';
                     document.getElementById('detail-expected-close').textContent = L.expected_close
                         ? new Date(L.expected_close).toLocaleDateString() : '—';
+                    
+                    document.getElementById('detail-serial-1').textContent = L.serial_no_1 || '—';
+                    document.getElementById('detail-serial-2').textContent = L.serial_no_2 || '—';
                 }).catch(() => {
                     // Silently fall back to case title
                     document.getElementById('detail-client-name').textContent = c.title;

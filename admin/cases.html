@@ -183,6 +183,14 @@
                                     <div class="small text-muted">Email</div>
                                     <div class="fw-600" id="detail-client-email">—</div>
                                 </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Serial No. 1 (CRM)</div>
+                                    <div class="fw-600 font-monospace text-primary" id="detail-serial-1">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Serial No. 2 (Generated)</div>
+                                    <div class="fw-600 font-monospace text-success" id="detail-serial-2">—</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -723,6 +731,8 @@
                     setVal('detail-destination', L.destination_location);
                     setVal('detail-field', L.field);
                     setVal('detail-lead-source', L.lead_source);
+                    setVal('detail-serial-1', L.serial_no_1);
+                    setVal('detail-serial-2', L.serial_no_2);
                 });
             }
         };

@@ -1,5 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const querystring = require('querystring');
+const fetch = require('node-fetch');
 
 const SUPABASE_URL = 'https://lgedjkyafshufxhjywhk.supabase.co';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -124,7 +125,27 @@ exports.handler = async (event) => {
             field:          payload.Field || payload.field || null,
             lead_source:    payload.Lead_Source || payload.Source || 'Zoho CRM',
             quotation_id:   payload.Quotation_ID || payload['Quotation ID'] || payload.quotation_id || payload.Quotation_Id || payload.quotationId || null,
+            serial_no_1:    payload.Serial_No_1 || payload['Serial No. 1'] || payload.SerialNo1 || null
         };
+
+        // ─── Generate Serial No. 2 if it doesn't exist ──────────────
+        // For existing leads, check if it already has one. For new, generate.
+        let serialNo2 = null;
+        if (isUpdate) {
+            const { data: currentLead } = await supabase
+                .from('leads')
+                .select('serial_no_2')
+                .eq('id', existingLead.id)
+                .maybeSingle();
+            serialNo2 = currentLead?.serial_no_2;
+        }
+
+        if (!serialNo2) {
+            // Generate a random 6-digit number
+            serialNo2 = String(Math.floor(100000 + Math.random() * 900000));
+            leadData.serial_no_2 = serialNo2;
+            console.log(`Generated new Serial No. 2: ${serialNo2}`);
+        }
 
         // ─── Execute DB operation ────────────────────────────────────
         let data, error;
@@ -174,6 +195,23 @@ exports.handler = async (event) => {
 
         console.log('DB SUCCESS:', isUpdate ? 'updated' : 'inserted', 'lead id:', data[0]?.id);
 
+        // ─── Sync Serial No. 2 back to Zoho if generated ─────────────
+        if (leadData.serial_no_2 && zohoLeadId) {
+            try {
+                // In practice, we skip full sync if it's already in Zoho, 
+                // but since we just generated it, we PUSH it.
+                // We'll use a fire-and-forget approach or log it.
+                console.log(`Syncing Serial No. 2 (${leadData.serial_no_2}) back to Zoho...`);
+                // Note: In a production environment, you might move this to a background job.
+                // For now, we call the sync logic (stubbed/minimal here to avoid duplication overhead)
+                // We'll actually implement a minimal version of crm-updater logic here.
+                await syncToZohoMinimal(zohoLeadId, { serial_no_2: leadData.serial_no_2 });
+                console.log('Zoho sync triggered successfully.');
+            } catch (syncErr) {
+                console.warn('Optional Zoho sync failed:', syncErr.message);
+            }
+        }
+
         return {
             statusCode: 200,
             headers,
@@ -195,3 +233,48 @@ exports.handler = async (event) => {
         };
     }
 };
+
+/**
+ * Minimal sync helper to push Serial No. 2 back to Zoho
+ */
+async function syncToZohoMinimal(zohoLeadId, data) {
+    const region = process.env.ZOHO_REGION || 'in';
+    const accountsUrl = `https://accounts.zoho.${region}/oauth/v2/token`;
+    const apiUrl = `https://www.zohoapis.${region}/crm/v2/Leads/${zohoLeadId}`;
+
+    // Get access token
+    const params = new URLSearchParams({
+        refresh_token: process.env.ZOHO_REFRESH_TOKEN,
+        client_id: process.env.ZOHO_CLIENT_ID,
+        client_secret: process.env.ZOHO_CLIENT_SECRET,
+        grant_type: 'refresh_token'
+    });
+
+    const tokenRes = await fetch(`${accountsUrl}?${params}`, { method: 'POST' });
+    const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) throw new Error('Token failed');
+
+    // Update Zoho Lead
+    const payload = {
+        data: [{
+            id: zohoLeadId,
+            Serial_No_2: data.serial_no_2,
+            'Serial No. 2': data.serial_no_2 // Try both key formats
+        }]
+    };
+
+    const apiRes = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Zoho-oauthtoken ${tokenData.access_token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!apiRes.ok) {
+        const errTxt = await apiRes.text();
+        throw new Error(errTxt);
+    }
+    return true;
+}

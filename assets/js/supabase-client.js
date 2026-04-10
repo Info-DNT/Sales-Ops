@@ -1154,7 +1154,12 @@ async function getLeadByLeadId(leadId) {
     const client = initSupabase();
     const { data, error } = await client
         .from('leads')
-        .select('name, contact, email, patient_name, client_relation, source_location, destination_location, lead_source, field, follow_up_date, expected_close, next_action, account_name, is_converted, converted_at')
+        .select(`
+            name, contact, email, patient_name, client_relation, 
+            source_location, destination_location, lead_source, field, 
+            follow_up_date, expected_close, next_action, account_name, 
+            is_converted, converted_at, serial_no_1, serial_no_2
+        `)
         .eq('id', leadId)
         .maybeSingle();
     if (error) {
