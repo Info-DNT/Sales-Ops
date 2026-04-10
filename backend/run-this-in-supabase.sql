@@ -50,20 +50,26 @@ CREATE TABLE IF NOT EXISTS case_receipts (
 
 -- 7. RLS for case_invoices
 ALTER TABLE case_invoices ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "Users can view own case invoices"
+
+DROP POLICY IF EXISTS "Users can view own case invoices" ON case_invoices;
+CREATE POLICY "Users can view own case invoices"
 ON case_invoices FOR SELECT
 USING (EXISTS (SELECT 1 FROM cases WHERE cases.id = case_invoices.case_id AND cases.user_id = auth.uid()));
 
-CREATE POLICY IF NOT EXISTS "Admins manage all case invoices"
+DROP POLICY IF EXISTS "Admins manage all case invoices" ON case_invoices;
+CREATE POLICY "Admins manage all case invoices"
 ON case_invoices FOR ALL
 USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));
 
 -- 8. RLS for case_receipts
 ALTER TABLE case_receipts ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "Users can view own case receipts"
+
+DROP POLICY IF EXISTS "Users can view own case receipts" ON case_receipts;
+CREATE POLICY "Users can view own case receipts"
 ON case_receipts FOR SELECT
 USING (EXISTS (SELECT 1 FROM cases WHERE cases.id = case_receipts.case_id AND cases.user_id = auth.uid()));
 
-CREATE POLICY IF NOT EXISTS "Admins manage all case receipts"
+DROP POLICY IF EXISTS "Admins manage all case receipts" ON case_receipts;
+CREATE POLICY "Admins manage all case receipts"
 ON case_receipts FOR ALL
 USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));
