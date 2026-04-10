@@ -172,6 +172,26 @@
                         </div>
                     </div>
 
+                    <!-- Serial Numbers Section -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-hashtag text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Serial Numbers</span>
+                        </div>
+                        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="small text-muted">Serial No. 1 (CRM)</div>
+                                    <div class="fw-600 font-monospace text-primary" id="detail-display-serial-1">—</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="small text-muted">Serial No. 2 (Generated)</div>
+                                    <div class="fw-600 font-monospace text-success" id="detail-display-serial-2">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <hr class="my-4">
                     <h6 class="mb-3 text-muted small fw-bold text-uppercase">Edit Lead Details</h6>
                     <form id="edit-lead-form">
@@ -822,6 +842,8 @@
             document.getElementById('detail-display-field').textContent = lead.field || dash;
             document.getElementById('detail-display-source-name').textContent = lead.lead_source || dash;
             document.getElementById('detail-display-quotation').textContent = lead.quotation_id || dash;
+            document.getElementById('detail-display-serial-1').textContent = lead.serial_no_1 || dash;
+            document.getElementById('detail-display-serial-2').textContent = lead.serial_no_2 || dash;
 
             // Form Fields
             document.getElementById('edit-lead-id').value = lead.id;
