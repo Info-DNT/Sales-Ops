@@ -1780,6 +1780,26 @@ async function getCaseInvoiceCounts(caseIds) {
 }
 
 /**
+ * Get receipt counts for multiple cases (for badge display)
+ * @param {string[]} caseIds
+ * @returns {object} { caseId: count }
+ */
+async function getCaseReceiptCounts(caseIds) {
+    if (!caseIds || caseIds.length === 0) return {};
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('case_receipts')
+        .select('case_id')
+        .in('case_id', caseIds);
+    if (error) return {};
+    const counts = {};
+    (data || []).forEach(row => {
+        counts[row.case_id] = (counts[row.case_id] || 0) + 1;
+    });
+    return counts;
+}
+
+/**
  * Upload an invoice file to Supabase Storage and save record
  * Also marks cases.invoice_uploaded = true
  * @param {string} caseId

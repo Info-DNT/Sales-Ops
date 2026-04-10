@@ -718,13 +718,6 @@
                                 <i class="fas fa-folder-open me-2"></i> Documents
                             </button>
                             <ul class="dropdown-menu shadow-sm border-0" style="min-width: 240px;">
-                                <li><h6 class="dropdown-header">Synchronize Data</h6></li>
-                                <li>
-                                    <a class="dropdown-item py-2" href="#" onclick="syncQuotationId('${c.id}', '${c.contact || (c.leads?.contact) || ''}')">
-                                        <i class="fas fa-sync-alt me-2 text-primary"></i> Sync Quotation ID
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
                                 <li><h6 class="dropdown-header">1. Quotation</h6></li>
                                 <li>
                                     <a class="dropdown-item py-2 ${!c.quotation_id ? 'disabled text-muted' : ''}" href="#" onclick="checkAndDownloadFile('${c.id}', 'quotation')">
