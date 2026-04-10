@@ -336,6 +336,9 @@ async function getLeads(userId, filters = {}) {
 async function createLead(userId, lead) {
     const client = initSupabase();
 
+    // Autogenerate unique 6-digit Serial No. 2
+    const serialNo2 = String(Math.floor(100000 + Math.random() * 900000));
+
     const insertData = {
         user_id: userId,
         name: lead.name,
@@ -346,12 +349,13 @@ async function createLead(userId, lead) {
         follow_up_date: lead.followUpDate || null,
         next_action: lead.nextAction,
         expected_close: lead.expectedClose || null,
-        lead_source: lead.leadSource || null, // Added
-        field: lead.leadField || null,       // Added
+        lead_source: lead.leadSource || null,
+        field: lead.leadField || null,
         patient_name: lead.patientName || null,
         client_relation: lead.clientRelation || null,
         source_location: lead.sourceLocation || null,
-        destination_location: lead.destinationLocation || null
+        destination_location: lead.destinationLocation || null,
+        serial_no_2: serialNo2
     };
 
     const { data, error } = await client
@@ -368,7 +372,8 @@ async function createLead(userId, lead) {
     // Log creation in history
     await logLeadActivity(data.id, userId, 'Lead Created', {
         name: lead.name,
-        status: lead.status
+        status: lead.status,
+        serial_no_2: serialNo2
     });
 
     // BIDIRECTIONAL SYNC: Create lead in Zoho CRM and capture ID
@@ -393,7 +398,8 @@ async function createLead(userId, lead) {
                     next_action: lead.nextAction,
                     assignedTo: lead.owner,
                     followUpDate: lead.followUpDate,
-                    expectedClose: lead.expectedClose
+                    expectedClose: lead.expectedClose,
+                    serial_no_2: serialNo2
                 }
             })
         });
@@ -431,6 +437,13 @@ async function updateLead(leadId, updates, userId) {
         .eq('id', leadId)
         .single();
 
+    // Safety: Generate Serial No. 2 if missing (for older leads)
+    let serialNo2 = currentLead?.serial_no_2;
+    if (!serialNo2) {
+        serialNo2 = String(Math.floor(100000 + Math.random() * 900000));
+        updates.serial_no_2 = serialNo2;
+    }
+
     const { data, error } = await client
         .from('leads')
         .update({
@@ -448,7 +461,8 @@ async function updateLead(leadId, updates, userId) {
             source_location: updates.sourceLocation,
             destination_location: updates.destinationLocation,
             lead_source: updates.leadSource || null,
-            field: updates.field || null
+            field: updates.field || null,
+            serial_no_2: serialNo2 // Ensure it's saved/updated
         })
         .eq('id', leadId)
         .select()
@@ -462,6 +476,7 @@ async function updateLead(leadId, updates, userId) {
         if (currentLead.status !== updates.status) changedFields.push(`Status changed to ${updates.status}`);
         if (currentLead.owner !== updates.owner) changedFields.push(`Owner updated`);
         if (currentLead.next_action !== updates.next_action) changedFields.push(`Next action updated`);
+        if (!currentLead.serial_no_2 && serialNo2) changedFields.push(`Serial No. 2 generated: ${serialNo2}`);
 
         if (changedFields.length > 0) {
             await logLeadActivity(leadId, userId, 'Lead Updated', {
@@ -497,6 +512,7 @@ async function updateLead(leadId, updates, userId) {
                         assignedTo: updates.owner,
                         followUpDate: updates.followUpDate,
                         expectedClose: updates.expectedClose,
+                        serial_no_2: serialNo2,
                         // Additional fields
                         patientName: updates.patientName,
                         clientRelation: updates.clientRelation,
