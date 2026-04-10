@@ -123,6 +123,7 @@ exports.handler = async (event) => {
             expected_close: payload.Expected_Close || payload['Expected Close'] || null,
             field:          payload.Field || payload.field || null,
             lead_source:    payload.Lead_Source || payload.Source || 'Zoho CRM',
+            quotation_id:   payload.Quotation_ID || payload['Quotation ID'] || payload.quotation_id || null,
         };
 
         // ─── Execute DB operation ────────────────────────────────────

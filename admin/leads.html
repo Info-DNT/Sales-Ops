@@ -160,6 +160,18 @@
                         </div>
                     </div>
 
+                    <!-- Quotation ID Section -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-file-invoice text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Quotation</span>
+                        </div>
+                        <div class="p-3 rounded" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                            <div class="small text-muted mb-1">Quotation ID</div>
+                            <div class="fw-600" id="detail-display-quotation" style="font-size:1rem;color:#166534;letter-spacing:.5px;">—</div>
+                        </div>
+                    </div>
+
                     <hr class="my-4">
                     <h6 class="mb-3 text-muted small fw-bold text-uppercase">Edit Lead Details</h6>
                     <form id="edit-lead-form">
@@ -809,6 +821,7 @@
             document.getElementById('detail-display-destination').textContent = lead.destination_location || dash;
             document.getElementById('detail-display-field').textContent = lead.field || dash;
             document.getElementById('detail-display-source-name').textContent = lead.lead_source || dash;
+            document.getElementById('detail-display-quotation').textContent = lead.quotation_id || dash;
 
             // Form Fields
             document.getElementById('edit-lead-id').value = lead.id;
