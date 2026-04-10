@@ -67,7 +67,23 @@ exports.handler = async function (event) {
     const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
     let messageText = '';
 
-    if (type === 'invoice_request') {
+    if (type === 'proforma_request') {
+        messageText = `🧾 *PROFORMA REQUEST*\n` +
+            `━━━━━━━━━━━━━━━━━━━━\n` +
+            `📋 *Case:* #${caseDetails.caseNumber}\n` +
+            `👤 *Client:* ${caseDetails.clientName || caseDetails.title || '—'}\n` +
+            `📞 *Phone:* ${caseDetails.clientPhone || '—'}\n` +
+            `🏥 *Patient:* ${caseDetails.patientName || '—'}\n` +
+            `✈️ *From:* ${caseDetails.sourceLocation || '—'}\n` +
+            `🏁 *To:* ${caseDetails.destinationLocation || '—'}\n` +
+            `🗂️ *Category:* ${caseDetails.field || '—'}\n` +
+            `📊 *Status:* ${caseDetails.status || '—'}\n` +
+            `⚡ *Priority:* ${caseDetails.priority || '—'}\n` +
+            `━━━━━━━━━━━━━━━━━━━━\n` +
+            `👨‍💼 *Requested by:* ${requester.name || requester.email}\n` +
+            `🕒 *Time:* ${timestamp}\n` +
+            `ℹ️ _Quotation submitted. Please provide the Proforma Invoice._`;
+    } else if (type === 'invoice_request') {
         messageText = `🧾 *INVOICE REQUEST*\n` +
             `━━━━━━━━━━━━━━━━━━━━\n` +
             `📋 *Case:* #${caseDetails.caseNumber}\n` +
@@ -100,7 +116,7 @@ exports.handler = async function (event) {
             `🕒 *Time:* ${timestamp}\n` +
             `ℹ️ _Invoice has been submitted. Please process the receipt._`;
     } else {
-        return { statusCode: 400, body: JSON.stringify({ error: 'Invalid type. Use invoice_request or receipt_request' }) };
+        return { statusCode: 400, body: JSON.stringify({ error: 'Invalid type. Use proforma_request, invoice_request or receipt_request' }) };
     }
 
     // ── 5. Send via Whapi ────────────────────────────────────────────
