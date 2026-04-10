@@ -828,18 +828,18 @@
                 getLeadByLeadId(leadId).then(L => {
                     if (L) {
                         const quoId = L.quotation_id;
-                        quoIdDisplay.textContent = quoId || dash;
-                        if (quoId) {
+                        if (quoIdDisplay) quoIdDisplay.textContent = quoId || dash;
+                        if (quoId && quoBtn) {
                             quoBtn.style.display = 'block';
                             quoBtn.onclick = () => checkAndDownloadFile(c.id, 'quotation');
-                        } else {
+                        } else if (quoBtn) {
                             quoBtn.style.display = 'none';
                         }
                     }
                 });
             } else {
-                quoIdDisplay.textContent = dash;
-                quoBtn.style.display = 'none';
+                if (quoIdDisplay) quoIdDisplay.textContent = dash;
+                if (quoBtn) quoBtn.style.display = 'none';
             }
 
             switchCaseTab('overview');
