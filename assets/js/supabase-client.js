@@ -446,7 +446,9 @@ async function updateLead(leadId, updates, userId) {
             patient_name: updates.patientName,
             client_relation: updates.clientRelation,
             source_location: updates.sourceLocation,
-            destination_location: updates.destinationLocation
+            destination_location: updates.destinationLocation,
+            lead_source: updates.leadSource || null,
+            field: updates.field || null
         })
         .eq('id', leadId)
         .select()
