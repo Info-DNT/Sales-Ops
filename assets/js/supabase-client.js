@@ -2011,21 +2011,6 @@ async function getCaseReceipts(caseId) {
     return data || [];
 }
 
-async function getCaseReceiptCounts(caseIds) {
-    if (!caseIds || caseIds.length === 0) return {};
-    const client = initSupabase();
-    const { data, error } = await client
-        .from('case_receipts')
-        .select('case_id')
-        .in('case_id', caseIds);
-    if (error) return {};
-    const counts = {};
-    (data || []).forEach(row => {
-        counts[row.case_id] = (counts[row.case_id] || 0) + 1;
-    });
-    return counts;
-}
-
 async function uploadCaseReceipt(caseId, userId, file) {
     const client = initSupabase();
     const timestamp = Date.now();

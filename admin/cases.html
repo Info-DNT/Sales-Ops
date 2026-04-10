@@ -572,7 +572,7 @@
             const src = document.getElementById('filter-source').value;
 
             filteredCases = allCases.filter(c => {
-                const matchesSearch = (!q || c.title.toLowerCase().includes(q) || c.case_number.toLowerCase().includes(q));
+                const matchesSearch = (!q || c.title.toLowerCase().includes(q) || (c.case_number || '').toLowerCase().includes(q));
                 const matchesStatus = (!s || c.status === s);
                 const matchesUser = (!u || c.user_id === u);
                 const matchesPriority = (!p || c.priority === p);

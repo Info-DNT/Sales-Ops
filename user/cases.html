@@ -660,7 +660,7 @@
             filteredCases = myCases.filter(c => {
                 const matchesQuery = !query ||
                     c.title.toLowerCase().includes(query) ||
-                    c.case_number.toLowerCase().includes(query) ||
+                    (c.case_number || '').toLowerCase().includes(query) ||
                     (c.leads?.name && c.leads.name.toLowerCase().includes(query));
                 const matchesStatus = !status || c.status === status;
                 return matchesQuery && matchesStatus;
