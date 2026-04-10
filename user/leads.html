@@ -307,6 +307,18 @@
                         </div>
                     </div>
 
+                    <!-- Quotation ID Section -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-file-invoice text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Quotation</span>
+                        </div>
+                        <div class="p-3 rounded" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                            <div class="small text-muted mb-1">Quotation ID</div>
+                            <div class="fw-600" id="detail-display-quotation" style="font-size:1rem;color:#166534;letter-spacing:.5px;">—</div>
+                        </div>
+                    </div>
+
                     <hr class="my-4">
                     <h6 class="mb-3 text-muted small fw-bold text-uppercase">Edit Lead Details</h6>
                     <form id="edit-lead-form">
@@ -422,7 +434,7 @@
                 </div>
                 <div class="modal-body">
                     <iframe
-                        src="https://forms.zohopublic.in/digitalnexttechnolgy1/form/StartingForm/formperma/Z6YQKREPtFOzQUrq0sEHVUvmy2zQrhu8odzhV3g-PLA"
+                        src="https://zfrmz.in/KYafI4HZrgOZRwy4zKaU"
                         style="width: 100%; min-height: 600px; border: none;" frameborder="0" allowfullscreen>
                     </iframe>
                 </div>
@@ -641,6 +653,20 @@
                                 <span class="lead-detail-value">${lead.destination_location || '--'}</span>
                             </div>
                             <div class="lead-detail-item">
+                                <span class="lead-detail-label"><i class="fas fa-fingerprint me-1"></i>Quotation ID</span>
+                                <div class="lead-detail-value d-flex align-items-center gap-2">
+                                    <span class="fw-bold text-primary" id="quo-id-${lead.id}">${lead.quotation_id || '--'}</span>
+                                    <button class="btn btn-xs btn-link p-0 text-primary" onclick="event.stopPropagation(); syncQuotationId('${lead.id}', '${lead.contact}')" title="Sync from Sheets">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    ${lead.quotation_id ? `
+                                    <button class="btn btn-xs btn-link p-0 text-success" onclick="event.stopPropagation(); checkAndDownloadFile('${lead.id}', 'quotation')" title="Download PDF">
+                                        <i class="fas fa-file-download"></i>
+                                    </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <div class="lead-detail-item">
                                 <span class="lead-detail-label"><i class="fas fa-calendar me-1"></i>Created</span>
                                 <span class="lead-detail-value">${new Date(lead.created_at).toLocaleDateString()}</span>
                             </div>
@@ -652,7 +678,7 @@
 
                         <!-- Lead Actions -->
                         <div class="mt-3 d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quotationModal" onclick="event.stopPropagation()">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quotationModal" onclick="event.stopPropagation(); prepareQuotationModal('${lead.id}', '${lead.name}')">
                                 <i class="fas fa-file-invoice-dollar"></i> Request Quotation
                             </button>
                         </div>
@@ -787,6 +813,7 @@
             document.getElementById('detail-display-destination').textContent = lead.destination_location || dash;
             document.getElementById('detail-display-field').textContent = lead.field || dash;
             document.getElementById('detail-display-source-name').textContent = lead.lead_source || dash;
+            document.getElementById('detail-display-quotation').textContent = lead.quotation_id || dash;
 
             // Form Fields
             document.getElementById('edit-lead-id').value = lead.id;
@@ -1102,6 +1129,77 @@
                     }
                 })
                 .subscribe()
+        }
+
+        // ── Quotation ID Sync Functions ──
+        async function syncQuotationId(leadId, phone) {
+            const el = document.getElementById(`quo-id-${leadId}`);
+            const originalText = el.textContent;
+            el.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            
+            try {
+                const response = await fetch('/.netlify/functions/google-sheet-sync', {
+                    method: 'POST',
+                    body: JSON.stringify({ phone, id: leadId })
+                });
+                const data = await response.json();
+                
+                if (data.quo_id) {
+                    // Update database
+                    const { error } = await initSupabase()
+                        .from('leads')
+                        .update({ quotation_id: data.quo_id })
+                        .eq('id', leadId);
+                        
+                    if (error) throw error;
+                    
+                    el.textContent = data.quo_id;
+                    showToast('Quotation ID synced successfully!', 'success');
+                    
+                    // Refresh local data
+                    const lead = allLeads.find(l => l.id === leadId);
+                    if (lead) lead.quotation_id = data.quo_id;
+                    displayLeads();
+                } else {
+                    el.textContent = originalText;
+                    showToast(data.error || 'No matching quotation found.', 'warning');
+                }
+            } catch (err) {
+                console.error('Sync error:', err);
+                el.textContent = originalText;
+                showToast('Failed to sync. Please check your connection.', 'error');
+            }
+        }
+
+        function prepareQuotationModal(leadId, name) {
+            const iframe = document.querySelector('#quotationModal iframe');
+            if (iframe) {
+                // Pass the unique Lead ID to Zoho as a parameter
+                iframe.src = `https://zfrmz.in/KYafI4HZrgOZRwy4zKaU?CRM_ID=${leadId}`;
+            }
+        }
+
+        async function checkAndDownloadFile(leadId, type) {
+            try {
+                const { data: files, error } = await initSupabase()
+                    .from('lead_files')
+                    .select('file_url')
+                    .eq('lead_id', leadId)
+                    .eq('file_type', type)
+                    .order('uploaded_at', { ascending: false })
+                    .limit(1);
+                    
+                if (error) throw error;
+                
+                if (files && files.length > 0) {
+                    window.open(files[0].file_url, '_blank');
+                } else {
+                    showToast('PDF file not yet available. It might still be pulling from Drive.', 'info');
+                }
+            } catch (err) {
+                console.error('Download error:', err);
+                showToast('Error retrieving file.', 'error');
+            }
         }
 
         // Initialize
