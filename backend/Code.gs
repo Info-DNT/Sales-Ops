@@ -610,6 +610,80 @@ function getQuotationsSheet() {
   }
   
   return sheet;
+        result.data.forEach(lead => {
+          allLeads.push({
+            ...lead,
+            userName: user.name,
+            userId: user.userId
+          });
+        });
+      }
+    }
+    
+    return {success: true, data: allLeads};
+  } catch (error) {
+    return {success: false, error: error.message};
+  }
+}
+
+/**
+ * Create new user sheet
+ */
+function createNewUser(name, email, contact, designation, password) {
+  try {
+    const userId = 'user_' + new Date().getTime();
+    
+    // Copy template sheet
+    const templateFile = DriveApp.getFileById(TEMPLATE_SHEET_ID);
+    const newFile = templateFile.makeCopy('Sales Ops - ' + name);
+    const newSheetId = newFile.getId();
+    
+    // Set user details in new sheet
+    const sheet = SpreadsheetApp.openById(newSheetId).getSheets()[0];
+    sheet.getRange('B2').setValue(name);
+    sheet.getRange('B3').setValue(contact);
+    sheet.getRange('B4').setValue(designation);
+    sheet.getRange('B5').setValue(email);
+    
+    // Add to user database (in production, this would be in a database sheet)
+    USER_DATABASE[email] = {
+      password: password || 'user123',
+      userId: userId,
+      role: 'user',
+      name: name,
+      sheetId: newSheetId
+    };
+    
+    return {
+      success: true,
+      userId: userId,
+      sheetId: newSheetId,
+      message: 'User created successfully'
+    };
+  } catch (error) {
+    return {success: false, error: error.message};
+  }
+}
+
+// ========================================
+// QUOTATIONS MANAGEMENT
+// ========================================
+
+/**
+ * Get the dedicated Quotations sheet (creates if missing)
+ */
+function getQuotationsSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  // Using the first sheet (Sheet1) as requested
+  let sheet = ss.getSheets()[0];
+  
+  // Ensure "serial_no_2" header exists at AA1 (Column 27)
+  if (sheet.getRange(1, 27).getValue() === "") {
+    sheet.getRange(1, 27).setValue('serial_no_2');
+    sheet.getRange(1, 27).setFontWeight('bold');
+  }
+  
+  return sheet;
 }
 
 /**
@@ -627,15 +701,7 @@ function saveQuotation(data) {
     // Write Serial No. 2 to Column 27 (AA)
     sheet.getRange(newRow, 27).setValue(data.serial_no_2 || '');
     
-    // Write other details starting from Column 28 (AB)
-    sheet.getRange(newRow, 28, 1, 4).setValues([[
-      data.client_name || '',
-      data.patient_name || '',
-      data.amount || '',
-      now.toISOString().split('T')[0]
-    ]]);
-    
-    return { success: true, message: 'Log saved to Column AA' };
+    return { success: true, message: 'Log saved to Column AA', row: newRow };
   } catch (error) {
     return { success: false, error: error.message };
   }
@@ -664,16 +730,126 @@ function getQuotationBySerial(serialNo2) {
                         success: true,
                         quo_id: row[0],
                         found_at_row: i + 1,
-                        found_at_col: j + 1
+                        version: 'v5.0'
                     };
                 }
             }
         }
     }
     
-    return { success: false, error: 'Quotation not found after full sheet scan' };
+    return { success: false, error: 'Quotation ID not found in Column A for Serial No: ' + searchVal };
   } catch (error) {
     return { success: false, error: error.message };
   }
 }
+
+/**
+ * Handle GET requests
+ */
+function doGet(e) {
+  const action = e.parameter.action;
+  let result;
+  
+  try {
+    switch(action) {
+      case 'version':
+        result = { success: true, version: 'v5.0 - Full Smart Search', sheet_name: getQuotationsSheet().getName() };
+        break;
+        
+      case 'getQuotationBySerial':
+        result = getQuotationBySerial(e.parameter.serialNo2);
+        break;
+      
+      case 'saveQuotation':
+        result = saveQuotation({
+          serial_no_2: e.parameter.serialNo2,
+          client_name: e.parameter.name
+        });
+        break;
+        
+      case 'getUserDetails':
+        result = getUserDetails(e.parameter.userId);
+        break;
+        
+      case 'getWorkReports':
+        result = getWorkReports(e.parameter.userId);
+        break;
+        
+      case 'getLeads':
+        result = getLeads(e.parameter.userId);
+        break;
+        
+      case 'getAllWorkReports':
+        result = getAllWorkReports();
+        break;
+        
+      case 'getAllLeads':
+        result = getAllLeads();
+        break;
+        
+      case 'test':
+        result = {success: true, message: 'Apps Script is live'};
+        break;
+        
+      default:
+        result = {success: false, error: 'Invalid GET action: ' + action};
+    }
+  } catch (error) {
+    result = {success: false, error: error.message};
+  }
+  
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Handle POST requests
+ */
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const action = data.action;
+    let result;
+    
+    switch(action) {
+      case 'login':
+        result = login(data.email, data.password);
+        break;
+      case 'updateUserDetails':
+        result = updateUserDetails(data.userId, data.details);
+        break;
+      case 'saveWorkReport':
+        result = saveWorkReport(data.userId, data.report);
+        break;
+      case 'clockIn':
+        result = clockIn(data.userId, data.date, data.time);
+        break;
+      case 'clockOut':
+        result = clockOut(data.userId, data.date, data.time);
+        break;
+      case 'saveLead':
+        result = saveLead(data.userId, data.lead);
+        break;
+      case 'saveQuotation':
+        result = saveQuotation(data.quotation);
+        break;
+      case 'deleteLead':
+        result = deleteLead(data.userId, data.leadId);
+        break;
+      case 'createUser':
+        result = createNewUser(data.name, data.email, data.contact, data.designation, data.password);
+        break;
+      default:
+        result = {success: false, error: 'Invalid POST action: ' + action};
+    }
+    
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({success: false, error: error.message}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
