@@ -20,7 +20,7 @@
 // 4. Click Deploy → New deployment → Web app
 // 5. Copy the Web App URL here
 //
-const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxAOhCTJCeuy6mEAorha9lHaO3cGG41hnCxQ1DnUl9Dh1Lzbfg6eqq5U418CffoYu0TJQ/exec';
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbzYZVSRIQvUpvO32dzgBShwd2vMStFbwkCXbglyzrAPYJoLAtrzeakR2JelgngfMtGE/exec';
 // Example: 'https://script.google.com/macros/s/AKfycbw.../exec'
 
 // ========================================

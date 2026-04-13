@@ -596,9 +596,13 @@ function getQuotationsSheet() {
   
   if (!sheet) {
     sheet = ss.insertSheet('Quotations');
-    // Set Headers at AA1:AF1 (AA=27)
-    sheet.getRange(1, 27, 1, 6).setValues([['quo_id', 'serial_no_2', 'client_name', 'patient_name', 'amount', 'date_created']]);
-    sheet.getRange(1, 27, 1, 6).setFontWeight('bold');
+  }
+  
+  // Ensure Headers exist at AA1:AF1
+  const headerRange = sheet.getRange(1, 27, 1, 6);
+  if (headerRange.getValue() === "") {
+    headerRange.setValues([['quo_id', 'serial_no_2', 'client_name', 'patient_name', 'amount', 'date_created']]);
+    headerRange.setFontWeight('bold');
     sheet.setFrozenRows(1);
   }
   
@@ -611,8 +615,10 @@ function getQuotationsSheet() {
 function saveQuotation(data) {
   try {
     const sheet = getQuotationsSheet();
-    const lastRow = sheet.getLastRow();
-    const newRow = lastRow + 1;
+    let lastRow = sheet.getLastRow();
+    
+    // Ensure we don't overwrite headers if lastRow is 0 or 1
+    const newRow = Math.max(lastRow + 1, 2);
     
     // Auto-generate quo_id if not provided (e.g. QUO-1001)
     const quoId = data.quo_id || ('QUO-' + (1000 + newRow));

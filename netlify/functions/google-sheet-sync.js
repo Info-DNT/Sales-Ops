@@ -91,7 +91,7 @@ exports.handler = async function (event) {
     // phone: fallback lookup method
     const { serialNo2, zohoLeadId, phone } = body;
 
-    const appsScriptUrl = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxAOhCTJCeuy6mEAorha9lHaO3cGG41hnCxQ1DnUl9Dh1Lzbfg6eqq5U418CffoYu0TJQ/exec';
+    const appsScriptUrl = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbzYZVSRIQvUpvO32dzgBShwd2vMStFbwkCXbglyzrAPYJoLAtrzeakR2JelgngfMtGE/exec';
 
     try {
         let quo_id = null;
@@ -114,8 +114,11 @@ exports.handler = async function (event) {
         if (data.error || !data.quo_id) {
             console.warn('❌ Quotation not found in Sheets');
             return {
-                statusCode: 404,
-                body: JSON.stringify({ error: 'Quotation not yet generated in Google Sheet' })
+                statusCode: 200,
+                body: JSON.stringify({ 
+                    success: false, 
+                    error: 'Quotation not yet generated in Google Sheet' 
+                })
             };
         }
 
