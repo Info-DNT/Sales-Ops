@@ -20,7 +20,7 @@
 // 4. Click Deploy → New deployment → Web app
 // 5. Copy the Web App URL here
 //
-const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycby7CY9e20qEWxPh2V51S91wZfNHayIboLYhN931GZ_UFkfjQS9kHLy74-NzS59rEUqcVA/exec';
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxY7H6rT80E9OXFy0ub4YcDylSbmErK8g9wCKl5xXkOkcQe8uFIQAzXYsYXnpFEaYjmdg/exec';
 const SHEETS_API_TOKEN = 'SALES_OPS_2026_SECURE';
 // Example: 'https://script.google.com/macros/s/AKfycbw.../exec'
 
