@@ -595,11 +595,10 @@ function getQuotationsSheet() {
   // Using the first sheet (Sheet1) as requested
   let sheet = ss.getSheets()[0];
   
-  // Ensure Headers exist at AA1:AF1 (AA=27, AB=28, AC=29, AD=30, AE=31, AF=32)
-  // If AA1 is empty, we initialize headers
+  // Ensure "serial_no_2" header exists at AA1 (Column 27)
   if (sheet.getRange(1, 27).getValue() === "") {
-    sheet.getRange(1, 27, 1, 6).setValues([['quo_id', 'serial_no_2', 'client_name', 'patient_name', 'amount', 'date_created']]);
-    sheet.getRange(1, 27, 1, 6).setFontWeight('bold');
+    sheet.getRange(1, 27).setValue('serial_no_2');
+    sheet.getRange(1, 27).setFontWeight('bold');
   }
   
   return sheet;
@@ -613,25 +612,22 @@ function saveQuotation(data) {
     const sheet = getQuotationsSheet();
     let lastRow = sheet.getLastRow();
     
-    // Ensure we don't overwrite headers if lastRow is 0 or 1
+    // Ensure we don't overwrite headers
     const newRow = Math.max(lastRow + 1, 2);
-    
-    // Auto-generate quo_id if not provided (e.g. QUO-1001)
-    const quoId = data.quo_id || ('QUO-' + (1000 + newRow));
     const now = new Date();
     
-    // Set Values starting from Column 27 (AA)
-    // [quo_id, serial_no_2, client_name, patient_name, amount, date_created]
-    sheet.getRange(newRow, 27, 1, 6).setValues([[
-      quoId,
-      data.serial_no_2 || '',
+    // Write Serial No. 2 to Column 27 (AA)
+    sheet.getRange(newRow, 27).setValue(data.serial_no_2 || '');
+    
+    // Write other details starting from Column 28 (AB)
+    sheet.getRange(newRow, 28, 1, 4).setValues([[
       data.client_name || '',
       data.patient_name || '',
       data.amount || '',
       now.toISOString().split('T')[0]
     ]]);
     
-    return { success: true, quo_id: quoId, message: 'Quotation saved to sheet' };
+    return { success: true, message: 'Log saved to Column AA' };
   } catch (error) {
     return { success: false, error: error.message };
   }
@@ -647,17 +643,15 @@ function getQuotationBySerial(serialNo2) {
     const sheet = getQuotationsSheet();
     const data = sheet.getDataRange().getValues();
     
-    // Skip header, search Column AB (index 27 since 0-indexed)
-    // Column AA is index 26, Column AB is index 27
+    // Search Column AA (Index 26)
     for (let i = 1; i < data.length; i++) {
-        if (data[i][27] && data[i][27].toString() === serialNo2.toString()) {
+        if (data[i][26] && data[i][26].toString() === serialNo2.toString()) {
             return {
                 success: true,
-                quo_id: data[i][26], // Column AA
+                quo_id: data[i][0], // Return from Column A (Index 0)
                 details: {
-                    client_name: data[i][28],
-                    patient_name: data[i][29],
-                    amount: data[i][30]
+                    client_name: data[i][27], // AB
+                    patient_name: data[i][28] // AC
                 }
             };
         }
