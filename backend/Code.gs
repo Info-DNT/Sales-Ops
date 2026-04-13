@@ -319,13 +319,16 @@ function saveQuotation(data) {
   try {
     const sheet = getQuotationsSheet();
     const newRow = Math.max(sheet.getLastRow() + 1, 2);
+    // Write Serial No to Col AA
     sheet.getRange(newRow, 27).setValue(data.serial_no_2 || '');
+    // Write Lead Name to Col AB for precision matching
+    sheet.getRange(newRow, 28).setValue(data.name || '');
     return { success: true, message: 'Log saved', row: newRow };
   } catch (error) { return { success: false, error: error.message }; }
 }
 
 /**
- * v9.0 - Fusion: Merges Split Rows by copying Serial No into the Zoho Row
+ * v10.0 - Precision Match & Clean: Maps precisely by Lead Name and deletes duplicate row
  */
 function getQuotationBySerial(serialNo2) {
   try {
@@ -334,34 +337,64 @@ function getQuotationBySerial(serialNo2) {
     const data = sheet.getDataRange().getValues();
     const searchVal = serialNo2.toString().trim();
     
-    // Pass 1: Find the row with the Serial No
-    for (let i = 1; i < data.length; i++) {
+    // Pass 1: Find the orphan row created by Web App
+    for (let i = data.length - 1; i >= 1; i--) { // Start from bottom
         for (let j = 0; j < data[i].length; j++) {
             if (data[i][j] && data[i][j].toString().trim() === searchVal) {
                 
-                // If Column A (Quote ID) is on THIS row, we are perfect
+                // If it already has a Quote ID, we are perfectly fine
                 if (data[i][0]) {
                     return { success: true, quo_id: data[i][0], found_at_row: i + 1, mode: 'Exact' };
                 }
                 
-                // FUSION LOGIC: If Column A is empty, look at neighbors (+/- 10 rows)
-                const start = Math.max(1, i - 10);
-                const end = Math.min(data.length - 1, i + 10);
+                // We found the separate Web App row. Let's merge it with the correct Zoho row.
+                const orphanRowIndex = i;
+                const expectedName = data[i][27] ? data[i][27].toString().toLowerCase().trim() : ''; // Column AB (Index 27)
                 
-                for (let n = start; n <= end; n++) {
-                    if (data[n][0]) {
-                        // Found the Quote ID on a different row (Row n+1)
-                        // FUSION: Copy the Serial No into this row's Column 27 (AA)
-                        sheet.getRange(n + 1, 27).setValue(searchVal);
+                let matchedRowIndex = -1;
+                
+                // Search for the Zoho row that has a Quote ID, but NO Serial No yet
+                for (let k = data.length - 1; k >= 1; k--) {
+                    if (k === orphanRowIndex) continue; // Skip our own row
+                    
+                    if (data[k][0] && !data[k][26]) { // Has Quote ID in Col A, NO Serial in Col AA
                         
-                        return { 
-                          success: true, 
-                          quo_id: data[n][0], 
-                          found_at_row: n + 1, 
-                          mode: 'Fused (Merged into Row ' + (n+1) + ')',
-                          version: 'v9.0'
-                        };
+                        // PRECISION MATCH: Try to match by Name (Zoho puts first name in Col D / Index 3)
+                        const zohoName = data[k][3] ? data[k][3].toString().toLowerCase().trim() : '';
+                        
+                        if (expectedName && zohoName && (zohoName.includes(expectedName) || expectedName.includes(zohoName))) {
+                            matchedRowIndex = k;
+                            break; // Perfect match found!
+                        }
                     }
+                }
+                
+                // FALLBACK: If Name didn't match perfectly, grab the most recent Zoho row
+                if (matchedRowIndex === -1) {
+                    for (let k = data.length - 1; k >= 1; k--) {
+                        if (k === orphanRowIndex) continue;
+                        if (data[k][0] && !data[k][26]) {
+                            matchedRowIndex = k;
+                            break;
+                        }
+                    }
+                }
+                
+                if (matchedRowIndex !== -1) {
+                     const quoId = data[matchedRowIndex][0];
+                     
+                     // 1. Move Serial No to the Zoho Row (Col AA)
+                     sheet.getRange(matchedRowIndex + 1, 27).setValue(searchVal);
+                     
+                     // 2. DELETE the separate Web App row to clean up the sheet
+                     sheet.deleteRow(orphanRowIndex + 1);
+                     
+                     return { 
+                       success: true, 
+                       quo_id: quoId,
+                       mode: 'Precision Merged & Cleaned',
+                       version: 'v10.0'
+                     };
                 }
             }
         }
@@ -386,7 +419,7 @@ function doGet(e) {
 
   try {
     switch(action) {
-      case 'version': result = { success: true, version: 'v9.0 - Fusion', sheet_name: getQuotationsSheet().getName() }; break;
+      case 'version': result = { success: true, version: 'v10.0 - Precision Match', sheet_name: getQuotationsSheet().getName() }; break;
       case 'getUserDetails': result = getUserDetails(e.parameter.userId); break;
       case 'getWorkReports': result = getWorkReports(e.parameter.userId); break;
       case 'getLeads': result = getLeads(e.parameter.userId); break;
