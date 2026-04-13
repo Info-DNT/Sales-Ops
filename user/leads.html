@@ -1208,7 +1208,7 @@
             // TRIGGER GOOGLE SHEET LOG (Preliminary) - Using GET for reliable no-cors communication
             if (typeof SHEETS_API_URL !== 'undefined' && serialNo2) {
                 console.log('Logging quotation request to Google Sheet...', serialNo2);
-                const url = `${SHEETS_API_URL}?action=saveQuotation&serialNo2=${serialNo2}&name=${encodeURIComponent(name)}`;
+                const url = `${SHEETS_API_URL}?action=saveQuotation&serialNo2=${serialNo2}&name=${encodeURIComponent(name)}&token=${SHEETS_API_TOKEN}`;
                 fetch(url, { mode: 'no-cors' })
                     .catch(err => console.error('Error logging to sheet:', err));
             }

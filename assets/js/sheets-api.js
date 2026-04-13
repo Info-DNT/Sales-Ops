@@ -21,6 +21,7 @@
 // 5. Copy the Web App URL here
 //
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxmvXNYs6kGAslAK_tIYldugH_DsO2iSa3GMv_G-BdtlDQzS-iG4_lmrNnPAxgddFJxUA/exec';
+const SHEETS_API_TOKEN = 'SALES_OPS_2026_SECURE';
 // Example: 'https://script.google.com/macros/s/AKfycbw.../exec'
 
 // ========================================

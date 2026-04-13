@@ -18,28 +18,32 @@
 // CONFIGURATION
 // ========================================
 
-// Template sheet ID (your provided template)
 const TEMPLATE_SHEET_ID = '1oIfq6xAtWVpitfZ080gfLRCRZXPDQrenp1xdYzwOHwE';
 
-// User credentials for login
-const USER_DATABASE = {
-  'user@demo.com': {
-    password: 'user123',
-    userId: 'user_001',
-    role: 'user',
-    name: 'Demo User',
-    sheetId: TEMPLATE_SHEET_ID
-  },
-  'admin@demo.com': {
-    password: 'admin123',
-    userId: 'admin_001',
-    role: 'admin',
-    name: 'Admin User',
-    sheetId: ''
-  }
-};
+// Simple API Key for security (Handshake)
+const API_TOKEN = 'SALES_OPS_2026_SECURE';
 
-const SCRIPT_PROPS = PropertiesService.getScriptProperties();
+// Helper to get persistent users + hardcoded defaults
+function getUsersDB() {
+  const props = PropertiesService.getScriptProperties();
+  const savedUsers = props.getProperty('USER_DATABASE');
+  const db = savedUsers ? JSON.parse(savedUsers) : {};
+  
+  // Ensure defaults exist
+  if (!db['user@demo.com']) {
+    db['user@demo.com'] = { password: 'user123', userId: 'user_001', role: 'user', name: 'Demo User', sheetId: TEMPLATE_SHEET_ID };
+  }
+  if (!db['admin@demo.com']) {
+    db['admin@demo.com'] = { password: 'admin123', userId: 'admin_001', role: 'admin', name: 'Admin User', sheetId: '' };
+  }
+  return db;
+}
+
+function saveUserToDB(email, userData) {
+  const db = getUsersDB();
+  db[email] = userData;
+  PropertiesService.getScriptProperties().setProperty('USER_DATABASE', JSON.stringify(db));
+}
 
 // ========================================
 // HELPER FUNCTIONS
@@ -49,10 +53,11 @@ const SCRIPT_PROPS = PropertiesService.getScriptProperties();
  * Get sheet by user ID
  */
 function getUserSheet(userId) {
+  const db = getUsersDB();
   let sheetId = null;
-  for (const email in USER_DATABASE) {
-    if (USER_DATABASE[email].userId === userId) {
-      sheetId = USER_DATABASE[email].sheetId;
+  for (const email in db) {
+    if (db[email].userId === userId) {
+      sheetId = db[email].sheetId;
       break;
     }
   }
@@ -62,24 +67,24 @@ function getUserSheet(userId) {
 }
 
 /**
- * Find column by date in work report section
+ * Verify that a column actually contains the expected lead
  */
-function findWorkReportColumn(sheet, targetDate) {
-  const lastCol = sheet.getLastColumn();
-  for (let col = 2; col <= lastCol; col++) {
-    const cellValue = sheet.getRange(9, col).getValue();
-    if (cellValue && cellValue.toString() === targetDate.toString()) return col;
+function verifyLead(sheet, col, expectedName) {
+  const actualName = sheet.getRange(21, col).getValue();
+  if (actualName !== expectedName) {
+    throw new Error('Sheet sort mismatch: Lead name in column ' + col + ' (' + actualName + ') does not match ' + expectedName);
   }
-  return -1;
+  return true;
 }
 
 // ========================================
-// CORE FEATURES (AUTH, REPORTS, LEADS)
+// CORE FEATURES
 // ========================================
 
 function login(email, password) {
   try {
-    const user = USER_DATABASE[email];
+    const db = getUsersDB();
+    const user = db[email];
     if (!user || user.password !== password) return {success: false, error: 'Invalid email or password'};
     return {
       success: true,
@@ -242,9 +247,10 @@ function deleteLead(userId, leadId) {
  */
 function getAllWorkReports() {
   try {
+    const db = getUsersDB();
     const allReports = [];
-    for (const email in USER_DATABASE) {
-      const user = USER_DATABASE[email];
+    for (const email in db) {
+      const user = db[email];
       if (user.role === 'admin' || !user.sheetId) continue;
       const result = getWorkReports(user.userId);
       if (result.success) {
@@ -257,9 +263,10 @@ function getAllWorkReports() {
 
 function getAllLeads() {
   try {
+    const db = getUsersDB();
     const allLeads = [];
-    for (const email in USER_DATABASE) {
-      const user = USER_DATABASE[email];
+    for (const email in db) {
+      const user = db[email];
       if (user.role === 'admin' || !user.sheetId) continue;
       const result = getLeads(user.userId);
       if (result.success) {
@@ -281,7 +288,16 @@ function createNewUser(name, email, contact, designation, password) {
     sheet.getRange('B3').setValue(contact);
     sheet.getRange('B4').setValue(designation);
     sheet.getRange('B5').setValue(email);
-    USER_DATABASE[email] = { password: password || 'user123', userId: userId, role: 'user', name: name, sheetId: newSheetId };
+    
+    // SAVE TO PERSISTENT STORAGE
+    saveUserToDB(email, { 
+      password: password || 'user123', 
+      userId: userId, 
+      role: 'user', 
+      name: name, 
+      sheetId: newSheetId 
+    });
+    
     return { success: true, userId: userId, sheetId: newSheetId, message: 'User created' };
   } catch (error) { return {success: false, error: error.message}; }
 }
@@ -331,10 +347,17 @@ function getQuotationBySerial(serialNo2) {
 
 function doGet(e) {
   const action = e.parameter.action;
+  const token = e.parameter.token;
   let result;
+  
+  // Security Handshake
+  if (action === 'saveQuotation' && token !== API_TOKEN) {
+    return ContentService.createTextOutput(JSON.stringify({success:false, error:'Unauthorized'})).setMimeType(ContentService.MimeType.JSON);
+  }
+
   try {
     switch(action) {
-      case 'version': result = { success: true, version: 'v6.0 - Perfected', sheet_name: getQuotationsSheet().getName() }; break;
+      case 'version': result = { success: true, version: 'v7.0 - Persistent', sheet_name: getQuotationsSheet().getName() }; break;
       case 'getUserDetails': result = getUserDetails(e.parameter.userId); break;
       case 'getWorkReports': result = getWorkReports(e.parameter.userId); break;
       case 'getLeads': result = getLeads(e.parameter.userId); break;
@@ -345,8 +368,8 @@ function doGet(e) {
       case 'test': result = {success: true, message: 'Apps Script live'}; break;
       default: result = {success: false, error: 'Invalid action: ' + action};
     }
-  } catch (error) { result = {success: false, error: error.message}; }
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) { return ContentService.createTextOutput(JSON.stringify({success: false, error: error.message})).setMimeType(ContentService.MimeType.JSON); }
 }
 
 function doPost(e) {
