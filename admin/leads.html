@@ -1330,21 +1330,12 @@
                 iframe.src = `https://zfrmz.in/KYafI4HZrgOZRwy4zKaU?CRM_ID=${leadId}&SERIAL_NO=${serialNo2}`;
             }
 
-            // TRIGGER GOOGLE SHEET LOG (Preliminary)
+            // TRIGGER GOOGLE SHEET LOG (Preliminary) - Using GET for reliable no-cors communication
             if (typeof SHEETS_API_URL !== 'undefined' && serialNo2) {
                 console.log('Logging quotation request to Google Sheet...', serialNo2);
-                fetch(SHEETS_API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify({
-                        action: 'saveQuotation',
-                        quotation: {
-                            serial_no_2: serialNo2,
-                            client_name: name || 'Admin Request',
-                            status: 'Requested'
-                        }
-                    })
-                }).catch(err => console.error('Error logging to sheet:', err));
+                const url = `${SHEETS_API_URL}?action=saveQuotation&serialNo2=${serialNo2}&name=${encodeURIComponent(name || 'Admin Request')}`;
+                fetch(url, { mode: 'no-cors' })
+                    .catch(err => console.error('Error logging to sheet:', err));
             }
         }
 

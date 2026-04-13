@@ -509,6 +509,14 @@ function doGet(e) {
         result = getQuotationBySerial(e.parameter.serialNo2);
         break;
         
+      case 'saveQuotation':
+        // Support saving via GET for better browser compatibility
+        result = saveQuotation({
+          serial_no_2: e.parameter.serialNo2,
+          client_name: e.parameter.name
+        });
+        break;
+        
       default:
         result = {success: false, error: 'Invalid action: ' + action};
     }
@@ -634,7 +642,7 @@ function saveQuotation(data) {
 }
 
 /**
- * Find Quotation ID by Serial No. 2
+ * Smart Search: Find Quotation ID by searching the entire sheet for Serial No. 2
  */
 function getQuotationBySerial(serialNo2) {
   try {
@@ -642,23 +650,30 @@ function getQuotationBySerial(serialNo2) {
     
     const sheet = getQuotationsSheet();
     const data = sheet.getDataRange().getValues();
+    const searchVal = serialNo2.toString().trim();
     
-    // Search Column AA (Index 26)
+    // Scan every row (skip header)
     for (let i = 1; i < data.length; i++) {
-        if (data[i][26] && data[i][26].toString() === serialNo2.toString()) {
-            return {
-                success: true,
-                quo_id: data[i][0], // Return from Column A (Index 0)
-                details: {
-                    client_name: data[i][27], // AB
-                    patient_name: data[i][28] // AC
+        const row = data[i];
+        // Scan every column in this row looking for our Serial No
+        for (let j = 0; j < row.length; j++) {
+            if (row[j] && row[j].toString().trim() === searchVal) {
+                // FOUND IT! Now return the Quote ID from Column A (Index 0)
+                if (row[0]) {
+                    return {
+                        success: true,
+                        quo_id: row[0],
+                        found_at_row: i + 1,
+                        found_at_col: j + 1
+                    };
                 }
-            };
+            }
         }
     }
     
-    return { success: false, error: 'Quotation not found for Serial No. 2: ' + serialNo2 };
+    return { success: false, error: 'Quotation not found after full sheet scan' };
   } catch (error) {
     return { success: false, error: error.message };
   }
+}
 }
