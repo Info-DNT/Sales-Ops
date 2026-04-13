@@ -325,7 +325,7 @@ function saveQuotation(data) {
 }
 
 /**
- * v8.0 - Self-Healing: Find Quotation ID by searching neighbors if row is split
+ * v9.0 - Fusion: Merges Split Rows by copying Serial No into the Zoho Row
  */
 function getQuotationBySerial(serialNo2) {
   try {
@@ -339,25 +339,27 @@ function getQuotationBySerial(serialNo2) {
         for (let j = 0; j < data[i].length; j++) {
             if (data[i][j] && data[i][j].toString().trim() === searchVal) {
                 
-                // If Column A (Quote ID) is on THIS row, return it
+                // If Column A (Quote ID) is on THIS row, we are perfect
                 if (data[i][0]) {
                     return { success: true, quo_id: data[i][0], found_at_row: i + 1, mode: 'Exact' };
                 }
                 
-                // SELF-HEALING: If Column A is empty, look at neighbors (+/- 5 rows)
-                // This handles cases where Zoho created a new row right above or below
-                const start = Math.max(1, i - 5);
-                const end = Math.min(data.length - 1, i + 5);
+                // FUSION LOGIC: If Column A is empty, look at neighbors (+/- 10 rows)
+                const start = Math.max(1, i - 10);
+                const end = Math.min(data.length - 1, i + 10);
                 
                 for (let n = start; n <= end; n++) {
                     if (data[n][0]) {
+                        // Found the Quote ID on a different row (Row n+1)
+                        // FUSION: Copy the Serial No into this row's Column 27 (AA)
+                        sheet.getRange(n + 1, 27).setValue(searchVal);
+                        
                         return { 
                           success: true, 
                           quo_id: data[n][0], 
                           found_at_row: n + 1, 
-                          serial_row: i + 1,
-                          mode: 'Self-Healed',
-                          version: 'v8.0'
+                          mode: 'Fused (Merged into Row ' + (n+1) + ')',
+                          version: 'v9.0'
                         };
                     }
                 }
@@ -384,7 +386,7 @@ function doGet(e) {
 
   try {
     switch(action) {
-      case 'version': result = { success: true, version: 'v8.0 - Self-Healing', sheet_name: getQuotationsSheet().getName() }; break;
+      case 'version': result = { success: true, version: 'v9.0 - Fusion', sheet_name: getQuotationsSheet().getName() }; break;
       case 'getUserDetails': result = getUserDetails(e.parameter.userId); break;
       case 'getWorkReports': result = getWorkReports(e.parameter.userId); break;
       case 'getLeads': result = getLeads(e.parameter.userId); break;
