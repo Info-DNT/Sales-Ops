@@ -91,7 +91,7 @@ exports.handler = async function (event) {
     // phone: fallback lookup method
     const { serialNo2, zohoLeadId, phone } = body;
 
-    const appsScriptUrl = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxBTyKy6QlpO2Mc6xQLPUio0oF4pX-y3a7o94ncUqRzYoYuM8fpKrIPDA0EVC6hXlTN7Q/exec';
+    const appsScriptUrl = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxAOhCTJCeuy6mEAorha9lHaO3cGG41hnCxQ1DnUl9Dh1Lzbfg6eqq5U418CffoYu0TJQ/exec';
 
     try {
         let quo_id = null;
