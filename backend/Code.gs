@@ -592,18 +592,14 @@ function doPost(e) {
  */
 function getQuotationsSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('Quotations');
+  // Using the first sheet (Sheet1) as requested
+  let sheet = ss.getSheets()[0];
   
-  if (!sheet) {
-    sheet = ss.insertSheet('Quotations');
-  }
-  
-  // Ensure Headers exist at AA1:AF1
-  const headerRange = sheet.getRange(1, 27, 1, 6);
-  if (headerRange.getValue() === "") {
-    headerRange.setValues([['quo_id', 'serial_no_2', 'client_name', 'patient_name', 'amount', 'date_created']]);
-    headerRange.setFontWeight('bold');
-    sheet.setFrozenRows(1);
+  // Ensure Headers exist at AA1:AF1 (AA=27, AB=28, AC=29, AD=30, AE=31, AF=32)
+  // If AA1 is empty, we initialize headers
+  if (sheet.getRange(1, 27).getValue() === "") {
+    sheet.getRange(1, 27, 1, 6).setValues([['quo_id', 'serial_no_2', 'client_name', 'patient_name', 'amount', 'date_created']]);
+    sheet.getRange(1, 27, 1, 6).setFontWeight('bold');
   }
   
   return sheet;
