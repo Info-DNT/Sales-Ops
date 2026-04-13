@@ -660,7 +660,7 @@
                             <div class="col-md-3">
                                 <small><i class="fas fa-fingerprint me-1 text-muted"></i><strong>Quo ID:</strong> 
                                     <span class="fw-bold text-primary" id="quo-id-${lead.id}">${lead.quotation_id || '--'}</span>
-                                    <button class="btn btn-xs btn-link p-0 text-primary ms-1" onclick="event.stopPropagation(); syncQuotationId('${lead.id}', '${lead.contact}')" title="Sync from Sheets">
+                                    <button class="btn btn-xs btn-link p-0 text-primary ms-1" onclick="event.stopPropagation(); syncQuotationId('${lead.id}', '${lead.contact}', '${lead.serial_no_2}', '${lead.zoho_lead_id}')" title="Sync from Sheets">
                                         <i class="fas fa-sync-alt" style="font-size: 0.75rem;"></i>
                                     </button>
                                     ${lead.quotation_id ? `
@@ -841,7 +841,16 @@
             document.getElementById('detail-display-destination').textContent = lead.destination_location || dash;
             document.getElementById('detail-display-field').textContent = lead.field || dash;
             document.getElementById('detail-display-source-name').textContent = lead.lead_source || dash;
-            document.getElementById('detail-display-quotation').textContent = lead.quotation_id || dash;
+            
+            // Quotation with Sync button
+            const quoEl = document.getElementById('detail-display-quotation');
+            quoEl.innerHTML = `
+                <span id="quo-id-${lead.id}">${lead.quotation_id || dash}</span>
+                <button class="btn btn-xs btn-link p-0 text-primary ms-2" onclick="syncQuotationId('${lead.id}', '${lead.contact}', '${lead.serial_no_2}', '${lead.zoho_lead_id}')" title="Sync from Sheets">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            `;
+            
             document.getElementById('detail-display-serial-1').textContent = lead.serial_no_1 || dash;
             document.getElementById('detail-display-serial-2').textContent = lead.serial_no_2 || dash;
 
@@ -1234,6 +1243,50 @@
                     el.textContent = data.quo_id;
                     showToast('Quotation ID synced successfully!', 'success');
                     
+                    const lead = allLeads.find(l => l.id === leadId);
+                    if (lead) lead.quotation_id = data.quo_id;
+                } else {
+                    el.textContent = originalText;
+                    showToast(data.error || 'No matching quotation found.', 'warning');
+                }
+            } catch (err) {
+                console.error('Sync error:', err);
+                el.textContent = originalText;
+                showToast('Failed to sync. Please check your connection.', 'error');
+            }
+        }
+
+        async function syncQuotationId(leadId, phone, serialNo2, zohoLeadId) {
+            const el = document.getElementById(`quo-id-${leadId}`);
+            if (!el) return;
+            const originalText = el.textContent;
+            el.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            
+            try {
+                const response = await fetch('/.netlify/functions/google-sheet-sync', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        phone, 
+                        id: leadId, 
+                        serialNo2: serialNo2,
+                        zohoLeadId: zohoLeadId 
+                    })
+                });
+                const data = await response.json();
+                
+                if (data.quo_id) {
+                    // Update database
+                    const { error } = await initSupabase()
+                        .from('leads')
+                        .update({ quotation_id: data.quo_id })
+                        .eq('id', leadId);
+                        
+                    if (error) throw error;
+                    
+                    el.textContent = data.quo_id;
+                    showToast('Quotation ID synced and pushed to Zoho!', 'success');
+                    
+                    // Refresh local data
                     const lead = allLeads.find(l => l.id === leadId);
                     if (lead) lead.quotation_id = data.quo_id;
                 } else {

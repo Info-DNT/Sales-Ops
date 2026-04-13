@@ -22,13 +22,17 @@ CREATE TABLE IF NOT EXISTS case_receipts (
     uploaded_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 2. Add Serial Number fields to leads
+-- 2. Add Serial Number fields to leads and quotations
 ALTER TABLE leads 
 ADD COLUMN IF NOT EXISTS serial_no_1 TEXT,
 ADD COLUMN IF NOT EXISTS serial_no_2 TEXT UNIQUE;
 
+ALTER TABLE quotations
+ADD COLUMN IF NOT EXISTS serial_no_2 TEXT;
+
 COMMENT ON COLUMN leads.serial_no_1 IS 'Mapped FROM Zoho CRM';
 COMMENT ON COLUMN leads.serial_no_2 IS 'Generated 6-digit unique ID; mapped TO Zoho CRM';
+COMMENT ON COLUMN quotations.serial_no_2 IS 'Links quotation back to the lead unique ID';
 
 -- 3. Ensure columns exist on cases table as well (for tracking)
 ALTER TABLE cases

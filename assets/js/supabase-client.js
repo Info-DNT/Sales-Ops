@@ -625,11 +625,28 @@ async function getQuotations(userId) {
 async function createQuotation(userId, quotation) {
     const client = initSupabase();
 
+    // 1. Fetch lead serial_no_2 for cross-sync
+    let serialNo2 = null;
+    if (quotation.leadId) {
+        try {
+            const { data: leadData } = await client
+                .from('leads')
+                .select('serial_no_2')
+                .eq('id', quotation.leadId)
+                .single();
+            serialNo2 = leadData?.serial_no_2;
+        } catch (e) {
+            console.warn('Could not fetch lead serial_no_2:', e);
+        }
+    }
+
+    // 2. Save to Supabase quotations table
     const { data, error } = await client
         .from('quotations')
         .insert({
             user_id: userId,
             lead_id: quotation.leadId || null,
+            serial_no_2: serialNo2 || quotation.serialNo2 || null,
             client_name: quotation.clientName,
             client_phone: quotation.clientPhone || null,
             client_email: quotation.clientEmail || null,
@@ -641,6 +658,25 @@ async function createQuotation(userId, quotation) {
         .single();
 
     if (error) throw error;
+
+    // 3. TRIGGER GOOGLE SHEET SYNC (Implicitly requested by user)
+    // If SHEETS_API_URL is defined (usually in sheets-api.js)
+    if (typeof SHEETS_API_URL !== 'undefined') {
+        fetch(SHEETS_API_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Basic Apps Script support
+            body: JSON.stringify({
+                action: 'saveQuotation',
+                quotation: {
+                    serial_no_2: serialNo2,
+                    client_name: quotation.clientName,
+                    patient_name: quotation.patientName,
+                    amount: quotation.amount
+                }
+            })
+        }).catch(err => console.warn('Silent Google Sheet sync failed:', err));
+    }
+
     return data;
 }
 

@@ -20,7 +20,7 @@
 // 4. Click Deploy → New deployment → Web app
 // 5. Copy the Web App URL here
 //
-const SHEETS_API_URL = 'https://script.google.com/a/macros/digitalnextworld.com/s/AKfycbyMn3uNzpwCuG54AeV9MTnGBYR2hkD-3ilgkONMGXgzQGcUBvlEfKPQgNBgy8I5e-vd/exec';
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxBTyKy6QlpO2Mc6xQLPUio0oF4pX-y3a7o94ncUqRzYoYuM8fpKrIPDA0EVC6hXlTN7Q/exec';
 // Example: 'https://script.google.com/macros/s/AKfycbw.../exec'
 
 // ========================================

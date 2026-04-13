@@ -505,6 +505,10 @@ function doGet(e) {
         result = getAllLeads();
         break;
         
+      case 'getQuotationBySerial':
+        result = getQuotationBySerial(e.parameter.serialNo2);
+        break;
+        
       default:
         result = {success: false, error: 'Invalid action: ' + action};
     }
@@ -552,6 +556,10 @@ function doPost(e) {
         result = saveLead(data.userId, data.lead);
         break;
         
+      case 'saveQuotation':
+        result = saveQuotation(data.quotation);
+        break;
+        
       case 'deleteLead':
         result = deleteLead(data.userId, data.leadId);
         break;
@@ -572,5 +580,89 @@ function doPost(e) {
     return ContentService
       .createTextOutput(JSON.stringify({success: false, error: error.message}))
       .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ========================================
+// QUOTATIONS MANAGEMENT
+// ========================================
+
+/**
+ * Get the dedicated Quotations sheet (creates if missing)
+ */
+function getQuotationsSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Quotations');
+  
+  if (!sheet) {
+    sheet = ss.insertSheet('Quotations');
+    // Set Headers at AA1:AF1 (AA=27)
+    sheet.getRange(1, 27, 1, 6).setValues([['quo_id', 'serial_no_2', 'client_name', 'patient_name', 'amount', 'date_created']]);
+    sheet.getRange(1, 27, 1, 6).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  }
+  
+  return sheet;
+}
+
+/**
+ * Save a new quotation request to the sheet
+ */
+function saveQuotation(data) {
+  try {
+    const sheet = getQuotationsSheet();
+    const lastRow = sheet.getLastRow();
+    const newRow = lastRow + 1;
+    
+    // Auto-generate quo_id if not provided (e.g. QUO-1001)
+    const quoId = data.quo_id || ('QUO-' + (1000 + newRow));
+    const now = new Date();
+    
+    // Set Values starting from Column 27 (AA)
+    // [quo_id, serial_no_2, client_name, patient_name, amount, date_created]
+    sheet.getRange(newRow, 27, 1, 6).setValues([[
+      quoId,
+      data.serial_no_2 || '',
+      data.client_name || '',
+      data.patient_name || '',
+      data.amount || '',
+      now.toISOString().split('T')[0]
+    ]]);
+    
+    return { success: true, quo_id: quoId, message: 'Quotation saved to sheet' };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Find Quotation ID by Serial No. 2
+ */
+function getQuotationBySerial(serialNo2) {
+  try {
+    if (!serialNo2) return { success: false, error: 'No Serial No. 2 provided' };
+    
+    const sheet = getQuotationsSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    // Skip header, search Column AB (index 27 since 0-indexed)
+    // Column AA is index 26, Column AB is index 27
+    for (let i = 1; i < data.length; i++) {
+        if (data[i][27] && data[i][27].toString() === serialNo2.toString()) {
+            return {
+                success: true,
+                quo_id: data[i][26], // Column AA
+                details: {
+                    client_name: data[i][28],
+                    patient_name: data[i][29],
+                    amount: data[i][30]
+                }
+            };
+        }
+    }
+    
+    return { success: false, error: 'Quotation not found for Serial No. 2: ' + serialNo2 };
+  } catch (error) {
+    return { success: false, error: error.message };
   }
 }
