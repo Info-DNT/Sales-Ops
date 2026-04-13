@@ -324,20 +324,47 @@ function saveQuotation(data) {
   } catch (error) { return { success: false, error: error.message }; }
 }
 
+/**
+ * v8.0 - Self-Healing: Find Quotation ID by searching neighbors if row is split
+ */
 function getQuotationBySerial(serialNo2) {
   try {
     if (!serialNo2) return { success: false, error: 'No Serial No provided' };
     const sheet = getQuotationsSheet();
     const data = sheet.getDataRange().getValues();
     const searchVal = serialNo2.toString().trim();
+    
+    // Pass 1: Find the row with the Serial No
     for (let i = 1; i < data.length; i++) {
         for (let j = 0; j < data[i].length; j++) {
             if (data[i][j] && data[i][j].toString().trim() === searchVal) {
-                if (data[i][0]) return { success: true, quo_id: data[i][0], found_at_row: i + 1, version: 'v6.0' };
+                
+                // If Column A (Quote ID) is on THIS row, return it
+                if (data[i][0]) {
+                    return { success: true, quo_id: data[i][0], found_at_row: i + 1, mode: 'Exact' };
+                }
+                
+                // SELF-HEALING: If Column A is empty, look at neighbors (+/- 5 rows)
+                // This handles cases where Zoho created a new row right above or below
+                const start = Math.max(1, i - 5);
+                const end = Math.min(data.length - 1, i + 5);
+                
+                for (let n = start; n <= end; n++) {
+                    if (data[n][0]) {
+                        return { 
+                          success: true, 
+                          quo_id: data[n][0], 
+                          found_at_row: n + 1, 
+                          serial_row: i + 1,
+                          mode: 'Self-Healed',
+                          version: 'v8.0'
+                        };
+                    }
+                }
             }
         }
     }
-    return { success: false, error: 'Quotation ID not found for: ' + searchVal };
+    return { success: false, error: 'Quotation ID not found nearby for Serial: ' + searchVal };
   } catch (error) { return { success: false, error: error.message }; }
 }
 
@@ -357,7 +384,7 @@ function doGet(e) {
 
   try {
     switch(action) {
-      case 'version': result = { success: true, version: 'v7.0 - Persistent', sheet_name: getQuotationsSheet().getName() }; break;
+      case 'version': result = { success: true, version: 'v8.0 - Self-Healing', sheet_name: getQuotationsSheet().getName() }; break;
       case 'getUserDetails': result = getUserDetails(e.parameter.userId); break;
       case 'getWorkReports': result = getWorkReports(e.parameter.userId); break;
       case 'getLeads': result = getLeads(e.parameter.userId); break;
