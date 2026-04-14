@@ -1330,7 +1330,9 @@
                 iframe.src = `https://zfrmz.in/KYafI4HZrgOZRwy4zKaU?CRM_ID=${leadId}&SERIAL_NO=${serialNo2}`;
             }
 
-            // SECURE PROXY LOGGING - Bypasses Browser CORS & Adblockers
+            // SECURE PROXY LOGGING - DISABLED (Turned off Scenario No 2)
+            // System will no longer create a separate entry in Google Sheets.
+            /*
             if (serialNo2) {
                 console.log('Logging quotation request via secure proxy...', serialNo2);
                 fetch('/.netlify/functions/google-sheet-log', {
@@ -1339,6 +1341,7 @@
                     body: JSON.stringify({ serialNo2: serialNo2, name: name || 'Admin Request' })
                 }).catch(err => console.error('Proxy logging error:', err));
             }
+            */
         }
 
         loadLeads()
