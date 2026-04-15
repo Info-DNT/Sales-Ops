@@ -676,9 +676,7 @@
                                 <span class="lead-detail-label"><i class="fas fa-fingerprint me-1"></i>Quotation ID</span>
                                 <div class="lead-detail-value d-flex align-items-center gap-2">
                                     <span class="fw-bold text-primary" id="quo-id-${lead.id}">${lead.quotation_id || '--'}</span>
-                                    <button class="btn btn-xs btn-link p-0 text-primary" onclick="event.stopPropagation(); syncQuotationId('${lead.id}', '${lead.contact}', '${lead.serial_no_2}', '${lead.zoho_lead_id}')" title="Sync from Sheets">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>
+                                    <!-- Google Sheet Sync button removed - Using external CRM sync system -->
                                     ${lead.quotation_id ? `
                                     <button class="btn btn-xs btn-link p-0 text-success" onclick="event.stopPropagation(); checkAndDownloadFile('${lead.id}', 'quotation')" title="Download PDF">
                                         <i class="fas fa-file-download"></i>
@@ -1153,50 +1151,10 @@
                 .subscribe()
         }
 
-        // ── Quotation ID Sync Functions ──
-        async function syncQuotationId(leadId, phone, serialNo2, zohoLeadId) {
-            const el = document.getElementById(`quo-id-${leadId}`);
-            const originalText = el.textContent;
-            el.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-            
-            try {
-                const response = await fetch('/.netlify/functions/google-sheet-sync', {
-                    method: 'POST',
-                    body: JSON.stringify({ 
-                        phone, 
-                        id: leadId, 
-                        serialNo2: serialNo2,
-                        zohoLeadId: zohoLeadId 
-                    })
-                });
-                const data = await response.json();
-                
-                if (data.quo_id) {
-                    // Update database
-                    const { error } = await initSupabase()
-                        .from('leads')
-                        .update({ quotation_id: data.quo_id })
-                        .eq('id', leadId);
-                        
-                    if (error) throw error;
-                    
-                    el.textContent = data.quo_id;
-                    showToast('Quotation ID synced successfully!', 'success');
-                    
-                    // Refresh local data
-                    const lead = allLeads.find(l => l.id === leadId);
-                    if (lead) lead.quotation_id = data.quo_id;
-                    displayLeads();
-                } else {
-                    el.textContent = originalText;
-                    showToast(data.error || 'No matching quotation found.', 'warning');
-                }
-            } catch (err) {
-                console.error('Sync error:', err);
-                el.textContent = originalText;
-                showToast('Failed to sync. Please check your connection.', 'error');
-            }
-        }
+        // ── Google Sheet Sync Disabled ──
+        // syncQuotationId (Google Sheet) has been disabled.
+        // Quotation ID is now synced automatically via CRM webhook (crm-receiver.js).
+        // async function syncQuotationId(leadId, phone, serialNo2, zohoLeadId) { ... }
 
         function prepareQuotationModal(leadId, name, serialNo2) {
             const iframe = document.querySelector('#quotationModal iframe');
