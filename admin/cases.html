@@ -589,7 +589,10 @@
                     <div class="lead-header">
                         <div class="lead-title">
                             <h6 class="mb-0">
-                                <span class="text-primary small me-1" id="quo-id-${c.id}">#${c.quotation_id || c.case_number}</span> 
+                                ${c.quotation_id 
+                                    ? `<span class="text-primary small me-1" id="quo-id-${c.id}">#${c.quotation_id}</span>`
+                                    : `<span class="text-muted small me-1" id="quo-id-${c.id}"><i class="fas fa-clock" style="font-size:0.65rem;"></i> Quo Pending</span>`
+                                } 
                                 ${c.title}
                                 ${c.lead_id ? '<span class="converted-case-badge ms-1"><i class="fas fa-exchange-alt"></i> Converted</span>' : ''}
                             </h6>
@@ -601,12 +604,22 @@
                     <div class="lead-details mt-3">
                         <div class="lead-detail-item">
                             <span class="lead-detail-label"><i class="fas fa-phone me-1 text-muted"></i>Phone</span>
-                            <span class="lead-detail-value detail-phone-${c.id}">...</span>
+                            <span class="lead-detail-value detail-phone-${c.id}">${c.contact || '...'}</span>
                         </div>
                         <div class="lead-detail-item">
                             <span class="lead-detail-label"><i class="fas fa-envelope me-1 text-muted"></i>Email</span>
-                            <span class="lead-detail-value detail-email-${c.id}">...</span>
+                            <span class="lead-detail-value detail-email-${c.id}">${c.email || '...'}</span>
                         </div>
+                        ${c.patient_name ? `
+                        <div class="lead-detail-item">
+                            <span class="lead-detail-label"><i class="fas fa-hospital-user me-1 text-muted"></i>Patient</span>
+                            <span class="lead-detail-value">${c.patient_name}</span>
+                        </div>` : ''}
+                        ${(c.source_location || c.destination_location) ? `
+                        <div class="lead-detail-item">
+                            <span class="lead-detail-label"><i class="fas fa-route me-1 text-muted"></i>Route</span>
+                            <span class="lead-detail-value">${c.source_location || '?'} → ${c.destination_location || '?'}</span>
+                        </div>` : ''}
                         <div class="mt-3 d-flex gap-2 flex-wrap align-items-center">
                         <div class="dropdown" onclick="event.stopPropagation()">
                              <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">

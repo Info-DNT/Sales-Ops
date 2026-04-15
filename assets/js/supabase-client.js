@@ -1649,7 +1649,7 @@ async function convertLeadToCase(leadId, userId) {
 
     if (leadError) throw leadError;
 
-    // 2. Build a rich description from all lead fields
+    // 2. Build a rich description from all lead fields (kept for backward compatibility)
     const descParts = [];
     if (lead.patient_name) descParts.push(`Patient: ${lead.patient_name}`);
     if (lead.client_relation) descParts.push(`Client Relation: ${lead.client_relation}`);
@@ -1662,18 +1662,35 @@ async function convertLeadToCase(leadId, userId) {
     if (lead.expected_close) descParts.push(`Expected Close: ${lead.expected_close}`);
     const description = descParts.join(' | ');
 
-    // 3. Create the case
+    // 3. Create the case — transfer ALL lead fields
     const caseNumber = 'CASE-' + Date.now().toString().slice(-6);
     const { data: newCase, error: caseError } = await client
         .from('cases')
         .insert({
-            case_number: caseNumber,
-            title: lead.name,
-            description: description,
-            lead_id: leadId,
-            user_id: lead.user_id,
-            status: 'In Progress',
-            priority: 'High'
+            // Core fields
+            case_number:          caseNumber,
+            title:                lead.name,
+            description:          description,
+            lead_id:              leadId,
+            user_id:              lead.user_id,
+            status:               'In Progress',
+            priority:             'High',
+            // ── Lead fields transferred at conversion ──
+            quotation_id:         lead.quotation_id         || null,
+            contact:              lead.contact              || null,
+            email:                lead.email                || null,
+            patient_name:         lead.patient_name         || null,
+            client_relation:      lead.client_relation      || null,
+            source_location:      lead.source_location      || null,
+            destination_location: lead.destination_location || null,
+            zoho_lead_id:         lead.zoho_lead_id         || null,
+            serial_no_1:          lead.serial_no_1          || null,
+            serial_no_2:          lead.serial_no_2          || null,
+            field:                lead.field                || null,
+            lead_source:          lead.lead_source          || null,
+            follow_up_date:       lead.follow_up_date       || null,
+            expected_close:       lead.expected_close       || null,
+            next_action:          lead.next_action          || null
         })
         .select()
         .single();

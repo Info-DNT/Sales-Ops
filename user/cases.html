@@ -692,7 +692,10 @@
                     <div class="lead-header">
                         <div class="lead-title">
                             <h6 class="mb-0">
-                                <span class="text-primary small me-1" id="quo-id-${c.id}">#${c.quotation_id || c.case_number}</span>
+                                ${c.quotation_id 
+                                    ? `<span class="text-primary small me-1" id="quo-id-${c.id}">#${c.quotation_id}</span>`
+                                    : `<span class="text-muted small me-1" id="quo-id-${c.id}"><i class="fas fa-clock" style="font-size:0.65rem;"></i> Quo Pending</span>`
+                                }
                                 ${c.title}
                                 ${isConverted(c) ? '<span class="converted-case-badge ms-1"><i class="fas fa-exchange-alt"></i> Converted</span>' : ''}
                             </h6>
@@ -708,6 +711,21 @@
                             <span class="lead-detail-label"><i class="fas fa-user me-1"></i>Client</span>
                             <span class="lead-detail-value">${c.title}</span>
                         </div>
+                        ${c.contact ? `
+                        <div class="lead-detail-item">
+                            <span class="lead-detail-label"><i class="fas fa-phone me-1"></i>Phone</span>
+                            <span class="lead-detail-value">${c.contact}</span>
+                        </div>` : ''}
+                        ${c.patient_name ? `
+                        <div class="lead-detail-item">
+                            <span class="lead-detail-label"><i class="fas fa-hospital-user me-1"></i>Patient</span>
+                            <span class="lead-detail-value">${c.patient_name}</span>
+                        </div>` : ''}
+                        ${(c.source_location || c.destination_location) ? `
+                        <div class="lead-detail-item">
+                            <span class="lead-detail-label"><i class="fas fa-route me-1"></i>Route</span>
+                            <span class="lead-detail-value">${c.source_location || '?'} → ${c.destination_location || '?'}</span>
+                        </div>` : ''}
                         ${c.description ? `
                         <div class="lead-detail-item">
                             <span class="lead-detail-label"><i class="fas fa-info-circle me-1"></i>Notes</span>
