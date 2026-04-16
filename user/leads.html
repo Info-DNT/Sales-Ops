@@ -678,7 +678,7 @@
                                     <span class="fw-bold text-primary" id="quo-id-${lead.id}">${lead.quotation_id || '--'}</span>
                                     <!-- Google Sheet Sync button removed - Using external CRM sync system -->
                                     ${lead.quotation_id ? `
-                                    <button class="btn btn-xs btn-link p-0 text-success" onclick="event.stopPropagation(); checkAndDownloadFile('${lead.id}', 'quotation')" title="Download PDF">
+                                    <button class="btn btn-xs btn-link p-0 text-success" onclick="event.stopPropagation(); downloadQuotationFromDrive('${lead.quotation_id}', this)" title="Download PDF">
                                         <i class="fas fa-file-download"></i>
                                     </button>
                                     ` : ''}
@@ -1197,6 +1197,40 @@
             } catch (err) {
                 console.error('Download error:', err);
                 showToast('Error retrieving file.', 'error');
+            }
+        }
+
+        async function downloadQuotationFromDrive(quotationId, btnEl) {
+            if (!quotationId || quotationId === 'undefined' || quotationId === 'null') {
+                showToast('No Quotation ID available for this lead.', 'warning');
+                return;
+            }
+
+            const originalHtml = btnEl.innerHTML;
+            btnEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btnEl.classList.add('disabled');
+
+            try {
+                const response = await fetch('/.netlify/functions/drive-fetch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quotationId: quotationId })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.downloadUrl) {
+                    window.open(data.downloadUrl, '_blank');
+                    showToast('Opening quotation PDF...', 'success');
+                } else {
+                    showToast(data.error || 'Quotation PDF not found in Drive.', 'warning');
+                }
+            } catch (err) {
+                console.error('Drive fetch error:', err);
+                showToast('Error connecting to Drive system.', 'error');
+            } finally {
+                btnEl.innerHTML = originalHtml;
+                btnEl.classList.remove('disabled');
             }
         }
 
