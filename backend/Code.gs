@@ -403,6 +403,37 @@ function getQuotationBySerial(serialNo2) {
   } catch (error) { return { success: false, error: error.message }; }
 }
 
+/**
+ * Log new signup request
+ */
+function saveSignupLog(data) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('SIGNUP_LOGS');
+    
+    // Create sheet if missing
+    if (!sheet) {
+      sheet = ss.insertSheet('SIGNUP_LOGS');
+      sheet.appendRow(['Timestamp', 'Name', 'Phone', 'Email', 'Designation']);
+      sheet.getRange(1, 1, 1, 5).setFontWeight('bold').setBackground('#f3f4f6');
+      sheet.setFrozenRows(1);
+    }
+    
+    const timestamp = new Date();
+    sheet.appendRow([
+      timestamp,
+      data.name || '',
+      data.phone || '',
+      data.email || '',
+      data.designation || ''
+    ]);
+    
+    return { success: true, message: 'Signup request logged to sheet' };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
 // ========================================
 // HTTP HANDLERS (Web App Endpoints)
 // ========================================
@@ -413,13 +444,13 @@ function doGet(e) {
   let result;
   
   // Security Handshake
-  if (action === 'saveQuotation' && token !== API_TOKEN) {
+  if ((action === 'saveQuotation' || action === 'saveSignup') && token !== API_TOKEN) {
     return ContentService.createTextOutput(JSON.stringify({success:false, error:'Unauthorized'})).setMimeType(ContentService.MimeType.JSON);
   }
 
   try {
     switch(action) {
-      case 'version': result = { success: true, version: 'v10.0 - Precision Match', sheet_name: getQuotationsSheet().getName() }; break;
+      case 'version': result = { success: true, version: 'v10.1 - Signup Support', sheet_name: getQuotationsSheet().getName() }; break;
       case 'getUserDetails': result = getUserDetails(e.parameter.userId); break;
       case 'getWorkReports': result = getWorkReports(e.parameter.userId); break;
       case 'getLeads': result = getLeads(e.parameter.userId); break;
@@ -427,6 +458,14 @@ function doGet(e) {
       case 'getAllLeads': result = getAllLeads(); break;
       case 'getQuotationBySerial': result = getQuotationBySerial(e.parameter.serialNo2); break;
       case 'saveQuotation': result = saveQuotation({ serial_no_2: e.parameter.serialNo2, name: e.parameter.name }); break;
+      case 'saveSignup': 
+        result = saveSignupLog({ 
+          name: e.parameter.name, 
+          phone: e.parameter.phone, 
+          email: e.parameter.email, 
+          designation: e.parameter.designation 
+        }); 
+        break;
       case 'test': result = {success: true, message: 'Apps Script live'}; break;
       default: result = {success: false, error: 'Invalid action: ' + action};
     }
@@ -447,6 +486,7 @@ function doPost(e) {
       case 'clockOut': result = clockOut(data.userId, data.date, data.time); break;
       case 'saveLead': result = saveLead(data.userId, data.lead); break;
       case 'saveQuotation': result = saveQuotation(data.quotation); break;
+      case 'saveSignup': result = saveSignupLog(data.signup); break;
       case 'deleteLead': result = deleteLead(data.userId, data.leadId); break;
       case 'createUser': result = createNewUser(data.name, data.email, data.contact, data.designation, data.password); break;
       default: result = {success: false, error: 'Invalid action: ' + action};

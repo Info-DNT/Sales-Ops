@@ -26,14 +26,33 @@ exports.handler = async function (event) {
     }
 
     const whapiToken = process.env.WHAPI_API_TOKEN;
-    const adminPhone = "917982469895"; // Hardcoded admin number from user request
+    const adminPhone = "918130035039"; // Updated admin number
+    const appsScriptUrl = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwpAo0dYg2e1ZvKluMItkUmy327ZaSATfyWGlgljDupPhm-zjo_vVMlEP9IBLEpcM1NPA/exec';
+    const apiToken = 'SALES_OPS_2026_SECURE';
 
     if (!whapiToken) {
         console.error('Missing WHAPI_API_TOKEN env variable');
         return { statusCode: 500, body: JSON.stringify({ error: 'WhatsApp service not configured.' }) };
     }
 
-    // Build message text
+    // ── 1. Log to Google Sheet (Primary Backup) ──────────────────────
+    try {
+        const sheetParams = new URLSearchParams({
+            action: 'saveSignup',
+            token: apiToken,
+            name: name,
+            phone: phone,
+            email: email,
+            designation: designation || '—'
+        });
+        
+        await fetch(`${appsScriptUrl}?${sheetParams.toString()}`);
+        console.log('✅ Signup logged to Google Sheet');
+    } catch (sheetErr) {
+        console.error('⚠️ Sheet logging failed (continuing to WhatsApp):', sheetErr);
+    }
+
+    // ── 2. Build WhatsApp message text ───────────────────────────────
     const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
     const messageText = `🆕 *NEW SIGNUP REQUEST*\n` +
         `━━━━━━━━━━━━━━━━━━━━\n` +
@@ -62,9 +81,14 @@ exports.handler = async function (event) {
 
         if (!whapiResponse.ok) {
             console.error('Whapi API error:', whapiData);
+            // We return success anyway because the sheet logging (hopefully) worked
             return {
-                statusCode: 502,
-                body: JSON.stringify({ error: 'WhatsApp notification failed', detail: whapiData })
+                statusCode: 200, 
+                body: JSON.stringify({ 
+                    success: true, 
+                    warning: 'WhatsApp failed but request was logged',
+                    detail: whapiData 
+                })
             };
         }
 

@@ -80,7 +80,7 @@
                     return
                 }
 
-                // Get leads and quotation counts for each user
+                // Get stats for each user
                 const leadsData = await getAllLeadsAdmin()
                 const quotationsData = await getAllQuotationsAdmin()
                 const attendanceData = await getAllAttendanceAdmin()
@@ -88,58 +88,55 @@
                 // Count per user
                 const userStats = {}
                 users.forEach(user => {
-                    userStats[user.id] = {
-                        leads: 0,
-                        quotations: 0,
-                        attendance: 0
-                    }
+                    userStats[user.id] = { leads: 0, quotations: 0, attendance: 0 }
                 })
 
                 leadsData.forEach(lead => {
-                    if (userStats[lead.user_id]) {
-                        userStats[lead.user_id].leads++
-                    }
+                    if (userStats[lead.user_id]) userStats[lead.user_id].leads++
                 })
 
                 quotationsData.forEach(q => {
-                    if (userStats[q.user_id]) {
-                        userStats[q.user_id].quotations++
-                    }
+                    if (userStats[q.user_id]) userStats[q.user_id].quotations++
                 })
 
                 attendanceData.forEach(a => {
-                    if (userStats[a.user_id]) {
-                        userStats[a.user_id].attendance++
-                    }
+                    if (userStats[a.user_id]) userStats[a.user_id].attendance++
                 })
 
-                usersList.innerHTML = users.map(user => `
+                usersList.innerHTML = users.map(user => {
+                    // Intelligent data mapping: Prioritize user_details join data if it exists
+                    const details = user.user_details?.[0] || {};
+                    const displayName = details.name || user.name || '<span class="text-danger">Name not set</span>';
+                    const displayDesignation = details.designation || user.designation || 'Staff';
+
+                    return `
                     <div class="user-info-card mb-3">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6>${user.name || '<span class="text-danger italic">Name not set</span>'}</h6>
-                                <p class="text-muted small mb-1">${user.email}</p>
+                                <h6 class="mb-1">${displayName}</h6>
+                                <p class="text-muted small mb-0">${user.email}</p>
+                                <p class="text-muted small mb-2"><i>${displayDesignation}</i></p>
                                 <span class="badge ${user.role === 'admin' ? 'bg-danger' : 'bg-primary'}">${user.role}</span>
                             </div>
                             <small class="text-muted">Joined: ${new Date(user.created_at).toLocaleDateString()}</small>
                         </div>
-                        <hr>
-                        <div class="row text-center">
+                        <hr class="my-2">
+                        <div class="row text-center mt-2">
                             <div class="col-4">
-                                <strong>${userStats[user.id]?.leads || 0}</strong>
+                                <h6 class="mb-0">${userStats[user.id]?.leads || 0}</h6>
                                 <p class="small text-muted mb-0">Leads</p>
                             </div>
-                            <div class="col-4 d-none-quotation">
-                                <strong>${userStats[user.id]?.quotations || 0}</strong>
-                                <p class="small text-muted mb-0">Quotations</p>
+                            <div class="col-4">
+                                <h6 class="mb-0">${userStats[user.id]?.quotations || 0}</h6>
+                                <p class="small text-muted mb-0">Quotes</p>
                             </div>
                             <div class="col-4">
-                                <strong>${userStats[user.id]?.attendance || 0}</strong>
+                                <h6 class="mb-0">${userStats[user.id]?.attendance || 0}</h6>
                                 <p class="small text-muted mb-0">Attendance</p>
                             </div>
                         </div>
                     </div>
-                `).join('')
+                `}).join('')
 
             } catch (error) {
                 console.error('Error loading users:', error)

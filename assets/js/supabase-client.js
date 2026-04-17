@@ -811,9 +811,18 @@ async function clockOut(userId) {
 async function getAllUsers() {
     const client = initSupabase();
 
+    // Fetch users AND their profile details in a single join
     const { data, error } = await client
         .from('users')
-        .select('*')
+        .select(`
+            *,
+            user_details (
+                name,
+                designation,
+                contact,
+                email
+            )
+        `)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
