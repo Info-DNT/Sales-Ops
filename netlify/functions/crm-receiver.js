@@ -128,10 +128,13 @@ exports.handler = async (event) => {
             serial_no_1:    payload.Serial_No_1 || payload['Serial No. 1'] || payload.SerialNo1 || null
         };
 
-        // ─── Generate Serial No. 2 if it doesn't exist ──────────────
-        // For existing leads, check if it already has one. For new, generate.
-        let serialNo2 = null;
-        if (isUpdate) {
+        // ─── Resolve Serial No. 2 ──────────────
+        // Priority 1: From Zoho Payload
+        // Priority 2: Existing value in database
+        // Priority 3: Generate new
+        let serialNo2 = payload.Serial_No_2 || payload['Serial No. 2'] || payload.serial_no_2 || payload.SerialNo2 || null;
+
+        if (!serialNo2 && isUpdate) {
             const { data: currentLead } = await supabase
                 .from('leads')
                 .select('serial_no_2')
@@ -143,9 +146,11 @@ exports.handler = async (event) => {
         if (!serialNo2) {
             // Generate a random 6-digit number
             serialNo2 = String(Math.floor(100000 + Math.random() * 900000));
-            leadData.serial_no_2 = serialNo2;
             console.log(`Generated new Serial No. 2: ${serialNo2}`);
         }
+        
+        // Add to lead data
+        leadData.serial_no_2 = serialNo2;
 
         // ─── Execute DB operation ────────────────────────────────────
         let data, error;

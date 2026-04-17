@@ -62,9 +62,9 @@ function generateUserNav(currentPage) {
         { page: 'cases', icon: 'fa-briefcase', label: 'Cases' },
         { page: 'calls', icon: 'fa-phone', label: 'Calls' },
         { page: 'meetings', icon: 'fa-video', label: 'Meetings' },
-        { page: 'expenses', icon: 'fa-receipt', label: 'Expenses' }
       ]
     },
+    { page: 'manual', icon: 'fa-book-open', label: 'User Manual' },
     { page: 'settings', icon: 'fa-cog', label: 'Settings' }
   ]
 
@@ -149,6 +149,7 @@ function generateAdminNav(currentPage) {
     },
     { page: 'quotations', icon: 'fa-file-invoice-dollar', label: 'Quotations' },
     { page: 'reports', icon: 'fa-chart-line', label: 'Reports' },
+    { page: 'manual', icon: 'fa-book-open', label: 'User Manual' },
     { page: 'settings', icon: 'fa-cog', label: 'Settings' }
   ]
 

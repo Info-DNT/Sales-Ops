@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Manual - AirMedical 24X7</title>
+    <link rel="icon" href="../assets/logo.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .manual-section {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+        }
+        .manual-h {
+            color: #1e293b;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        .manual-h i {
+            margin-right: 10px;
+            color: #4f46e5;
+            width: 24px;
+            text-align: center;
+        }
+        .manual-sub-h {
+            color: #334155;
+            font-weight: 600;
+            margin-top: 1.2rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        .manual-content ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .manual-content li {
+            margin-bottom: 0.4rem;
+            color: #475569;
+        }
+        .manual-content p {
+            color: #475569;
+            line-height: 1.6;
+        }
+        .highlight-box {
+            background-color: #f8fafc;
+            border-left: 4px solid #4f46e5;
+            padding: 1rem;
+            border-radius: 0 4px 4px 0;
+            margin: 1rem 0;
+        }
+        .alert-box {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 0 4px 4px 0;
+            margin: 1rem 0;
+        }
+        .step-list {
+            counter-reset: manual-counter;
+            list-style: none;
+            padding-left: 0;
+        }
+        .step-list li {
+            position: relative;
+            padding-left: 2.5rem;
+            margin-bottom: 0.8rem;
+        }
+        .step-list li::before {
+            counter-increment: manual-counter;
+            content: counter(manual-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #e0e7ff;
+            color: #4f46e5;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Sidebar will be inserted here -->
+
+        <div class="main-content">
+            <div class="page-header">
+                <h2><i class="fas fa-book-open me-2"></i>User Manual</h2>
+                <p class="text-muted">Comprehensive guide to using the AirMedical 24X7 Portal</p>
+            </div>
+
+            <div class="content-card bg-transparent border-0 shadow-none p-0">
+                <!-- 1. Authentication -->
+                <div class="manual-section">
+                    <h4 class="manual-h"><i class="fas fa-user-shield"></i>1. Authentication & Profile Management</h4>
+                    <div class="manual-content">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="manual-sub-h">1.1 Logging In</h5>
+                                <p>Navigate to the portal URL provided by your administrator. Enter your registered company email address and password. If you have forgotten your password or are a first-time user, contact your system administrator to issue a secure login credential.</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="manual-sub-h">1.2 User Details & Profile Setup</h5>
+                                <p>Once logged in, it is highly recommended to visit the <strong>User Details</strong> page from the left-hand navigation menu.</p>
+                                <ul>
+                                    <li><strong>Your Information:</strong> Ensure your Full Name, Contact Number, and Email are accurate. This information is utilized when assigning leads.</li>
+                                    <li><strong>Password Management:</strong> You can securely change your password from this screen. Regular password updates are encouraged for security purposes.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Dashboard -->
+                <div class="manual-section">
+                    <h4 class="manual-h"><i class="fas fa-chart-line"></i>2. Dashboard Interface</h4>
+                    <div class="manual-content">
+                        <p>The <strong>Home</strong> tab serves as your daily command center. Whenever you log in, this is the first screen you will see.</p>
+                        <ul>
+                            <li><strong>Analytical Widgets (KPI Tracker):</strong> At the top of the dashboard, you will find vital statistics updating in real-time. This includes your Total Leads, Converted Cases, Scheduled Meetings, and Total Expenses submitted.</li>
+                            <li><strong>Recent Activity Feed:</strong> This section provides a localized audit trail of your most recent actions (e.g., "Updated Lead Status," "Uploaded Expense Receipt"). Use this to quickly recap where you left off during your last session.</li>
+                            <li><strong>Navigation Menu:</strong> The left-side vertical menu provides quick access to every module in the system. The active module will always be highlighted in a distinct color.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 3. Attendance -->
+                <div class="manual-section">
+                    <h4 class="manual-h"><i class="fas fa-clock"></i>3. Attendance Module</h4>
+                    <div class="manual-content">
+                        <div class="highlight-box">
+                            <p class="mb-0"><strong>Note:</strong> Accurate time tracking is mandatory. The Attendance module logs your exact start and end times for the working day.</p>
+                        </div>
+                        <h5 class="manual-sub-h">3.1 Clocking In & Out</h5>
+                        <ul>
+                            <li><strong>Clock In:</strong> At the beginning of your shift, navigate to the Attendance tab and click the <strong>Clock In</strong> button. The system records your timestamp on the secure server.</li>
+                            <li><strong>Clock Out:</strong> At the end of your shift, return to this tab and click <strong>Clock Out</strong>. You cannot clock back in for the same calendar day.</li>
+                        </ul>
+                        <h5 class="manual-sub-h">3.2 Attendance History</h5>
+                        <p>Below the action buttons is your <strong>Attendance History Table</strong>. It displays a chronological list of your workdays including exact Check-in Time, Check-out Time, Total Calculated Hours, and Daily Status.</p>
+                    </div>
+                </div>
+
+                <!-- 4. Leads Management -->
+                <div class="manual-section">
+                    <h4 class="manual-h"><i class="fas fa-users"></i>4. Leads Management</h4>
+                    <div class="manual-content">
+                        <p>The <strong>Leads</strong> tab is the starting point for all prospective business. A "Lead" represents a potential client who has not yet financially committed.</p>
+                        
+                        <h5 class="manual-sub-h">4.1 Creating a New Lead</h5>
+                        <p>Click the <strong>+ Add Lead</strong> button (top right) to open the Lead Creation Form.</p>
+                        <ul>
+                            <li><strong>Client vs. Patient:</strong> Accurately distinguish the "Client" (the person paying or organizing the transport) from the "Patient" (the person needing transport).</li>
+                            <li><strong>Travel Details:</strong> Provide accurate Source and Destination locations, as these are critical for generating flight quotations.</li>
+                            <li><strong>CRM Syncing:</strong> Once you click "Save Lead", the system securely bridges with our corporate Zoho CRM. This generates a unique <strong>Serial No.</strong> for tracking.</li>
+                        </ul>
+
+                        <h5 class="manual-sub-h">4.2 Tracking & Updating Leads</h5>
+                        <ul>
+                            <li><strong>Filtering & Searching:</strong> Use the top bar to search by phone number or filter by specific statuses (New, In Progress, Qualified).</li>
+                            <li><strong>Lead Actions:</strong> Click the "Eye/Details" icon to open the Details panel where you can view a chronological timeline of interactions.</li>
+                        </ul>
+
+                        <h5 class="manual-sub-h">4.3 Converting to a Case</h5>
+                        <p>When a Lead agrees to proceed with an invoice/transport, change their status to <strong>Converted</strong>. This officially locks the lead from generic edits and automatically moves it to the <strong>Cases</strong> tab.</p>
+                    </div>
+                </div>
+
+                <!-- 5. Case & Document Management -->
+                <div class="manual-section border-primary border-2">
+                    <h4 class="manual-h"><i class="fas fa-briefcase medical"></i>5. Case & Document Management (Crucial Workflow)</h4>
+                    <div class="manual-content">
+                        <p>The <strong>Cases</strong> tab operates on a <strong>Strict Sequential Document Workflow</strong>. You manage these steps via the "Documents" dropdown menu on each Case card.</p>
+                        
+                        <div class="alert-box">
+                            <p class="mb-0"><strong><i class="fas fa-exclamation-triangle me-2"></i>Important:</strong> You cannot skip steps. A button will only unlock once the prerequisite step is completed by you and the accounts team.</p>
+                        </div>
+
+                        <ul class="step-list mt-3">
+                            <li><strong>Quotation Phase:</strong> 
+                                Click <em>Request Quotation</em> to alert the pricing team. Once approved, click <em>Download Quotation</em> to fetch the PDF directly from Google Drive to send to your client.
+                            </li>
+                            <li><strong>Proforma Phase:</strong> 
+                                Click <em>Request Proforma</em>. When accounts uploads it, click <em>Download Proforma</em>. <strong>Automatically, clicking download will permanently unlock the Final Invoice options.</strong>
+                            </li>
+                            <li><strong>Final Invoice Phase:</strong> 
+                                Click <em>Request Final Invoice</em>. Once accounts uploads it, click <em>Download Final Invoice</em>. <strong>Automatically, clicking download will permanently unlock the Receipt options.</strong>
+                            </li>
+                            <li><strong>Receipt Phase:</strong> 
+                                Once full payment is secured, request and download the finalized payment Receipt to close the financial loop.
+                            </li>
+                        </ul>
+
+                        <p class="text-danger mt-3 mb-0 small"><i class="fas fa-info-circle me-1"></i>If you click 'Download' before the Accounts team has uploaded the corresponding PDF to the central Google Drive, the system will prevent the download and alert you with: <strong>"Pending request from accounts team."</strong></p>
+                    </div>
+                </div>
+
+                <!-- 6. Daily Activities -->
+                <div class="manual-section">
+                    <h4 class="manual-h"><i class="fas fa-phone-alt"></i>6. Daily Activities: Calls & Meetings</h4>
+                    <div class="manual-content">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="manual-sub-h">6.1 Logging Calls</h5>
+                                <p>Navigate to the <strong>Calls</strong> tab to record phone interactions.</p>
+                                <ul>
+                                    <li>Identify the client and log the duration.</li>
+                                    <li>Summarize the talking points.</li>
+                                    <li>Set a specific "Follow-up Action" to ensure no communication is forgotten.</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="manual-sub-h">6.2 Managing Meetings</h5>
+                                <p>Navigate to the <strong>Meetings</strong> tab to schedule physical or virtual appointments.</p>
+                                <ul>
+                                    <li>Add meeting locations, expected durations, and attendees (e.g., Hospital Administration).</li>
+                                    <li>Use this to organize your upcoming week and review past meeting outcomes.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7 & 8 Expenses and Reports -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="manual-section h-100">
+                            <h4 class="manual-h"><i class="fas fa-wallet"></i>7. Expense Management</h4>
+                            <div class="manual-content">
+                                <p>The <strong>Expenses</strong> tab allows you to submit reimbursement requests for business-related spending.</p>
+                                <ul>
+                                    <li><strong>Adding an Expense:</strong> Click "+ Add Expense" and fill in the exact amount, date, and category.</li>
+                                    <li><strong>Receipt Uploads:</strong> You must attach an image or PDF of the receipt for accounting validation.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="manual-section h-100">
+                            <h4 class="manual-h"><i class="fas fa-file-signature"></i>8. Daily Work Report</h4>
+                            <div class="manual-content">
+                                <p>The <strong>Work Report</strong> tab is your mandatory end-of-day summary submission.</p>
+                                <ul>
+                                    <li>Provide a detailed summary of key tasks accomplished and important client updates.</li>
+                                    <li>List any challenges faced during the day.</li>
+                                    <li>Outline your high-priority goals for the following day.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        // Check authentication
+        if (!initAuthCheck('user')) {
+            window.location.href = '../index.html'
+        }
+
+        // Insert navigation
+        insertNav('user', 'manual')
+    </script>
+</body>
+
+</html>
