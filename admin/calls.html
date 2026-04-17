@@ -325,11 +325,17 @@
         }
 
         // Enable Real-time listener for calls
+        let callsChannel = null;
+
         function setupRealtimeCalls() {
             const client = initSupabase()
             if (!client) return
 
-            client
+            if (callsChannel) {
+                client.removeChannel(callsChannel);
+            }
+
+            callsChannel = client
                 .channel('admin-calls-realtime')
                 .on('postgres_changes', {
                     event: '*',
@@ -344,8 +350,7 @@
                 .subscribe()
         }
 
-        // Initialize
-        loadCalls()
+        // Setup Realtime
         setupRealtimeCalls()
     </script>
 </body>
