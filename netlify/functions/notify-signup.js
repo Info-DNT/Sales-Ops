@@ -27,7 +27,7 @@ exports.handler = async function (event) {
 
     const whapiToken = process.env.WHAPI_API_TOKEN;
     const adminPhone = "918130035039"; // Updated admin number
-    const appsScriptUrl = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwpAo0dYg2e1ZvKluMItkUmy327ZaSATfyWGlgljDupPhm-zjo_vVMlEP9IBLEpcM1NPA/exec';
+    const appsScriptUrl = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbzp45h1TXpF-yX3QYarHnHgxCx25-nHOUxrrxkRqyM4hlS2xUaFjVVQ7e97hZQVdIko/exec';
     const apiToken = 'SALES_OPS_2026_SECURE';
 
     if (!whapiToken) {
