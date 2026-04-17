@@ -84,11 +84,12 @@
                 const leadsData = await getAllLeadsAdmin()
                 const quotationsData = await getAllQuotationsAdmin()
                 const attendanceData = await getAllAttendanceAdmin()
+                const expensesData = await getAllExpensesAdmin()
 
                 // Count per user
                 const userStats = {}
                 users.forEach(user => {
-                    userStats[user.id] = { leads: 0, quotations: 0, attendance: 0 }
+                    userStats[user.id] = { leads: 0, quotations: 0, attendance: 0, expenses: 0 }
                 })
 
                 leadsData.forEach(lead => {
@@ -101,6 +102,10 @@
 
                 attendanceData.forEach(a => {
                     if (userStats[a.user_id]) userStats[a.user_id].attendance++
+                })
+
+                expensesData.forEach(e => {
+                    if (userStats[e.user_id]) userStats[e.user_id].expenses++
                 })
 
                 usersList.innerHTML = users.map(user => {
@@ -122,17 +127,21 @@
                         </div>
                         <hr class="my-2">
                         <div class="row text-center mt-2">
-                            <div class="col-4">
+                            <div class="col-3">
                                 <h6 class="mb-0">${userStats[user.id]?.leads || 0}</h6>
                                 <p class="small text-muted mb-0">Leads</p>
                             </div>
-                            <div class="col-4">
+                            <div class="col-3">
                                 <h6 class="mb-0">${userStats[user.id]?.quotations || 0}</h6>
                                 <p class="small text-muted mb-0">Quotes</p>
                             </div>
-                            <div class="col-4">
+                            <div class="col-3">
                                 <h6 class="mb-0">${userStats[user.id]?.attendance || 0}</h6>
-                                <p class="small text-muted mb-0">Attendance</p>
+                                <p class="small text-muted mb-0">Attend.</p>
+                            </div>
+                            <div class="col-3">
+                                <h6 class="mb-0">${userStats[user.id]?.expenses || 0}</h6>
+                                <p class="small text-muted mb-0">Exp.</p>
                             </div>
                         </div>
                     </div>

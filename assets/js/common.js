@@ -62,6 +62,7 @@ function generateUserNav(currentPage) {
         { page: 'cases', icon: 'fa-briefcase', label: 'Cases' },
         { page: 'calls', icon: 'fa-phone', label: 'Calls' },
         { page: 'meetings', icon: 'fa-video', label: 'Meetings' },
+        { page: 'expenses', icon: 'fa-receipt', label: 'Expenses' }
       ]
     },
     { page: 'manual', icon: 'fa-book-open', label: 'User Manual' },
