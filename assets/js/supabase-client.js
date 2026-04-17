@@ -197,6 +197,7 @@ async function getUserDetails(userId) {
 async function saveUserDetails(userId, details) {
     const client = initSupabase();
 
+    // 1. Update/Upsert the extended profile
     const { data, error } = await client
         .from('user_details')
         .upsert({
@@ -213,6 +214,18 @@ async function saveUserDetails(userId, details) {
         .single();
 
     if (error) throw error;
+
+    // 2. Sync core fields back to the primary 'users' table 
+    // This ensures names show up in the Admin's "All Users" list and shared lists.
+    await client
+        .from('users')
+        .update({
+            name: details.name,
+            designation: details.designation,
+            contact: details.contact
+        })
+        .eq('id', userId);
+
     return data;
 }
 

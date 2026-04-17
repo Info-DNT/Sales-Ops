@@ -138,6 +138,16 @@
 
                 userDetails = await saveUserDetails(session.userId, details)
                 displayUserDetails()
+                
+                // Update local session for immediate UI refresh
+                const currentSession = getCurrentSession();
+                if (currentSession) {
+                    currentSession.name = details.name;
+                    localStorage.setItem('salesAppSession', JSON.stringify(currentSession));
+                    
+                    // Update any static name displays on the current page
+                    document.querySelectorAll('.user-name').forEach(el => el.textContent = details.name);
+                }
                 showToast('User details saved successfully!', 'success')
             } catch (error) {
                 console.error('Error saving user details:', error)

@@ -117,7 +117,7 @@
                     <div class="user-info-card mb-3">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6>${user.name || 'Unnamed User'}</h6>
+                                <h6>${user.name || '<span class="text-danger italic">Name not set</span>'}</h6>
                                 <p class="text-muted small mb-1">${user.email}</p>
                                 <span class="badge ${user.role === 'admin' ? 'bg-danger' : 'bg-primary'}">${user.role}</span>
                             </div>
