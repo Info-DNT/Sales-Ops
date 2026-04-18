@@ -81,8 +81,7 @@ exports.handler = async function (event) {
             `⚡ *Priority:* ${caseDetails.priority || '—'}\n` +
             `━━━━━━━━━━━━━━━━━━━━\n` +
             `👨‍💼 *Requested by:* ${requester.name || requester.email}\n` +
-            `🕒 *Time:* ${timestamp}\n` +
-            `ℹ️ _Quotation submitted. Please provide the Proforma Invoice._`;
+            `🕒 *Time:* ${timestamp}`;
     } else if (type === 'invoice_request') {
         messageText = `🧾 *INVOICE REQUEST*\n` +
             `━━━━━━━━━━━━━━━━━━━━\n` +
@@ -113,8 +112,7 @@ exports.handler = async function (event) {
             `📊 *Status:* ${caseDetails.status || '—'}\n` +
             `━━━━━━━━━━━━━━━━━━━━\n` +
             `👨‍💼 *Requested by:* ${requester.name || requester.email}\n` +
-            `🕒 *Time:* ${timestamp}\n` +
-            `ℹ️ _Invoice has been submitted. Please process the receipt._`;
+            `🕒 *Time:* ${timestamp}`;
     } else {
         return { statusCode: 400, body: JSON.stringify({ error: 'Invalid type. Use proforma_request, invoice_request or receipt_request' }) };
     }
@@ -150,7 +148,7 @@ exports.handler = async function (event) {
             body: JSON.stringify({
                 success: true,
                 messageId: whapiData.id || whapiData.message?.id,
-                message: `${type === 'invoice_request' ? 'Invoice' : 'Receipt'} request sent to Accounts team.`
+                message: `${type === 'proforma_request' ? 'Proforma' : type === 'invoice_request' ? 'Invoice' : 'Receipt'} request sent to Accounts team.`
             })
         };
 
