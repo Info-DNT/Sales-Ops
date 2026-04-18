@@ -229,19 +229,21 @@
             <ul class="nav nav-tabs-custom px-4" id="detailsTabs">
                 <li><a href="#" class="nav-link active" onclick="switchDetailsTab('overview')">Overview</a></li>
                 <li><a href="#" class="nav-link" onclick="switchDetailsTab('timeline')">Timeline</a></li>
-                <li><a href="#" class="nav-link" onclick="switchDetailsTab('files')"><i class="fas fa-paperclip me-1"></i>Quotations</a></li>
+                <li><a href="#" class="nav-link" onclick="switchDetailsTab('files')"><i
+                            class="fas fa-paperclip me-1"></i>Quotations</a></li>
             </ul>
 
             <!-- Content Area -->
             <div class="px-4 pb-4">
                 <!-- Overview Tab -->
                 <div id="tab-overview" class="details-tab-content">
-                    
+
                     <!-- Leads Detail Standardized Layout -->
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-user text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Client Information</span>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Client
+                                Information</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
                             <div class="row g-2">
@@ -264,7 +266,8 @@
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-procedures text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Patient Information</span>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Patient
+                                Information</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
                             <div class="row g-2">
@@ -283,7 +286,8 @@
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-plane text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Travel & Category</span>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Travel &
+                                Category</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
                             <div class="row g-2">
@@ -311,11 +315,13 @@
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-file-invoice text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Quotation</span>
+                            <span class="fw-600 small text-uppercase text-muted"
+                                style="letter-spacing:.5px;">Quotation</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f0fdf4;border:1px solid #bbf7d0;">
                             <div class="small text-muted mb-1">Quotation ID</div>
-                            <div class="fw-600" id="detail-display-quotation" style="font-size:1rem;color:#166534;letter-spacing:.5px;">—</div>
+                            <div class="fw-600" id="detail-display-quotation"
+                                style="font-size:1rem;color:#166534;letter-spacing:.5px;">—</div>
                         </div>
                     </div>
 
@@ -323,7 +329,8 @@
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-hashtag text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Serial Numbers</span>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Lead
+                                ID</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
                             <div class="row g-2">
@@ -419,7 +426,8 @@
                         <button type="submit" class="btn btn-primary w-100 mt-2" id="save-lead-btn">
                             <i class="fas fa-save me-1"></i> Save Changes
                         </button>
-                        <button type="button" class="btn btn-outline-success w-100 mt-2" onclick="openConvertModal(editingLeadId)">
+                        <button type="button" class="btn btn-outline-success w-100 mt-2"
+                            onclick="openConvertModal(editingLeadId)">
                             <i class="fas fa-exchange-alt me-1"></i> Convert to Case
                         </button>
                     </form>
@@ -436,7 +444,8 @@
                 <!-- Quotation Files Tab -->
                 <div id="tab-files" class="details-tab-content d-none">
                     <div id="files-container">
-                        <p class="text-muted text-center py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading files...</p>
+                        <p class="text-muted text-center py-4"><span
+                                class="spinner-border spinner-border-sm me-2"></span>Loading files...</p>
                     </div>
                 </div>
             </div>
@@ -453,8 +462,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <iframe
-                        src="https://zfrmz.in/KYafI4HZrgOZRwy4zKaU"
+                    <iframe src="https://zfrmz.in/KYafI4HZrgOZRwy4zKaU"
                         style="width: 100%; min-height: 600px; border: none;" frameborder="0" allowfullscreen>
                     </iframe>
                 </div>
@@ -468,7 +476,8 @@
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
                     <div class="d-flex align-items-center gap-2">
-                        <div style="width:36px;height:36px;border-radius:9px;background:rgba(16,185,129,0.12);color:#10b981;display:flex;align-items:center;justify-content:center;font-size:1rem;">
+                        <div
+                            style="width:36px;height:36px;border-radius:9px;background:rgba(16,185,129,0.12);color:#10b981;display:flex;align-items:center;justify-content:center;font-size:1rem;">
                             <i class="fas fa-exchange-alt"></i>
                         </div>
                         <h6 class="modal-title mb-0">Convert Lead to Case?</h6>
@@ -483,7 +492,8 @@
                     </p>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-success btn-sm" id="confirm-convert-btn">
                         <i class="fas fa-exchange-alt me-1"></i> Yes, Convert
                         <span class="spinner-border spinner-border-sm ms-2 d-none" id="convert-spinner"></span>
@@ -675,10 +685,10 @@
                             <div class="lead-detail-item">
                                 <span class="lead-detail-label"><i class="fas fa-fingerprint me-1"></i>Quotation ID</span>
                                 <div class="lead-detail-value d-flex align-items-center gap-2">
-                                    ${lead.quotation_id 
-                                        ? `<span class="fw-bold text-primary" id="quo-id-${lead.id}">${lead.quotation_id}</span>`
-                                        : `<span class="text-muted small" id="quo-id-${lead.id}"><i class="fas fa-clock fa-xs"></i> Quo Pending</span>`
-                                    }
+                                    ${lead.quotation_id
+                            ? `<span class="fw-bold text-primary" id="quo-id-${lead.id}">${lead.quotation_id}</span>`
+                            : `<span class="text-muted small" id="quo-id-${lead.id}"><i class="fas fa-clock fa-xs"></i> Quo Pending</span>`
+                        }
                                 </div>
                             </div>
                             <div class="lead-detail-item">
@@ -823,7 +833,7 @@
             // Fill overview form and display fields
             const dash = '—';
             document.getElementById('details-lead-name').textContent = lead.name;
-            
+
             // Display Info
             document.getElementById('detail-display-name').textContent = lead.name || dash;
             document.getElementById('detail-display-phone').textContent = lead.contact || dash;
@@ -868,7 +878,7 @@
         function switchDetailsTab(tab) {
             const overviewTab = document.getElementById('tab-overview');
             const timelineTab = document.getElementById('tab-timeline');
-            const filesTab   = document.getElementById('tab-files');
+            const filesTab = document.getElementById('tab-files');
             const links = document.querySelectorAll('#detailsTabs .nav-link');
 
             // Hide all, deactivate all links
@@ -921,7 +931,7 @@
                                 <div class="small text-muted">
                                     <i class="fas fa-cloud me-1"></i>${f.source === 'drive' ? 'Google Drive' : 'Manual'}
                                     &nbsp;•&nbsp;
-                                    ${new Date(f.uploaded_at).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'})}
+                                    ${new Date(f.uploaded_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
                                 </div>
                             </div>
                             <a href="${f.file_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary flex-shrink-0">
@@ -1189,9 +1199,9 @@
                     .eq('file_type', type)
                     .order('uploaded_at', { ascending: false })
                     .limit(1);
-                    
+
                 if (error) throw error;
-                
+
                 if (files && files.length > 0) {
                     window.open(files[0].file_url, '_blank');
                 } else {
