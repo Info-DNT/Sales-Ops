@@ -1695,15 +1695,27 @@
 
                         if (Object.keys(updates).length > 0) {
                             console.log(`🔓 Unlocking next step for Case ${caseId}...`);
-                            const { error } = await initSupabase()
+
+                            // Step 1: Patch local state INSTANTLY for immediate UI feedback
+                            const localCase = myCases.find(x => x.id === caseId);
+                            if (localCase) {
+                                Object.assign(localCase, updates);
+                                displayCases(); // Re-render immediately with unlocked buttons
+                            }
+
+                            // Step 2: Persist flag to Supabase
+                            const { error: flagError } = await initSupabase()
                                 .from('cases')
                                 .update(updates)
                                 .eq('id', caseId);
-                            
-                            if (!error) {
-                                // Refresh local data to unlock buttons instantly
-                                await loadData(); 
+
+                            if (flagError) {
+                                console.error('Failed to persist unlock flag:', flagError);
+                                showToast('Document opened, but next step may not unlock automatically. Please refresh.', 'warning');
                             }
+
+                            // Step 3: Always reload from server to stay in sync
+                            await loadData();
                         }
                     }
                 } else {

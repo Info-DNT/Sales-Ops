@@ -1883,10 +1883,13 @@ async function getCaseInvoices(caseId) {
 async function getCaseInvoiceCounts(caseIds) {
     if (!caseIds || caseIds.length === 0) return {};
     const client = initSupabase();
+    // Exclude proforma files (stored with 'PROFORMA:' prefix) — only count final invoices.
+    // This prevents Request Receipt from unlocking prematurely after a proforma-only upload.
     const { data, error } = await client
         .from('case_invoices')
-        .select('case_id')
-        .in('case_id', caseIds);
+        .select('case_id, file_name')
+        .in('case_id', caseIds)
+        .not('file_name', 'like', 'PROFORMA:%');
     if (error) return {};
     const counts = {};
     (data || []).forEach(row => {
