@@ -112,8 +112,10 @@ exports.handler = async (event) => {
             console.log(`⚠️ No PDF found, falling back to: ${file.name} (${file.mimeType})`);
         }
 
-        // Direct Download Link (UC - User Content)
-        const downloadUrl = `https://drive.google.com/uc?export=download&id=${file.id}`;
+        // Modern Google Drive viewer URL — opens file reliably (the old
+        // /uc?export=download format was deprecated by Google and now returns HTTP 500).
+        // Users can download the PDF directly from the Drive viewer toolbar.
+        const downloadUrl = `https://drive.google.com/file/d/${file.id}/view`;
 
         return {
             statusCode: 200,
