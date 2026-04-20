@@ -668,7 +668,7 @@
                                     <li>
                                         <a class="dropdown-item py-2 ${c.invoice_uploaded || (caseInvoiceCounts[c.id] > 0) ? '' : 'disabled text-muted'}" href="#"
                                            onclick="${c.invoice_uploaded || (caseInvoiceCounts[c.id] > 0) ? `downloadFileFromDrive('receipt', '${c.quotation_id}', this, '${c.id}')` : 'void(0)'}">
-                                            <i class="fas fa-file-download me-2 ${caseReceiptCounts[c.id] > 0 ? 'text-success' : ''}"></i> Download Receipt
+                                            <i class="fas fa-file-download me-2 ${c.receipt_uploaded || (caseReceiptCounts[c.id] > 0) ? 'text-success' : ''}"></i> Download Receipt
                                         </a>
                                     </li>
                                 </ul>
@@ -1159,6 +1159,7 @@
                         let updates = {};
                         if (docType === 'proforma') updates.proforma_uploaded = true;
                         if (docType === 'invoice') updates.invoice_uploaded = true;
+                        if (docType === 'receipt') updates.receipt_uploaded = true;
 
                         if (Object.keys(updates).length > 0) {
                             console.log(`🔓 Unlocking next step for Case ${caseId}...`);
