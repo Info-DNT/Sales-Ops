@@ -645,6 +645,7 @@
                     <div class="lead-header">
                         <div class="lead-title">
                             <h6>
+                                ${lead.serial_no_2 ? `<span class="bg-light text-success px-1 rounded small border me-1">#${lead.serial_no_2}</span>` : ''}
                                 ${lead.name}
                                 ${isCRM ? '<span class="crm-badge">CRM</span>' : ''}
                                 ${isUrgent ? '<span class="urgent-badge"><i class="fas fa-exclamation-circle"></i> Follow-up Due</span>' : ''}
