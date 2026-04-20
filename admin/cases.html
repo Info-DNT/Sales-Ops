@@ -590,7 +590,7 @@
                         <div class="lead-title">
                             <h6 class="mb-0">
                                 ${c.quotation_id 
-                                    ? `<span class="text-primary small me-1" id="quo-id-${c.id}">#${c.quotation_id}</span>`
+                                    ? `<span class="text-primary small me-1" id="quo-id-${c.id}">${c.quotation_id}</span>`
                                     : `<span class="text-muted small me-1" id="quo-id-${c.id}"><i class="fas fa-clock" style="font-size:0.65rem;"></i> Quo Pending</span>`
                                 } 
                                 ${c.title}
