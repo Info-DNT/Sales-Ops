@@ -794,6 +794,7 @@
                     name: document.getElementById('lead-name').value,
                     contact: document.getElementById('lead-contact').value,
                     email: document.getElementById('lead-email').value,
+                    accountName: document.getElementById('lead-name').value, // Use client name as company
                     patientName: document.getElementById('patient-name').value,
                     clientRelation: document.getElementById('client-relation').value,
                     sourceLocation: document.getElementById('source-location').value,
@@ -807,15 +808,17 @@
                     expectedClose: document.getElementById('expected-close').value
                 }
 
-                const newLead = await createLead(session.userId, lead)
-                leads.unshift(newLead)
-                displayLeads()
+                const result = await createLead(session.userId, lead)
 
-                // Reset form and close modal
-                this.reset()
+                if (result.crmSync && result.crmSync.success) {
+                    showToast('Lead created and synced to CRM!', 'success')
+                } else {
+                    showToast(`Lead saved locally, but CRM sync failed: ${result.crmSync?.message || 'Unknown error'}`, 'warning')
+                }
+
                 bootstrap.Modal.getInstance(document.getElementById('addLeadModal')).hide()
-
-                showToast('Lead added successfully!', 'success')
+                document.getElementById('add-lead-form').reset()
+                loadLeads()
             } catch (error) {
                 console.error('Error adding lead:', error)
                 showToast('Failed to add lead', 'error')

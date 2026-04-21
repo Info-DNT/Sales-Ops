@@ -1125,13 +1125,14 @@
             try {
                 const selectedUserId = document.getElementById('lead-owner-select').value;
                 const selectedUser = allUsers.find(u => u.id === selectedUserId);
-                const ownerName = selectedUser ? (selectedUser.name || selectedUser.email) : 'Unknown';
+                const ownerEmail = selectedUser ? selectedUser.email : 'Unknown';
 
                 const lead = {
                     name: document.getElementById('lead-name').value,
                     contact: document.getElementById('lead-contact').value,
                     email: document.getElementById('lead-email').value,
-                    owner: ownerName,
+                    accountName: document.getElementById('lead-name').value,
+                    owner: ownerEmail,
                     status: document.getElementById('lead-status').value,
                     leadSource: document.getElementById('lead-source').value,
                     leadField: document.getElementById('lead-field').value,
@@ -1148,13 +1149,17 @@
                     throw new Error('No active session found. Please login again.')
                 }
 
-                await createLead(selectedUserId, lead)
+                const result = await createLead(selectedUserId, lead)
+                
+                if (result.crmSync && result.crmSync.success) {
+                    showToast('Lead created and synced to CRM!', 'success')
+                } else {
+                    showToast(`Lead saved locally, but CRM sync failed: ${result.crmSync?.message || 'Unknown error'}`, 'warning')
+                }
 
                 // Reset form and close modal
                 this.reset()
                 bootstrap.Modal.getInstance(document.getElementById('addLeadModal')).hide()
-
-                showToast('Lead added successfully!', 'success')
 
                 // Reload list
                 await loadLeads()

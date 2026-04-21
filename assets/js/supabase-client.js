@@ -390,6 +390,8 @@ async function createLead(userId, lead) {
     });
 
     // BIDIRECTIONAL SYNC: Create lead in Zoho CRM and capture ID
+    data.crmSync = { success: false, message: 'Sync not started' };
+
     try {
         // Get Supabase session token for server-side auth validation
         const { data: sessionData } = await client.auth.getSession();
@@ -407,12 +409,20 @@ async function createLead(userId, lead) {
                     email: lead.email,
                     contact: lead.contact,
                     status: lead.status,
-                    account_name: lead.accountName,
+                    // Fix: Ensure account_name/Company is never empty for Zoho
+                    account_name: lead.accountName || lead.name || 'Web App',
                     next_action: lead.nextAction,
                     assignedTo: lead.owner,
                     followUpDate: lead.followUpDate,
                     expectedClose: lead.expectedClose,
-                    serial_no_2: serialNo2
+                    serial_no_2: serialNo2,
+                    // Additional fields for CRM
+                    patientName: lead.patientName,
+                    clientRelation: lead.clientRelation,
+                    sourceLocation: lead.sourceLocation,
+                    destinationLocation: lead.destinationLocation,
+                    leadSource: lead.leadSource,
+                    field: lead.leadField
                 }
             })
         });
@@ -426,9 +436,14 @@ async function createLead(userId, lead) {
                 .eq('id', data.id);
 
             data.zoho_lead_id = syncResult.zohoLeadId;
+            data.crmSync = { success: true, message: 'Synced to Zoho' };
+        } else {
+            console.warn('CRM sync response success was false:', syncResult);
+            data.crmSync = { success: false, message: syncResult.error || 'CRM rejected request' };
         }
     } catch (err) {
         console.warn('Initial CRM sync failed:', err);
+        data.crmSync = { success: false, message: err.message };
     }
 
     return data;
