@@ -439,6 +439,23 @@
     </div>
 
 
+    <!-- Medical Assessment Modal -->
+    <div class="modal fade" id="medicalAssessmentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Medical Assessment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <iframe src="https://zfrmz.in/fDy1jTWM9JS8u7oXoiki"
+                        style="width: 100%; min-height: 600px; border: none;" frameborder="0" allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Request Quotation Modal -->
     <div class="modal fade" id="quotationModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -682,6 +699,9 @@
                         </div>
                     </div>
                     <div class="lead-actions mt-3 d-flex gap-2 flex-wrap">
+                        <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#medicalAssessmentModal" onclick="event.stopPropagation();">
+                            <i class="fas fa-notes-medical me-1"></i> Medical Assessment
+                        </button>
                         <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quotationModal" onclick="event.stopPropagation(); prepareQuotationModal('${lead.id}', '${lead.name}', '${lead.serial_no_2}')">
                             <i class="fas fa-file-invoice-dollar me-1"></i> Request Quotation
                         </button>
