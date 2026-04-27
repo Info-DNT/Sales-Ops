@@ -12,7 +12,7 @@ const FOLDERS = {
 const DOC_NAMES = {
     'quotation': 'Quotation PDF',
     'proforma': 'Proforma Invoice',
-    'invoice': 'Final Invoice',
+    'invoice': 'Tax Invoice',
     'receipt': 'Payment Receipt'
 };
 

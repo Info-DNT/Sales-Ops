@@ -317,7 +317,7 @@
 
                     <!-- 2. Proforma & Invoice Section -->
                     <div class="mb-4">
-                        <h6 class="text-uppercase small fw-bold text-muted mb-2" style="letter-spacing:0.5px;">2. Proforma & Final Invoice</h6>
+                        <h6 class="text-uppercase small fw-bold text-muted mb-2" style="letter-spacing:0.5px;">2. Proforma & Tax Invoice</h6>
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <div class="upload-drop-zone h-100 py-3" id="proforma-oc-drop-zone" onclick="document.getElementById('offcanvas-proforma-input').click()">
@@ -337,7 +337,7 @@
                         <div class="d-flex gap-2 mb-3">
                             <div class="upload-drop-zone flex-grow-1 py-3" id="invoice-oc-drop-zone" onclick="document.getElementById('offcanvas-invoice-input').click()">
                                 <i class="fas fa-file-invoice mb-1"></i>
-                                <p class="small mb-0">Upload Final Invoice</p>
+                                <p class="small mb-0">Upload Tax Invoice</p>
                             </div>
                             <button class="btn btn-outline-primary d-flex flex-column align-items-center justify-content-center px-3" id="offcanvas-invoice-request-btn" onclick="openInvoiceRequestModal(editingCaseId, '', event)" style="border-style:dashed; border-width:2px; min-width:100px; background:transparent;">
                                 <i class="fab fa-whatsapp mb-1" style="font-size:1.2rem;"></i>
@@ -768,13 +768,13 @@
                                 <li>
                                     <a class="dropdown-item py-2 ${c.proforma_uploaded ? '' : 'disabled text-muted'}" href="#" 
                                        onclick="${c.proforma_uploaded ? `openInvoiceRequestModal('${c.id}', '${escHtml(c.title)}', event)` : 'void(0)'}">
-                                        <i class="fas fa-paper-plane me-2 ${c.proforma_uploaded ? 'text-primary' : ''}"></i> Request Final Invoice
+                                        <i class="fas fa-paper-plane me-2 ${c.proforma_uploaded ? 'text-primary' : ''}"></i> Request Tax Invoice
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item py-2 ${c.proforma_uploaded ? '' : 'disabled text-muted'}" href="#" 
                                        onclick="${c.proforma_uploaded ? `downloadFileFromDrive('invoice', '${c.quotation_id}', this, '${c.id}')` : 'void(0)'}">
-                                        <i class="fas fa-file-download me-2 ${c.invoice_uploaded ? 'text-success' : ''}"></i> Download Final Invoice
+                                        <i class="fas fa-file-download me-2 ${c.invoice_uploaded ? 'text-success' : ''}"></i> Download Tax Invoice
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
@@ -1667,7 +1667,7 @@
             const docNames = {
                 'quotation': 'Quotation',
                 'proforma': 'Proforma',
-                'invoice': 'Final Invoice',
+                'invoice': 'Tax Invoice',
                 'receipt': 'Receipt'
             };
 

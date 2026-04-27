@@ -78,12 +78,12 @@ You **cannot** skip steps. A button will only unlock once the prerequisite step 
 ### Step 2: Proforma Phase
 1. **Request Proforma:** After the client agrees to the quotation price, click this button to request an official Proforma Invoice.
 2. **Download Proforma** When the accounts team uploads the Proforma to the secure Drive, clicking this fetches the document. 
-   - *Crucial automated step:* The moment you successfully download the Proforma, the system registers the action and immediately **Unlocks the Final Invoice options.**
+   - *Crucial automated step:* The moment you successfully download the Proforma, the system registers the action and immediately **Unlocks the Tax Invoice options.**
 
-### Step 3: Final Invoice Phase
-1. **Request Final Invoice:** Now unlocked, you may submit this request to accounts (usually triggered upon receiving patient fit-to-fly confirmation or initial deposit).
-2. **Download Final Invoice:** Fetches the finalized invoice PDF. 
-   - *Crucial automated step:* Downloading the Final Invoice instantly **Unlocks the Receipt options.**
+### Step 3: Tax Invoice Phase
+1. **Request Tax Invoice:** Now unlocked, you may submit this request to accounts (usually triggered upon receiving patient fit-to-fly confirmation or initial deposit).
+2. **Download Tax Invoice:** Fetches the finalized invoice PDF. 
+   - *Crucial automated step:* Downloading the Tax Invoice instantly **Unlocks the Receipt options.**
 
 ### Step 4: Receipt Phase
 1. **Request Receipt / Download Receipt:** Once full payment is secured, request and download the finalized payment receipt to close the financial loop.
