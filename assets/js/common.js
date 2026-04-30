@@ -225,6 +225,35 @@ function insertNav(role, currentPage) {
     : generateUserNav(currentPage)
 
   appDiv.insertAdjacentHTML('afterbegin', nav)
+  
+  // Inject mobile-only header actions (like logout)
+  injectMobileHeaderActions()
+}
+
+/**
+ * Injects a logout button into the page header on mobile devices.
+ */
+function injectMobileHeaderActions() {
+  if (window.innerWidth > 768) return
+  
+  const pageHeader = document.querySelector('.page-header')
+  if (!pageHeader) return
+  
+  // Check if settings button already exists
+  if (document.getElementById('mobile-header-settings')) return
+  
+  const isUserPage = window.location.pathname.includes('/user/')
+  const settingsLink = isUserPage ? 'user-details.html' : 'settings.html'
+  
+  const settingsBtn = `
+    <a href="${settingsLink}" id="mobile-header-settings" class="d-md-none" 
+       aria-label="Settings and Profile">
+      <i class="fas fa-cog"></i>
+    </a>
+  `
+  
+  // Insert at the start of the header
+  pageHeader.insertAdjacentHTML('afterbegin', settingsBtn)
 }
 
 // Show loading state
@@ -390,3 +419,183 @@ function exportToCSV(data, fileName, headers) {
 
   showToast('Data exported successfully!', 'success');
 }
+
+// =============================================
+// MOBILE UX OVERHAUL — NEW FUNCTIONS BELOW
+// 100% additive. No existing functions modified.
+// =============================================
+
+/**
+ * Generate the mobile bottom navigation bar for USER pages.
+ * @param {string} currentPage - e.g. 'dashboard', 'leads', 'cases'
+ */
+function generateBottomNav(currentPage) {
+  const leadsPages = ['leads', 'cases', 'calls', 'meetings', 'expenses']
+  const isLeadsGroup = leadsPages.includes(currentPage)
+
+  const html = `
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile navigation">
+      <a href="attendance.html" class="mobile-bottom-nav-item ${currentPage === 'attendance' ? 'active' : ''}">
+        <i class="fas fa-clock"></i>
+        <span>Attendance</span>
+      </a>
+      <a href="user-details.html" class="mobile-bottom-nav-item ${currentPage === 'user-details' ? 'active' : ''}">
+        <i class="fas fa-id-card"></i>
+        <span>Details</span>
+      </a>
+      <a href="dashboard.html" class="mobile-bottom-nav-item center-floating ${currentPage === 'dashboard' ? 'active' : ''}">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      <a href="work-report.html" class="mobile-bottom-nav-item ${currentPage === 'work-report' ? 'active' : ''}">
+        <i class="fas fa-file-alt"></i>
+        <span>Report</span>
+      </a>
+      <a href="leads.html" class="mobile-bottom-nav-item ${isLeadsGroup ? 'active' : ''}">
+        <i class="fas fa-bullseye"></i>
+        <span>Leads</span>
+      </a>
+    </nav>
+  `
+  document.body.insertAdjacentHTML('beforeend', html)
+}
+
+/**
+ * Generate the mobile bottom navigation bar for ADMIN pages.
+ * @param {string} currentPage - e.g. 'dashboard', 'leads', 'users', 'reports'
+ */
+function generateAdminBottomNav(currentPage) {
+  const leadsPages = ['leads', 'cases', 'calls', 'meetings', 'expenses']
+  const isLeadsGroup = leadsPages.includes(currentPage)
+
+  const html = `
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Admin mobile navigation">
+      <a href="attendance.html" class="mobile-bottom-nav-item ${currentPage === 'attendance' ? 'active' : ''}">
+        <i class="fas fa-clock"></i>
+        <span>Attendance</span>
+      </a>
+      <a href="users.html" class="mobile-bottom-nav-item ${currentPage === 'users' ? 'active' : ''}">
+        <i class="fas fa-users"></i>
+        <span>Users</span>
+      </a>
+      <a href="dashboard.html" class="mobile-bottom-nav-item center-floating ${currentPage === 'dashboard' ? 'active' : ''}">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Home</span>
+      </a>
+      <a href="settings.html" class="mobile-bottom-nav-item ${currentPage === 'settings' ? 'active' : ''}">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
+      </a>
+      <a href="leads.html" class="mobile-bottom-nav-item ${isLeadsGroup ? 'active' : ''}">
+        <i class="fas fa-bullseye"></i>
+        <span>Leads</span>
+      </a>
+    </nav>
+  `
+  document.body.insertAdjacentHTML('beforeend', html)
+}
+
+/**
+ * Generate the horizontal scrollable Leads sub-tab pill strip.
+ * Only visible on mobile (hidden via CSS on desktop).
+ * @param {string} currentSubPage - 'leads' | 'cases' | 'calls' | 'meetings' | 'expenses'
+ * @param {string} basePath - '../' for user pages, '../' for admin pages (default '')
+ */
+function generateLeadsSubTabs(currentSubPage, basePath) {
+  basePath = basePath || ''
+  const tabs = [
+    { id: 'leads',    icon: 'fa-list',     label: 'All Leads' },
+    { id: 'cases',    icon: 'fa-briefcase',label: 'Cases'     },
+    { id: 'calls',    icon: 'fa-phone',    label: 'Calls'     },
+    { id: 'meetings', icon: 'fa-video',    label: 'Meetings'  },
+    { id: 'expenses', icon: 'fa-receipt',  label: 'Expenses'  }
+  ]
+
+  const pills = tabs.map(tab => `
+    <a href="${basePath}${tab.id}.html"
+       class="mobile-sub-tab-pill ${currentSubPage === tab.id ? 'active' : ''}"
+       aria-label="${tab.label}">
+      <i class="fas ${tab.icon}"></i>
+      ${tab.label}
+    </a>
+  `).join('')
+
+  const html = `<div class="mobile-sub-tab-strip" id="mobile-sub-tab-strip" role="navigation" aria-label="Leads sub-navigation">${pills}</div>`
+
+  // Improved insertion logic for consistent mobile placement
+  const urgent = document.getElementById('urgent-tasks-container')
+  const stats = document.querySelector('.dashboard-grid-horizontal')
+  const grid = document.querySelector('.dashboard-grid')
+  const reportGrid = document.querySelector('.report-cards-grid')
+  const rowStats = document.querySelector('.main-content > .row.mb-3') // Common for expenses/other pages
+  const contentCard = document.querySelector('.main-content > .content-card') // Fallback for meetings/leads
+  
+  if (urgent) {
+    urgent.insertAdjacentHTML('afterend', html)
+  } else if (stats) {
+    stats.insertAdjacentHTML('afterend', html)
+  } else if (grid) {
+    grid.insertAdjacentHTML('afterend', html)
+  } else if (reportGrid) {
+    reportGrid.insertAdjacentHTML('afterend', html)
+  } else if (rowStats) {
+    rowStats.insertAdjacentHTML('afterend', html)
+  } else if (contentCard) {
+    contentCard.insertAdjacentHTML('beforebegin', html)
+  } else {
+    const mainContent = document.querySelector('.main-content')
+    if (mainContent) {
+      mainContent.insertAdjacentHTML('afterbegin', html)
+    }
+  }
+}
+
+/**
+ * Generate skeleton loader cards shown while data is loading.
+ * @param {number} count - Number of skeleton cards to render
+ * @returns {string} HTML string
+ */
+function generateSkeletonCards(count) {
+  count = count || 3
+  let html = ''
+  for (let i = 0; i < count; i++) {
+    html += `
+      <div class="skeleton-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+          <div class="skeleton-header"></div>
+          <div class="skeleton-badge"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:14px;">
+          <div><div class="skeleton-line w-40" style="margin-bottom:4px;height:10px;"></div><div class="skeleton-line w-80"></div></div>
+          <div><div class="skeleton-line w-40" style="margin-bottom:4px;height:10px;"></div><div class="skeleton-line w-60"></div></div>
+          <div><div class="skeleton-line w-40" style="margin-bottom:4px;height:10px;"></div><div class="skeleton-line w-80"></div></div>
+          <div><div class="skeleton-line w-40" style="margin-bottom:4px;height:10px;"></div><div class="skeleton-line w-60"></div></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <div class="skeleton-badge" style="width:100px;height:28px;border-radius:6px;"></div>
+          <div class="skeleton-badge" style="width:80px;height:28px;border-radius:6px;"></div>
+        </div>
+      </div>
+    `
+  }
+  return html
+}
+
+/**
+ * Activate bottom-sheet behaviour for ALL modals on mobile.
+ * On desktop this function exits immediately — zero side effects.
+ */
+function activateBottomSheetModals() {
+  if (window.innerWidth > 768) return
+  document.querySelectorAll('.modal').forEach(function (modal) {
+    modal.classList.add('modal-bottom-sheet')
+  })
+}
+
+// Auto-activate bottom sheets after DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', activateBottomSheetModals)
+} else {
+  activateBottomSheetModals()
+}
+// END OF MOBILE UX OVERHAUL FUNCTIONS

@@ -20,18 +20,16 @@
                 <h2>User Details</h2>
             </div>
 
-            <div class="content-card">
+            <div class="content-card mb-4">
                 <form id="user-details-form">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="user-name" class="form-label">Name</label>
-                            <input type="text" class="form-control" id="user-name" placeholder="Enter your name"
-                                required>
+                            <input type="text" class="form-control" id="user-name" placeholder="Enter your name" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="user-designation" class="form-label">Designation</label>
-                            <input type="text" class="form-control" id="user-designation"
-                                placeholder="e.g., Sales Executive">
+                            <input type="text" class="form-control" id="user-designation" placeholder="e.g., Sales Executive">
                         </div>
                     </div>
 
@@ -51,12 +49,28 @@
                         <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
                     </button>
                 </form>
+            </div>
 
-                <hr class="my-4">
-
-                <h5>Saved Information</h5>
+            <div class="content-card mb-4">
+                <h5 class="mb-3">Saved Information</h5>
                 <div id="user-details-display" class="user-info-card">
                     <p class="text-muted">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Quick Links: replaces hamburger menu actions on mobile -->
+            <div class="content-card">
+                <h5 class="mb-3">Quick Links</h5>
+                <div class="list-group list-group-flush">
+                    <a href="settings.html" class="list-group-item list-group-item-action border-0 px-0 d-flex align-items-center">
+                        <i class="fas fa-cog text-muted me-3"></i> Settings
+                    </a>
+                    <a href="manual.html" class="list-group-item list-group-item-action border-0 px-0 d-flex align-items-center">
+                        <i class="fas fa-book-open text-muted me-3"></i> User Manual
+                    </a>
+                    <a href="#" onclick="logout(); return false;" class="list-group-item list-group-item-action border-0 px-0 text-danger d-flex align-items-center">
+                        <i class="fas fa-sign-out-alt me-3"></i> Logout
+                    </a>
                 </div>
             </div>
         </div>
@@ -75,6 +89,7 @@
 
         // Insert navigation
         insertNav('user', 'user-details')
+        generateBottomNav('user-details')
 
         // Get session
         const session = getCurrentSession()
@@ -138,16 +153,15 @@
 
                 userDetails = await saveUserDetails(session.userId, details)
                 displayUserDetails()
-                
+
                 // Update local session for immediate UI refresh
-                const currentSession = getCurrentSession();
+                const currentSession = getCurrentSession()
                 if (currentSession) {
-                    currentSession.name = details.name;
-                    localStorage.setItem('salesAppSession', JSON.stringify(currentSession));
-                    
-                    // Update any static name displays on the current page
-                    document.querySelectorAll('.user-name').forEach(el => el.textContent = details.name);
+                    currentSession.name = details.name
+                    localStorage.setItem('salesAppSession', JSON.stringify(currentSession))
+                    document.querySelectorAll('.user-name').forEach(el => el.textContent = details.name)
                 }
+
                 showToast('User details saved successfully!', 'success')
             } catch (error) {
                 console.error('Error saving user details:', error)

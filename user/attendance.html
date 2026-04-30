@@ -16,8 +16,8 @@
         <!-- Sidebar will be inserted here -->
 
         <div class="main-content">
-            <div class="page-header">
-                <h2>Attendance Tracking</h2>
+            <div class="page-header flex-wrap gap-3">
+                <h2 class="mb-0">Attendance</h2>
             </div>
 
             <div class="content-card">
@@ -69,6 +69,7 @@
 
         // Insert navigation
         insertNav('user', 'attendance')
+        generateBottomNav('attendance')
 
         // Get session
         const session = getCurrentSession()

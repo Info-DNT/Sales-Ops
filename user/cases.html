@@ -94,7 +94,7 @@
                         <p class="text-muted small">Converted leads will appear here automatically</p>
                     </div>
                     <div id="cases-list" class="leads-container">
-                        <div class="text-center py-4">
+                        <div class="text-center py-4" id="cases-loading">
                             <span class="spinner-border spinner-border-sm me-2"></span> Loading...
                         </div>
                     </div>
@@ -607,6 +607,8 @@
     <script>
         if (!initAuthCheck('user')) window.location.href = '../index.html';
         insertNav('user', 'cases');
+        generateBottomNav('cases');
+        generateLeadsSubTabs('cases');
 
         const session = getCurrentSession();
         let myCases = [];
@@ -626,6 +628,9 @@
         // LOAD DATA
         // ─────────────────────────────────────────────
         async function loadData() {
+            const list = document.getElementById('cases-list');
+            if (list) list.innerHTML = generateSkeletonCards(4);
+            
             try {
                 myCases = await getCasesForUser(session.userId);
                 const ids = myCases.map(c => c.id);
@@ -689,7 +694,7 @@
                 const hasInvoice = c.invoice_uploaded === true || invoiceCount(c.id) > 0;
                 const hasReceipt = c.receipt_uploaded === true || caseReceiptCounts[c.id] > 0;
                 return `
-                <div class="lead-card ${isConverted(c) ? 'converted-case' : ''}">
+                <div class="lead-card mb-3 ${isConverted(c) ? 'converted-case' : ''}" onclick="openCaseDetails('${c.id}')" style="cursor: pointer;">
                     <div class="lead-header">
                         <div class="lead-title">
                             <h6 class="mb-0">
@@ -709,31 +714,27 @@
 
                     <div class="lead-details mt-3">
                         <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-user me-1"></i>Client</span>
+                            <span class="lead-detail-label"><i class="fas fa-user me-1"></i>Client Name</span>
                             <span class="lead-detail-value">${c.title}</span>
                         </div>
-                        ${c.contact ? `
                         <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-phone me-1"></i>Phone</span>
-                            <span class="lead-detail-value">${c.contact}</span>
-                        </div>` : ''}
-                        ${c.patient_name ? `
+                            <span class="lead-detail-label"><i class="fas fa-phone me-1"></i>Client Phone</span>
+                            <span class="lead-detail-value">${c.contact || 'N/A'}</span>
+                        </div>
                         <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-hospital-user me-1"></i>Patient</span>
-                            <span class="lead-detail-value">${c.patient_name}</span>
-                        </div>` : ''}
-                        ${(c.source_location || c.destination_location) ? `
+                            <span class="lead-detail-label"><i class="fas fa-hospital-user me-1"></i>Patient Name</span>
+                            <span class="lead-detail-value">${c.patient_name || '--'}</span>
+                        </div>
                         <div class="lead-detail-item">
                             <span class="lead-detail-label"><i class="fas fa-route me-1"></i>Route</span>
-                            <span class="lead-detail-value">${c.source_location || '?'} → ${c.destination_location || '?'}</span>
-                        </div>` : ''}
-                        ${c.description ? `
+                            <span class="lead-detail-value">${(c.source_location || c.destination_location) ? `${c.source_location || '?'} → ${c.destination_location || '?'}` : '--'}</span>
+                        </div>
                         <div class="lead-detail-item">
                             <span class="lead-detail-label"><i class="fas fa-info-circle me-1"></i>Notes</span>
-                            <span class="lead-detail-value text-truncate" style="max-width:200px;">${c.description.split(' | ')[0] || ''}</span>
-                        </div>` : ''}
+                            <span class="lead-detail-value text-truncate" style="max-width:150px;">${c.description ? c.description.split(' | ')[0] : '--'}</span>
+                        </div>
                         <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-calendar me-1"></i>Created</span>
+                            <span class="lead-detail-label"><i class="fas fa-calendar me-1"></i>Created At</span>
                             <span class="lead-detail-value">${new Date(c.created_at).toLocaleDateString()}</span>
                         </div>
                     </div>

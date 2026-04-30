@@ -293,8 +293,13 @@
             }
 
             .notif-dropdown {
-                width: calc(100vw - 32px);
-                right: -50px;
+                width: calc(100vw - 40px);
+                position: fixed; /* Better for mobile to avoid clipping issues */
+                top: 70px; /* Below the header */
+                left: 20px;
+                right: 20px;
+                transform: none;
+                max-height: 70vh;
             }
 
             .page-header {
@@ -482,6 +487,8 @@
     <script>
         if (!initAuthCheck('user')) window.location.href = '../index.html';
         insertNav('user', 'expenses');
+        generateBottomNav('expenses');
+        generateLeadsSubTabs('expenses');
 
         const session = getCurrentSession();
         let allExpenses = [];

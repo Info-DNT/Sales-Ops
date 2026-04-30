@@ -196,6 +196,7 @@
 
             // Insert navigation
             insertNav('admin', 'dashboard')
+            generateAdminBottomNav('dashboard')
 
             // Load dashboard data
             async function updateDashboard() {
@@ -208,6 +209,9 @@
                     document.getElementById('active-today').textContent = stats.activeToday
                     document.getElementById('total-calls').textContent = stats.totalCalls
                     document.getElementById('total-meetings').textContent = stats.totalMeetings
+
+                    const leadsContainer = document.getElementById('recent-leads')
+                    if (leadsContainer) leadsContainer.innerHTML = generateSkeletonCards(2)
 
                     await displayRecentLeads()
 

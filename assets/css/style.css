@@ -31,6 +31,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 body {
@@ -916,6 +917,48 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    top: 1.25rem;
+    right: 1.25rem;
+  }
+
+  /* Center page headers on mobile */
+  .page-header {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .page-header h2 {
+    font-size: 1.25rem;
+    width: 100%;
+  }
+
+  /* Settings icon in header on mobile */
+  #mobile-header-settings {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 1001;
+    background: white;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Shift hamburger menu to the left of settings button */
+  .mobile-menu-toggle {
+    right: 4.5rem !important;
+  }
+
+  #mobile-header-settings i {
+    font-size: 1.2rem;
   }
 
   /* Show mobile overlay */
@@ -1739,3 +1782,453 @@ body {
   align-items: center;
   gap: 3px;
 }
+
+/* =============================================
+   MOBILE UX OVERHAUL — ALL NEW CODE BELOW
+   Safe: 100% additive. No existing rules changed.
+   ============================================= */
+
+/* ── 1. BOTTOM NAVIGATION BAR ─────────────────── */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(99, 102, 241, 0.12);
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.08);
+    padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
+    justify-content: space-around;
+    align-items: center;
+    height: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  /* Push main content up so it's not behind bottom nav */
+  .main-content {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+.mobile-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  text-decoration: none;
+  color: #94a3b8;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 4px 2px;
+  border-radius: 12px;
+  transition: color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+  background: none;
+  border: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.mobile-bottom-nav-item i {
+  font-size: 1.3rem;
+  transition: transform 0.2s ease;
+}
+
+.mobile-bottom-nav-item:hover,
+.mobile-bottom-nav-item.active {
+  color: var(--primary-color);
+}
+
+.mobile-bottom-nav-item.active i {
+  transform: translateY(-2px);
+}
+
+.mobile-bottom-nav-item.active::before {
+  display: none; /* Removed underline indicator */
+}
+
+/* Floating Center Button Style */
+.mobile-bottom-nav-item.center-floating {
+  position: relative;
+  top: -20px;
+  background: var(--primary-color);
+  color: white;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  flex: 0 0 56px;
+  margin: 0 10px;
+  justify-content: center;
+  padding: 0;
+}
+
+.mobile-bottom-nav-item.center-floating i {
+  font-size: 1.5rem;
+  margin-top: 0;
+}
+
+.mobile-bottom-nav-item.center-floating span {
+  font-size: 0.55rem;
+  margin-top: 2px;
+  display: block;
+}
+
+.mobile-bottom-nav-item.center-floating:hover {
+  transform: scale(1.05);
+  color: white;
+}
+
+/* Active background circle for other items */
+.mobile-bottom-nav-item:not(.center-floating).active {
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  padding: 0;
+  margin: auto;
+}
+
+.mobile-bottom-nav-badge {
+  position: absolute;
+  top: 0;
+  right: calc(50% - 18px);
+  background: var(--danger-color);
+  color: white;
+  font-size: 0.55rem;
+  font-weight: 700;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+/* ── 2. LEADS SUB-TAB STRIP ───────────────────── */
+.mobile-sub-tab-strip {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-sub-tab-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+    margin: -1rem -1rem 1rem -1rem;
+    background: rgba(248, 250, 252, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+}
+
+.mobile-sub-tab-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  background: white;
+  color: #64748b;
+  border: 1.5px solid #e2e8f0;
+}
+
+.mobile-sub-tab-pill:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.mobile-sub-tab-pill.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+
+.mobile-sub-tab-pill i {
+  font-size: 0.75rem;
+}
+
+/* ── 3. SKELETON LOADERS ──────────────────────── */
+@keyframes skeleton-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton-base {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  border-radius: 6px;
+}
+
+.skeleton-card {
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.skeleton-line {
+  height: 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+}
+
+.skeleton-line.w-80 { width: 80%; }
+.skeleton-line.w-60 { width: 60%; }
+.skeleton-line.w-40 { width: 40%; }
+.skeleton-line.w-100 { width: 100%; }
+
+.skeleton-header {
+  height: 18px;
+  width: 55%;
+  margin-bottom: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+}
+
+.skeleton-badge {
+  display: inline-block;
+  height: 20px;
+  width: 60px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 576px) {
+  .skeleton-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ── 4. GLASSMORPHISM MOBILE HAMBURGER ────────── */
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: none !important;
+  }
+}
+
+/* ── 5. BOTTOM SHEET MODALS (MOBILE ONLY) ─────── */
+@media (max-width: 768px) {
+  .modal-bottom-sheet .modal-dialog {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    transform: translateY(100%) !important;
+    transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .modal-bottom-sheet.show .modal-dialog {
+    transform: translateY(0) !important;
+  }
+
+  .modal-bottom-sheet .modal-content {
+    border-radius: 20px 20px 0 0 !important;
+    border: none !important;
+    max-height: 92vh;
+    overflow-y: auto;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .modal-bottom-sheet .modal-header {
+    border-radius: 20px 20px 0 0;
+    padding-top: 1.25rem;
+  }
+
+  /* Drag handle at the top of every bottom sheet */
+  .modal-bottom-sheet .modal-content::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: #cbd5e1;
+    border-radius: 2px;
+    margin: 10px auto 0;
+  }
+
+  /* Override the Bootstrap fade animation for bottom sheets */
+  .modal-bottom-sheet.fade .modal-dialog {
+    transform: translateY(100%) !important;
+  }
+
+  .modal-bottom-sheet.fade.show .modal-dialog {
+    transform: translateY(0) !important;
+  }
+}
+
+/* ── 6. CASES CARD ALIGNMENT FIX (Mobile) ─────── */
+@media (max-width: 768px) {
+  /* Force consistent 2-column grid on cards like leads */
+  .leads-container .lead-card .lead-details {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem 1.25rem !important;
+  }
+
+  /* Center mobile page headers and avoid overlapping fixed buttons */
+  .page-header h1, 
+  .page-header h2 {
+    text-align: center !important;
+    width: 100% !important;
+    margin-bottom: 0.25rem !important;
+    padding: 0 4rem !important; /* Balanced space for Gear icon and Menu toggle */
+    white-space: nowrap !important;
+    font-size: clamp(1.2rem, 6vw, 1.45rem) !important;
+    font-weight: 800 !important; /* Make it look more premium/bold */
+    letter-spacing: -0.02em !important;
+  }
+
+  .page-header p {
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  .page-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding-bottom: 1rem !important;
+  }
+
+  /* Make sure labels and values don't overflow */
+  .lead-detail-label {
+    font-size: 0.72rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .lead-detail-value {
+    font-size: 0.8rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  /* Ensure case action buttons wrap cleanly */
+  .lead-card .mt-3.d-flex.gap-2.align-items-center.flex-wrap {
+    gap: 6px !important;
+  }
+}
+
+/* ── 7. WORK REPORT CARDS — MOBILE 2×2 GRID ──── */
+@media (max-width: 768px) {
+  .report-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+    margin-top: 1rem !important;
+  }
+
+  .report-card {
+    padding: 1.5rem 0.85rem !important;
+    border-radius: 12px !important;
+  }
+
+  .report-card-icon {
+    width: 52px !important;
+    height: 52px !important;
+    font-size: 1.6rem !important;
+    margin-bottom: 0.85rem !important;
+  }
+
+  .report-card-title {
+    font-size: 1rem !important;
+    margin-bottom: 0.4rem !important;
+  }
+
+  .report-card-description {
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
+  }
+}
+
+/* ── 8. STAT CARDS — 2x2 GRID ON MOBILE ─ */
+@media (max-width: 576px) {
+  .dashboard-grid, .dashboard-grid-horizontal {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.85rem !important;
+  }
+
+  .dashboard-grid .stat-card, .dashboard-grid-horizontal .stat-card-modern {
+    min-width: 0 !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 1.25rem 0.5rem !important;
+  }
+
+  .dashboard-grid .stat-card .stat-content, .dashboard-grid-horizontal .stat-card-modern .stat-label, .dashboard-grid-horizontal .stat-card-modern .stat-value {
+    text-align: center !important;
+  }
+
+  .dashboard-grid .stat-card .stat-content p, .dashboard-grid-horizontal .stat-card-modern .stat-value {
+    font-size: 1.3rem !important;
+  }
+}
+/* ── 9. TOAST — MOBILE BOTTOM ALIGNED ─────────── */
+@media (max-width: 768px) {
+  .toast-notification {
+    top: auto !important;
+    bottom: calc(74px + env(safe-area-inset-bottom)) !important;
+    right: 12px !important;
+    left: 12px !important;
+    text-align: center !important;
+    transform: translateY(20px) !important;
+    border-radius: 12px !important;
+  }
+
+  .toast-notification.show {
+    transform: translateY(0) !important;
+  }
+}
+
+/* END OF MOBILE UX OVERHAUL */

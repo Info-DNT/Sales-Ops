@@ -171,6 +171,7 @@
     <script>
         if (!initAuthCheck('admin')) window.location.href = '../index.html'
         insertNav('admin', 'reports')
+        generateAdminBottomNav('reports')
 
         async function loadReports() {
             try {

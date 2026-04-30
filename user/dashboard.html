@@ -16,8 +16,8 @@
         <!-- Sidebar will be inserted here -->
 
         <div class="main-content">
-            <div class="page-header">
-                <h2>Home Dashboard</h2>
+            <div class="page-header flex-wrap gap-3">
+                <h2 class="mb-0">Home Dashboard</h2>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quotationModal">
                     <i class="fas fa-file-invoice-dollar"></i> Quick Quotation
                 </button>
@@ -111,6 +111,7 @@
 
         // Insert navigation
         insertNav('user', 'dashboard')
+        generateBottomNav('dashboard')
 
         // Get session
         const session = getCurrentSession()
@@ -144,6 +145,8 @@
 
 
                 // Load reminders
+                const reminderContainer = document.getElementById('reminders-list')
+                if (reminderContainer) reminderContainer.innerHTML = generateSkeletonCards(2)
                 displayReminders(leads)
 
             } catch (error) {

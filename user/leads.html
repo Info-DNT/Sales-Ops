@@ -534,6 +534,8 @@
 
         // Insert navigation
         insertNav('user', 'leads')
+        generateBottomNav('leads')
+        generateLeadsSubTabs('leads')
 
         // Get session
         const session = getCurrentSession()
@@ -552,7 +554,7 @@
         // Load leads
         async function loadLeads() {
             const container = document.getElementById('leads-list')
-            if (container) container.innerHTML = '<p class="text-muted">Loading...</p>'
+            if (container) container.innerHTML = generateSkeletonCards(4)
 
             try {
                 allLeads = await getLeads(session.userId)
