@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Manual - AirMedical 24X7</title>
+    <title>Admin Manual - AirMedical 24X7</title>
     <link rel="icon" href="../assets/logo.png" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -100,168 +100,110 @@
 
         <div class="main-content">
             <div class="page-header">
-                <h2><i class="fas fa-book-open me-2"></i>User Manual</h2>
-                <p class="text-muted">Comprehensive guide to using the AirMedical 24X7 Portal</p>
+                <h2><i class="fas fa-book-open me-2"></i>Admin Manual</h2>
+                <p class="text-muted">Administrative guide for managing the AirMedical 24X7 Portal</p>
             </div>
 
             <div class="content-card bg-transparent border-0 shadow-none p-0">
                 <!-- 1. Authentication -->
                 <div class="manual-section">
-                    <h4 class="manual-h"><i class="fas fa-user-shield"></i>1. Authentication & Profile Management</h4>
+                    <h4 class="manual-h"><i class="fas fa-user-shield"></i>1. Authentication & Security</h4>
                     <div class="manual-content">
                         <div class="row">
                             <div class="col-md-6">
-                                <h5 class="manual-sub-h">1.1 Logging In</h5>
-                                <p>Navigate to the portal URL provided by your administrator. Enter your registered company email address and password. If you have forgotten your password or are a first-time user, contact your system administrator to issue a secure login credential.</p>
+                                <h5 class="manual-sub-h">1.1 Admin Access</h5>
+                                <p>Admins have full access to all system modules. Ensure your credentials are secure and multi-factor authentication (MFA) is enabled if applicable through the identity provider.</p>
                             </div>
                             <div class="col-md-6">
-                                <h5 class="manual-sub-h">1.2 User Details & Profile Setup</h5>
-                                <p>Once logged in, it is highly recommended to visit the <strong>User Details</strong> page from the left-hand navigation menu.</p>
-                                <ul>
-                                    <li><strong>Your Information:</strong> Ensure your Full Name, Contact Number, and Email are accurate. This information is utilized when assigning leads.</li>
-                                    <li><strong>Password Management:</strong> You can securely change your password from this screen. Regular password updates are encouraged for security purposes.</li>
-                                </ul>
+                                <h5 class="manual-sub-h">1.2 Session Management</h5>
+                                <p>The system automatically manages active sessions. If you remain inactive for an extended period, you may be prompted to log in again to maintain security.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. Dashboard -->
+                <!-- 2. Admin Dashboard -->
                 <div class="manual-section">
-                    <h4 class="manual-h"><i class="fas fa-chart-line"></i>2. Dashboard Interface</h4>
+                    <h4 class="manual-h"><i class="fas fa-chart-line"></i>2. Admin Dashboard & Analytics</h4>
                     <div class="manual-content">
-                        <p>The <strong>Home</strong> tab serves as your daily command center. Whenever you log in, this is the first screen you will see.</p>
+                        <p>The <strong>Admin Home</strong> tab provides a bird's-eye view of the entire organization's performance.</p>
                         <ul>
-                            <li><strong>Analytical Widgets (KPI Tracker):</strong> At the top of the dashboard, you will find vital statistics updating in real-time. This includes your Total Leads, Converted Cases, Scheduled Meetings, and Total Expenses submitted.</li>
-                            <li><strong>Recent Activity Feed:</strong> This section provides a localized audit trail of your most recent actions (e.g., "Updated Lead Status," "Uploaded Expense Receipt"). Use this to quickly recap where you left off during your last session.</li>
-                            <li><strong>Navigation Menu:</strong> The left-side vertical menu provides quick access to every module in the system. The active module will always be highlighted in a distinct color.</li>
+                            <li><strong>Global KPIs:</strong> Monitor total revenue, pending invoices, and active leads across the entire team.</li>
+                            <li><strong>Recent Activity Feed:</strong> Audit log of actions taken by all users in the system.</li>
+                            <li><strong>Quick Quotation:</strong> Accessible at the top right to quickly generate pricing for urgent requests.</li>
                         </ul>
                     </div>
                 </div>
 
-                <!-- 3. Attendance -->
-                <div class="manual-section">
-                    <h4 class="manual-h"><i class="fas fa-clock"></i>3. Attendance Module</h4>
+                <!-- 3. User Management (Admin Only) -->
+                <div class="manual-section border-primary border-2">
+                    <h4 class="manual-h"><i class="fas fa-users-cog"></i>3. User & Staff Management</h4>
                     <div class="manual-content">
-                        <div class="highlight-box">
-                            <p class="mb-0"><strong>Note:</strong> Accurate time tracking is mandatory. The Attendance module logs your exact start and end times for the working day.</p>
-                        </div>
-                        <h5 class="manual-sub-h">3.1 Clocking In & Out</h5>
+                        <p>As an Administrator, you are responsible for onboarding and managing staff accounts via the <strong>Users</strong> tab.</p>
                         <ul>
-                            <li><strong>Clock In:</strong> At the beginning of your shift, navigate to the Attendance tab and click the <strong>Clock In</strong> button. The system records your timestamp on the secure server.</li>
-                            <li><strong>Clock Out:</strong> At the end of your shift, return to this tab and click <strong>Clock Out</strong>. You cannot clock back in for the same calendar day.</li>
+                            <li><strong>Creating Users:</strong> Add new staff members by providing their email and setting their initial role (User/Admin).</li>
+                            <li><strong>Editing Access:</strong> You can update user profile details, change roles, or deactivate accounts if a staff member leaves the organization.</li>
+                            <li><strong>Password Resets:</strong> Admins can trigger password resets for staff members who are unable to access their accounts.</li>
                         </ul>
-                        <h5 class="manual-sub-h">3.2 Attendance History</h5>
-                        <p>Below the action buttons is your <strong>Attendance History Table</strong>. It displays a chronological list of your workdays including exact Check-in Time, Check-out Time, Total Calculated Hours, and Daily Status.</p>
                     </div>
                 </div>
 
-                <!-- 4. Leads Management -->
+                <!-- 4. Leads & Assessments -->
                 <div class="manual-section">
-                    <h4 class="manual-h"><i class="fas fa-users"></i>4. Leads Management</h4>
+                    <h4 class="manual-h"><i class="fas fa-users"></i>4. Global Leads Management</h4>
                     <div class="manual-content">
-                        <p>The <strong>Leads</strong> tab is the starting point for all prospective business. A "Lead" represents a potential client who has not yet financially committed.</p>
+                        <h5 class="manual-sub-h">4.1 Oversight</h5>
+                        <p>Admins can view and edit all leads regardless of who they are assigned to. This is crucial for load balancing and quality control.</p>
                         
-                        <h5 class="manual-sub-h">4.1 Creating a New Lead</h5>
-                        <p>Click the <strong>+ Add Lead</strong> button (top right) to open the Lead Creation Form.</p>
+                        <h5 class="manual-sub-h">4.2 Lead Actions & Assessments</h5>
                         <ul>
-                            <li><strong>Client vs. Patient:</strong> Accurately distinguish the "Client" (the person paying or organizing the transport) from the "Patient" (the person needing transport).</li>
-                            <li><strong>Travel Details:</strong> Provide accurate Source and Destination locations, as these are critical for generating flight quotations.</li>
-                            <li><strong>CRM Syncing:</strong> Once you click "Save Lead", the system securely bridges with our corporate Zoho CRM. This generates a unique <strong>Serial No.</strong> for tracking.</li>
+                            <li><i class="fas fa-notes-medical text-primary"></i> <strong>Medical Assessment:</strong> Review patient clinical data submitted via the Zoho assessment forms.</li>
+                            <li><i class="fas fa-file-invoice-dollar text-primary"></i> <strong>Request Quotation:</strong> Initiate or review pricing requests for any lead.</li>
+                            <li><strong>CRM Integration:</strong> Monitor the synchronization status with Zoho CRM to ensure data consistency.</li>
                         </ul>
-
-                        <h5 class="manual-sub-h">4.2 Tracking & Updating Leads</h5>
-                        <ul>
-                            <li><strong>Filtering & Searching:</strong> Use the top bar to search by phone number or filter by specific statuses (New, In Progress, Qualified).</li>
-                            <li><strong>Lead Actions:</strong> Click the "Eye/Details" icon to open the Details panel where you can view a chronological timeline of interactions.</li>
-                        </ul>
-
-                        <h5 class="manual-sub-h">4.3 Converting to a Case</h5>
-                        <p>When a Lead agrees to proceed with an invoice/transport, change their status to <strong>Converted</strong>. This officially locks the lead from generic edits and automatically moves it to the <strong>Cases</strong> tab.</p>
                     </div>
                 </div>
 
                 <!-- 5. Case & Document Management -->
-                <div class="manual-section border-primary border-2">
-                    <h4 class="manual-h"><i class="fas fa-briefcase medical"></i>5. Case & Document Management (Crucial Workflow)</h4>
+                <div class="manual-section">
+                    <h4 class="manual-h"><i class="fas fa-briefcase medical"></i>5. Global Case Workflow</h4>
                     <div class="manual-content">
-                        <p>The <strong>Cases</strong> tab operates on a <strong>Strict Sequential Document Workflow</strong>. You manage these steps via the "Documents" dropdown menu on each Case card.</p>
+                        <p>Manage the lifecycle of all active transports. Admins have the authority to bypass certain restrictions if necessary, though following the standard sequence is recommended.</p>
                         
                         <div class="alert-box">
-                            <p class="mb-0"><strong><i class="fas fa-exclamation-triangle me-2"></i>Important:</strong> You cannot skip steps. A button will only unlock once the prerequisite step is completed by you and the accounts team.</p>
+                            <p class="mb-0"><strong><i class="fas fa-exclamation-triangle me-2"></i>Accounts Coordination:</strong> Admins can oversee the "Quotation → Proforma → Tax Invoice → Receipt" flow and coordinate with the accounting team for file uploads.</p>
                         </div>
 
                         <ul class="step-list mt-3">
-                            <li><strong>Quotation Phase:</strong> 
-                                Click <em>Request Quotation</em> to alert the pricing team. Once approved, click <em>Download Quotation</em> to fetch the PDF directly from Google Drive to send to your client.
-                            </li>
-                            <li><strong>Proforma Phase:</strong> 
-                                Click <em>Request Proforma</em>. When accounts uploads it, click <em>Download Proforma</em>. <strong>Automatically, clicking download will permanently unlock the Tax Invoice options.</strong>
-                            </li>
-                            <li><strong>Tax Invoice Phase:</strong> 
-                                Click <em>Request Tax Invoice</em>. Once accounts uploads it, click <em>Download Tax Invoice</em>. <strong>Automatically, clicking download will permanently unlock the Receipt options.</strong>
-                            </li>
-                            <li><strong>Receipt Phase:</strong> 
-                                Once full payment is secured, request and download the finalized payment Receipt to close the financial loop.
-                            </li>
+                            <li><strong>Quotation:</strong> Review and download approved quotations.</li>
+                            <li><strong>Proforma:</strong> Monitor proforma issuance and payment status.</li>
+                            <li><strong>Tax Invoice:</strong> Finalize billing and ensure tax invoices are correctly uploaded to Google Drive.</li>
                         </ul>
-
-                        <p class="text-danger mt-3 mb-0 small"><i class="fas fa-info-circle me-1"></i>If you click 'Download' before the Accounts team has uploaded the corresponding PDF to the central Google Drive, the system will prevent the download and alert you with: <strong>"Pending request from accounts team."</strong></p>
                     </div>
                 </div>
 
-                <!-- 6. Daily Activities -->
+                <!-- 6. Reports & Data Export -->
                 <div class="manual-section">
-                    <h4 class="manual-h"><i class="fas fa-phone-alt"></i>6. Daily Activities: Calls & Meetings</h4>
+                    <h4 class="manual-h"><i class="fas fa-file-export"></i>6. Reporting & Analytics</h4>
                     <div class="manual-content">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5 class="manual-sub-h">6.1 Logging Calls</h5>
-                                <p>Navigate to the <strong>Calls</strong> tab to record phone interactions.</p>
-                                <ul>
-                                    <li>Identify the client and log the duration.</li>
-                                    <li>Summarize the talking points.</li>
-                                    <li>Set a specific "Follow-up Action" to ensure no communication is forgotten.</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <h5 class="manual-sub-h">6.2 Managing Meetings</h5>
-                                <p>Navigate to the <strong>Meetings</strong> tab to schedule physical or virtual appointments.</p>
-                                <ul>
-                                    <li>Add meeting locations, expected durations, and attendees (e.g., Hospital Administration).</li>
-                                    <li>Use this to organize your upcoming week and review past meeting outcomes.</li>
-                                </ul>
-                            </div>
-                        </div>
+                        <p>The <strong>Reports</strong> tab allows you to generate comprehensive data exports for business analysis.</p>
+                        <ul>
+                            <li><strong>Performance Reports:</strong> Export lead conversion rates and staff activity logs.</li>
+                            <li><strong>Financial Summaries:</strong> Generate reports on expenses and invoice statuses for the accounting department.</li>
+                            <li><strong>Attendance Logs:</strong> Download detailed check-in/out logs for payroll processing.</li>
+                        </ul>
                     </div>
                 </div>
 
-                <!-- 7 & 8 Expenses and Reports -->
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="manual-section h-100">
-                            <h4 class="manual-h"><i class="fas fa-wallet"></i>7. Expense Management</h4>
-                            <div class="manual-content">
-                                <p>The <strong>Expenses</strong> tab allows you to submit reimbursement requests for business-related spending.</p>
-                                <ul>
-                                    <li><strong>Adding an Expense:</strong> Click "+ Add Expense" and fill in the exact amount, date, and category.</li>
-                                    <li><strong>Receipt Uploads:</strong> You must attach an image or PDF of the receipt for accounting validation.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="manual-section h-100">
-                            <h4 class="manual-h"><i class="fas fa-file-signature"></i>8. Daily Work Report</h4>
-                            <div class="manual-content">
-                                <p>The <strong>Work Report</strong> tab is your mandatory end-of-day summary submission.</p>
-                                <ul>
-                                    <li>Provide a detailed summary of key tasks accomplished and important client updates.</li>
-                                    <li>List any challenges faced during the day.</li>
-                                    <li>Outline your high-priority goals for the following day.</li>
-                                </ul>
-                            </div>
-                        </div>
+                <!-- 7. Expenses Oversight -->
+                <div class="manual-section">
+                    <h4 class="manual-h"><i class="fas fa-wallet"></i>7. Expense Approval Workflow</h4>
+                    <div class="manual-content">
+                        <p>Review and approve/reject expense submissions from all staff members via the <strong>Expenses</strong> tab.</p>
+                        <ul>
+                            <li><strong>Validation:</strong> Check the attached receipt images against the submitted amounts.</li>
+                            <li><strong>Approval:</strong> Marking an expense as "Approved" alerts the staff member and moves it to the payout queue.</li>
+                        </ul>
                     </div>
                 </div>
 
