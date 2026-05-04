@@ -327,7 +327,7 @@
                             </div>
                             <div class="col-6">
                                 <button class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3" onclick="openProformaRequestModal(editingCaseId, '', event)" style="border-style:dashed; border-width:2px; background:transparent;">
-                                    <i class="fab fa-whatsapp mb-1" style="font-size:1.2rem;"></i>
+                                    <i class="fas fa-paper-plane mb-1" style="font-size:1.2rem;"></i>
                                     <span class="small fw-600">Request Proforma</span>
                                 </button>
                             </div>
@@ -340,7 +340,7 @@
                                 <p class="small mb-0">Upload Tax Invoice</p>
                             </div>
                             <button class="btn btn-outline-primary d-flex flex-column align-items-center justify-content-center px-3" id="offcanvas-invoice-request-btn" onclick="openInvoiceRequestModal(editingCaseId, '', event)" style="border-style:dashed; border-width:2px; min-width:100px; background:transparent;">
-                                <i class="fab fa-whatsapp mb-1" style="font-size:1.2rem;"></i>
+                                <i class="fas fa-paper-plane mb-1" style="font-size:1.2rem;"></i>
                                 <span class="small fw-600">Request Invoice</span>
                             </button>
                         </div>
@@ -368,7 +368,7 @@
                                 <p class="small mb-0">Upload Receipt</p>
                             </div>
                             <button class="btn btn-outline-primary d-flex flex-column align-items-center justify-content-center px-3" onclick="openReceiptRequestModal(editingCaseId, '', event)" style="border-style:dashed; border-width:2px; min-width:100px; background:transparent;">
-                                <i class="fab fa-whatsapp mb-1" style="font-size:1.2rem;"></i>
+                                <i class="fas fa-paper-plane mb-1" style="font-size:1.2rem;"></i>
                                 <span class="small fw-600">Request Receipt</span>
                             </button>
                         </div>
@@ -511,7 +511,7 @@
                 <div class="modal-body">
                     <div class="alert alert-primary py-2 mb-3" style="font-size:0.875rem;">
                         <i class="fas fa-info-circle me-1"></i>
-                        Fill the form below, then click <strong>Send Request</strong> to notify the Accounts team on WhatsApp.
+                        Fill the form below, then click <strong>Send Request</strong> to notify the Accounts team.
                     </div>
                     <iframe src="https://zfrmz.in/0MWKhNJYITl6bqVs7TgU" id="invoice-zoho-iframe"
                         style="width:100%;min-height:500px;border:none;border-radius:8px;background:#f8fafc;"
@@ -521,7 +521,7 @@
                 <div class="modal-footer border-0 justify-content-center pb-4">
                     <button type="button" class="btn btn-primary btn-lg px-5" id="confirm-invoice-btn"
                         onclick="sendInvoiceRequest()">
-                        <i class="fas fa-paper-plane me-2"></i> Send WhatsApp Request
+                        <i class="fas fa-paper-plane me-2"></i> Send Request
                     </button>
                 </div>
             </div>
@@ -544,7 +544,7 @@
                 <div class="modal-body">
                     <div class="alert alert-primary py-2 mb-3" style="font-size:0.875rem;">
                         <i class="fas fa-info-circle me-1"></i>
-                        Fill the form below, then click <strong>Send WhatsApp Request</strong> to notify the Accounts team.
+                        Fill the form below, then click <strong>Send Request</strong> to notify the Accounts team.
                     </div>
                     <iframe src="https://zfrmz.in/dKnCB2FXUvTwVI8N7TZG" id="proforma-zoho-iframe"
                         style="width:100%;min-height:500px;border:none;border-radius:8px;background:#f8fafc;"
@@ -554,7 +554,7 @@
                 <div class="modal-footer border-0 justify-content-center pb-4">
                     <button type="button" class="btn btn-primary btn-lg px-5" id="confirm-proforma-btn"
                         onclick="sendProformaRequest()">
-                        <i class="fas fa-paper-plane me-2"></i> Send WhatsApp Request
+                        <i class="fas fa-paper-plane me-2"></i> Send Request
                     </button>
                 </div>
             </div>
@@ -577,8 +577,7 @@
                 <div class="modal-body">
                     <div class="alert alert-info py-2 mb-3" style="font-size:0.875rem;">
                         <i class="fas fa-info-circle me-1"></i>
-                        Fill the form below, then click <strong>Send Request</strong> to notify the Accounts team on
-                        WhatsApp.
+                        Fill the form below, then click <strong>Send Request</strong> to notify the Accounts team.
                     </div>
                     <!-- Replace 'about:blank' with your Zoho Form URL when available -->
                     <iframe src="https://forms.zohopublic.in/digitalnexttechnolgy1/form/RequestReceipt/formperma/a8dY9vRfwpbJPCVWvPRMU_3xc0ZMQFCYMyFkNd74uH8" id="receipt-zoho-iframe"
@@ -592,7 +591,7 @@
                 <div class="modal-footer border-0 justify-content-center pb-4">
                     <button type="button" class="btn btn-info btn-lg text-white px-5" id="confirm-receipt-btn"
                         onclick="sendReceiptRequest()">
-                        <i class="fas fa-paper-plane me-2"></i> Send WhatsApp Request
+                        <i class="fas fa-paper-plane me-2"></i> Send Request
                     </button>
                 </div>
             </div>
@@ -1229,9 +1228,10 @@
                         Object.assign(caseDetails, { clientName: lead.name, clientPhone: lead.contact, clientEmail: lead.email, patientName: lead.patient_name, sourceLocation: lead.source_location, destinationLocation: lead.destination_location, field: lead.field });
                     }
                 }
-                await sendWhatsAppRequest('receipt_request', caseDetails, { name: session.name || '', email: session.email || '' });
+                // WhatsApp notification disabled per user request
+                // await sendWhatsAppRequest('receipt_request', caseDetails, { name: session.name || '', email: session.email || '' });
                 bootstrap.Modal.getInstance(document.getElementById('requestReceiptModal')).hide();
-                showToast('✅ Receipt request sent to Accounts team! Please wait for approval.', 'success');
+                showToast('✅ Receipt request submitted! Please wait for approval.', 'success');
             } catch (err) {
                 console.error('Receipt request error:', err);
                 showToast('Failed to send receipt request: ' + err.message, 'error');
@@ -1314,6 +1314,8 @@
                 const caseObj = myCases.find(c => c.id === proformaRequestCaseId);
                 if (!caseObj) throw new Error('Case not found');
 
+                // WhatsApp notification disabled per user request
+                /*
                 await sendWhatsAppRequest('proforma_request', {
                     caseNumber: caseObj.case_number,
                     clientName: caseObj.name,
@@ -1326,8 +1328,9 @@
                     status: caseObj.status,
                     priority: caseObj.priority
                 }, { name: session.name || session.email, email: session.email });
+                */
 
-                showToast('Proforma request sent to Accounts team!', 'success');
+                showToast('Proforma request submitted to Accounts team!', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('requestProformaModal')).hide();
             } catch (err) {
                 console.error('WhatsApp Error:', err);
@@ -1358,6 +1361,8 @@
                 const caseObj = myCases.find(c => c.id === invoiceRequestCaseId);
                 if (!caseObj) throw new Error('Case not found');
 
+                // WhatsApp notification disabled per user request
+                /*
                 await sendWhatsAppRequest('invoice', {
                     caseNumber: caseObj.case_number,
                     clientName: caseObj.name,
@@ -1370,8 +1375,9 @@
                     status: caseObj.status,
                     priority: caseObj.priority
                 }, { name: session.name || session.email, email: session.email });
+                */
 
-                showToast('Invoice request sent to Accounts team!', 'success');
+                showToast('Invoice request submitted to Accounts team!', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('requestInvoiceModal')).hide();
             } catch (err) {
                 console.error('WhatsApp Error:', err);

@@ -332,7 +332,7 @@
                             </div>
                             <div class="col-6">
                                 <button class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3" onclick="openProformaRequestModal(editingCaseId, '', event)" style="border-style:dashed; border-width:2px; background:transparent;">
-                                    <i class="fab fa-whatsapp mb-1" style="font-size:1.2rem;"></i>
+                                    <i class="fas fa-paper-plane mb-1" style="font-size:1.2rem;"></i>
                                     <span class="small fw-600">Request Proforma</span>
                                 </button>
                             </div>
@@ -345,7 +345,7 @@
                                 <p class="small mb-0">Upload Tax Invoice</p>
                             </div>
                             <button class="btn btn-outline-primary d-flex flex-column align-items-center justify-content-center px-3" id="offcanvas-invoice-request-btn" onclick="openInvoiceRequestModal(editingCaseId, '', event)" style="border-style:dashed; border-width:2px; min-width:100px; background:transparent;">
-                                <i class="fab fa-whatsapp mb-1" style="font-size:1.2rem;"></i>
+                                <i class="fas fa-paper-plane mb-1" style="font-size:1.2rem;"></i>
                                 <span class="small fw-600">Request Invoice</span>
                             </button>
                         </div>
@@ -369,7 +369,7 @@
                                 <p class="small mb-0">Upload Receipt</p>
                             </div>
                             <button class="btn btn-outline-primary d-flex flex-column align-items-center justify-content-center px-3" onclick="openReceiptRequestModal(editingCaseId, '', event)" style="border-style:dashed; border-width:2px; min-width:100px; background:transparent;">
-                                <i class="fab fa-whatsapp mb-1" style="font-size:1.2rem;"></i>
+                                <i class="fas fa-paper-plane mb-1" style="font-size:1.2rem;"></i>
                                 <span class="small fw-600">Request Receipt</span>
                             </button>
                         </div>
@@ -464,7 +464,7 @@
                 <div class="modal-footer border-0 justify-content-center pb-4">
                     <button type="button" class="btn btn-primary btn-lg px-5" id="confirm-invoice-btn"
                         onclick="sendInvoiceRequest()">
-                        <i class="fas fa-paper-plane me-2"></i> Send WhatsApp Request
+                        <i class="fas fa-paper-plane me-2"></i> Send Request
                     </button>
                 </div>
             </div>
@@ -490,7 +490,7 @@
                 <div class="modal-footer border-0 justify-content-center pb-4">
                     <button type="button" class="btn btn-primary btn-lg px-5" id="confirm-proforma-btn"
                         onclick="sendProformaRequest()">
-                        <i class="fas fa-paper-plane me-2"></i> Send WhatsApp Request
+                        <i class="fas fa-paper-plane me-2"></i> Send Request
                     </button>
                 </div>
             </div>
@@ -514,7 +514,7 @@
                 <div class="modal-footer border-0 justify-content-center pb-4">
                     <button type="button" class="btn btn-info btn-lg text-white px-5" id="confirm-receipt-btn"
                         onclick="sendReceiptRequest()" style="background-color: #0dcaf0; border-color: #0dcaf0;">
-                        <i class="fas fa-paper-plane me-2"></i> Send WhatsApp Request
+                        <i class="fas fa-paper-plane me-2"></i> Send Request
                     </button>
                 </div>
             </div>
@@ -884,6 +884,8 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
 
             try {
+                // WhatsApp disabled per user request
+                /*
                 await sendWhatsAppRequest('proforma_request', {
                     caseNumber: c.case_number,
                     clientName: c.name,
@@ -896,6 +898,7 @@
                     status: c.status,
                     priority: c.priority
                 }, { name: session.name || session.email, email: session.email });
+                */
 
                 showToast('Proforma request sent to Accounts team!', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('requestProformaModal')).hide();
@@ -926,6 +929,8 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
 
             try {
+                // WhatsApp disabled per user request
+                /*
                 await sendWhatsAppRequest('invoice', {
                     caseNumber: c.case_number,
                     clientName: c.name,
@@ -938,6 +943,7 @@
                     status: c.status,
                     priority: c.priority
                 }, { name: session.name || session.email, email: session.email });
+                */
 
                 showToast('Invoice request sent to Accounts team!', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('requestInvoiceModal')).hide();
@@ -972,8 +978,9 @@
                     const lead = await getLeadByLeadId(c.lead_id);
                     if (lead) Object.assign(caseDetails, { clientName: lead.name, clientPhone: lead.contact });
                 }
-                await sendWhatsAppRequest('receipt_request', caseDetails, { name: session.name || 'Admin' });
-                showToast('WhatsApp Notification Sent', 'success');
+                // WhatsApp disabled per user request
+                // await sendWhatsAppRequest('receipt_request', caseDetails, { name: session.name || 'Admin' });
+                showToast('Request Submitted', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('requestReceiptModal')).hide();
             } catch (err) { showToast('Error', 'error'); }
             btn.disabled = false;
