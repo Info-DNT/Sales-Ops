@@ -316,6 +316,7 @@ async function getLeads(userId, filters = {}) {
         .from('leads')
         .select('*, users(name, email)')
         .eq('user_id', userId)
+        .eq('is_deleted', false)
         .not('is_converted', 'is', true)
         .order('created_at', { ascending: false });
 
@@ -609,7 +610,7 @@ async function getLeadHistory(leadId) {
 }
 
 /**
- * Delete a lead
+ * Delete a lead (Soft Delete)
  * @param {string} leadId 
  */
 async function deleteLead(leadId) {
@@ -617,7 +618,7 @@ async function deleteLead(leadId) {
 
     const { error } = await client
         .from('leads')
-        .delete()
+        .update({ is_deleted: true })
         .eq('id', leadId);
 
     if (error) throw error;
@@ -990,6 +991,7 @@ async function getCalls(userId, filters = {}) {
         .from('calls')
         .select('*')
         .eq('user_id', userId)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
     // Apply date filter if provided
@@ -1061,7 +1063,7 @@ async function deleteCall(callId) {
 
     const { error } = await client
         .from('calls')
-        .delete()
+        .update({ is_deleted: true })
         .eq('id', callId);
 
     if (error) throw error;
@@ -1080,6 +1082,7 @@ async function getAllCallsAdmin() {
             *,
             users (name, email)
         `)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -1102,6 +1105,7 @@ async function getMeetings(userId, filters = {}) {
         .from('meetings')
         .select('*')
         .eq('user_id', userId)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
     // Apply date filter if provided
@@ -1173,7 +1177,7 @@ async function deleteMeeting(meetingId) {
 
     const { error } = await client
         .from('meetings')
-        .delete()
+        .update({ is_deleted: true })
         .eq('id', meetingId);
 
     if (error) throw error;
@@ -1192,6 +1196,7 @@ async function getAllMeetingsAdmin() {
             *,
             users (name, email)
         `)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -1211,10 +1216,25 @@ async function getAllCasesAdmin() {
     const { data, error } = await client
         .from('cases')
         .select('*, users (name, email)')
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
+}
+
+/**
+ * Delete a case (Soft Delete)
+ */
+async function deleteCase(caseId) {
+    const client = initSupabase();
+    const { error } = await client
+        .from('cases')
+        .update({ is_deleted: true })
+        .eq('id', caseId);
+
+    if (error) throw error;
+    return true;
 }
 
 /**
@@ -1228,6 +1248,7 @@ async function getCasesForUser(userId) {
         .from('cases')
         .select('*')
         .eq('user_id', userId)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -1375,9 +1396,24 @@ async function getAllExpensesAdmin() {
     const { data, error } = await client
         .from('expenses')
         .select('*, users(id, name, email)')
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
     if (error) throw error;
     return data || [];
+}
+
+/**
+ * Delete an expense (Soft Delete)
+ */
+async function deleteExpense(expenseId) {
+    const client = initSupabase();
+    const { error } = await client
+        .from('expenses')
+        .update({ is_deleted: true })
+        .eq('id', expenseId);
+
+    if (error) throw error;
+    return true;
 }
 
 /**
@@ -1655,6 +1691,7 @@ async function getAllLeadsAdmin() {
         const { data, error } = await client
             .from('leads')
             .select('*, users(name, email)')
+            .eq('is_deleted', false)
             .not('is_converted', 'is', true)
             .order('created_at', { ascending: false });
             
