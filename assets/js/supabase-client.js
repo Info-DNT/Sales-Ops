@@ -926,11 +926,11 @@ async function getAdminDashboardStats() {
     // Get counts from actual tables
     const [usersRes, leadsRes, quotationsRes, attendanceRes, callsRes, meetingsRes] = await Promise.all([
         client.from('users').select('id', { count: 'exact' }),
-        client.from('leads').select('id', { count: 'exact' }),
+        client.from('leads').select('id', { count: 'exact' }).eq('is_deleted', false),
         client.from('quotations').select('id', { count: 'exact' }),
         client.from('attendance').select('id', { count: 'exact' }).eq('date', today),
-        client.from('calls').select('id', { count: 'exact' }),
-        client.from('meetings').select('id', { count: 'exact' })
+        client.from('calls').select('id', { count: 'exact' }).eq('is_deleted', false),
+        client.from('meetings').select('id', { count: 'exact' }).eq('is_deleted', false)
     ]);
 
     return {

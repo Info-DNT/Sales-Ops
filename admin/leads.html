@@ -1118,7 +1118,7 @@
         });
 
         // Delete lead
-        async function handleDeleteLead(leadId) {
+        window.handleDeleteLead = async function (leadId) {
             if (!confirm('Are you sure you want to delete this lead?')) {
                 return
             }
