@@ -431,21 +431,20 @@
                             </div>
                         </div>
 
-                        <div class="p-3 mb-3 rounded" style="background:#f8fafc; border: 1px dashed #cbd5e1;">
-                            <h6 class="mb-3 small fw-bold text-uppercase text-muted">Detailed Client Info (Zoho Sync)</h6>
-                            <div class="row">
-                                <div class="col-md-4 mb-2">
-                                    <label for="client-name" class="form-label small">Zoho Client Name</label>
-                                    <input type="text" class="form-control form-control-sm" id="client-name" placeholder="Name">
-                                </div>
-                                <div class="col-md-4 mb-2">
-                                    <label for="client-phone" class="form-label small">Zoho Client Phone</label>
-                                    <input type="tel" class="form-control form-control-sm" id="client-phone" placeholder="Phone">
-                                </div>
-                                <div class="col-md-4 mb-2">
-                                    <label for="client-email" class="form-label small">Zoho Client Email</label>
-                                    <input type="email" class="form-control form-control-sm" id="client-email" placeholder="Email">
-                                </div>
+                        <hr class="my-3">
+                        <h6 class="mb-3">Detailed Client Info</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="client-name" class="form-label">Client Name</label>
+                                <input type="text" class="form-control" id="client-name" placeholder="Name">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="client-phone" class="form-label">Client Phone</label>
+                                <input type="tel" class="form-control" id="client-phone" placeholder="Phone">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="client-email" class="form-label">Client Email</label>
+                                <input type="email" class="form-control" id="client-email" placeholder="Email">
                             </div>
                         </div>
 
@@ -489,17 +488,7 @@
                         </div>
 
                         <hr class="my-3">
-                        <h6 class="mb-3">Request & Hospital Details</h6>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="requested-by" class="form-label">Requested By</label>
-                                <input type="text" class="form-control" id="requested-by" placeholder="Person requesting">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="requested-to" class="form-label">Requested To</label>
-                                <input type="text" class="form-control" id="requested-to" placeholder="Person requested to">
-                            </div>
-                        </div>
+                        <h6 class="mb-3">Hospital Details</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="referring-hospital" class="form-label">Referring Hospital</label>
@@ -509,10 +498,6 @@
                                 <label for="receiving-hospital" class="form-label">Receiving Hospital</label>
                                 <input type="text" class="form-control" id="receiving-hospital" placeholder="Hospital name">
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="quotation-type" class="form-label">Quotation Type</label>
-                            <input type="text" class="form-control" id="quotation-type" placeholder="e.g. Standard, VIP">
                         </div>
 
                         <hr class="my-3">
@@ -1339,11 +1324,8 @@
                     clientRelation: document.getElementById('client-relation').value,
                     sourceLocation: document.getElementById('source-location').value,
                     destinationLocation: document.getElementById('destination-location').value,
-                    requestedBy: document.getElementById('requested-by').value,
-                    requestedTo: document.getElementById('requested-to').value,
                     referringHospital: document.getElementById('referring-hospital').value,
-                    receivingHospital: document.getElementById('receiving-hospital').value,
-                    quotationType: document.getElementById('quotation-type').value
+                    receivingHospital: document.getElementById('receiving-hospital').value
                 }
 
                 if (!session || !session.userId) {

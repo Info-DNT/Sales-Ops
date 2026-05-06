@@ -136,7 +136,10 @@ exports.handler = async (event) => {
             referring_hospital: payload.Referring_Hospital || payload['Referring Hospital'] || null,
             receiving_hospital: payload.Receiving_Hospital || payload['Receiving Hospital'] || null,
             quotation_type:     payload.Quotation_Type || payload['Quotation Type'] || null,
-            client_relation:    payload.Relation_with_Patient || payload['Relation with Patient'] || payload.client_relation || null
+            client_relation:    payload.Relation_with_Patient || payload['Relation with Patient'] || payload.client_relation || null,
+            patient_name:       payload.Patient_Name || payload['Patient Name'] || null,
+            source_location:    payload.Source_Location || payload['Source Location'] || null,
+            destination_location: payload.Destination_Location || payload['Destination Location'] || null
         };
 
         // ─── Resolve Serial No. 2 ──────────────
