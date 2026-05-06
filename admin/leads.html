@@ -154,6 +154,33 @@
 
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-building text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Detailed Client Info</span>
+                        </div>
+                        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                            <div class="row g-2">
+                                <div class="col-12 mb-2">
+                                    <div class="small text-muted">Company / Account</div>
+                                    <div class="fw-600" id="detail-display-company">—</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="small text-muted">Client Name</div>
+                                    <div class="fw-600" id="detail-display-client-name">—</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="small text-muted">Phone</div>
+                                    <div class="fw-600" id="detail-display-client-phone">—</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="small text-muted">Email</div>
+                                    <div class="fw-600" id="detail-display-client-email">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
                             <i class="fas fa-plane text-primary" style="width:16px;"></i>
                             <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Travel &
                                 Category</span>
@@ -167,14 +194,6 @@
                                 <div class="col-6">
                                     <div class="small text-muted">To</div>
                                     <div class="fw-600" id="detail-display-destination">—</div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="small text-muted">Requested By</div>
-                                    <div class="fw-600" id="detail-display-req-by">—</div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="small text-muted">Requested To</div>
-                                    <div class="fw-600" id="detail-display-req-to">—</div>
                                 </div>
                                 <div class="col-6">
                                     <div class="small text-muted">Referring Hosp.</div>
@@ -205,15 +224,10 @@
                         </div>
                         <div class="p-3 rounded" style="background:#f0fdf4;border:1px solid #bbf7d0;">
                             <div class="row g-2">
-                                <div class="col-6">
+                                <div class="col-12">
                                     <div class="small text-muted mb-1">Quotation ID</div>
-                                    <div class="fw-600" id="detail-display-quotation"
+                                    <div class="fw-600 text-center" id="detail-display-quotation"
                                         style="color:#166534;letter-spacing:.5px;">—</div>
-                                </div>
-                                <div class="col-6 text-end">
-                                    <div class="small text-muted mb-1">Type</div>
-                                    <div class="fw-600" id="detail-display-quo-type"
-                                        style="color:#166534;">—</div>
                                 </div>
                             </div>
                         </div>
@@ -267,21 +281,20 @@
                             </div>
                         </div>
 
-                        <div class="p-2 mb-3 rounded" style="background:#f1f5f9; border: 1px dashed #cbd5e1;">
-                            <div class="small fw-600 mb-2 text-muted px-1">Detailed Client Info (Zoho Sync)</div>
-                            <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <label class="form-label small text-muted mb-1">Zoho Client Name</label>
-                                    <input type="text" class="form-control form-control-sm" id="edit-client-name" placeholder="Name">
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <label class="form-label small text-muted mb-1">Zoho Client Phone</label>
-                                    <input type="tel" class="form-control form-control-sm" id="edit-client-phone" placeholder="Phone">
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label small text-muted mb-1">Zoho Client Email</label>
-                                    <input type="email" class="form-control form-control-sm" id="edit-client-email" placeholder="Email">
-                                </div>
+                        <hr class="my-3">
+                        <h6 class="mb-3">Detailed Client Info</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-600">Client Name</label>
+                                <input type="text" class="form-control" id="edit-client-name" placeholder="Name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-600">Client Phone</label>
+                                <input type="tel" class="form-control" id="edit-client-phone" placeholder="Phone">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label small fw-600">Client Email</label>
+                                <input type="email" class="form-control" id="edit-client-email" placeholder="Email">
                             </div>
                         </div>
 
@@ -307,16 +320,6 @@
                                 <label class="form-label small fw-600">Destination Location</label>
                                 <input type="text" class="form-control" id="edit-destination-location"
                                     placeholder="Destination Location">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-600">Requested By</label>
-                                <input type="text" class="form-control" id="edit-requested-by" placeholder="Person requesting">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-600">Requested To</label>
-                                <input type="text" class="form-control" id="edit-requested-to" placeholder="Person requested to">
                             </div>
                         </div>
                         <div class="row">
@@ -1018,11 +1021,8 @@
             document.getElementById('detail-display-client-name').textContent = lead.client_name || dash;
             document.getElementById('detail-display-client-phone').textContent = lead.client_phone || dash;
             document.getElementById('detail-display-client-email').textContent = lead.client_email || dash;
-            document.getElementById('detail-display-req-by').textContent = lead.requested_by || dash;
-            document.getElementById('detail-display-req-to').textContent = lead.requested_to || dash;
             document.getElementById('detail-display-ref-hosp').textContent = lead.referring_hospital || dash;
             document.getElementById('detail-display-rec-hosp').textContent = lead.receiving_hospital || dash;
-            document.getElementById('detail-display-quo-type').textContent = lead.quotation_type || dash;
 
             // Form Fields
             document.getElementById('edit-lead-id').value = lead.id;
@@ -1037,11 +1037,8 @@
             document.getElementById('edit-client-relation').value = lead.client_relation || '';
             document.getElementById('edit-source-location').value = lead.source_location || '';
             document.getElementById('edit-destination-location').value = lead.destination_location || '';
-            document.getElementById('edit-requested-by').value = lead.requested_by || '';
-            document.getElementById('edit-requested-to').value = lead.requested_to || '';
             document.getElementById('edit-referring-hospital').value = lead.referring_hospital || '';
             document.getElementById('edit-receiving-hospital').value = lead.receiving_hospital || '';
-            document.getElementById('edit-quotation-type').value = lead.quotation_type || '';
             document.getElementById('edit-lead-status').value = lead.status;
 
             // Populate owner dropdown
