@@ -369,7 +369,16 @@ async function createLead(userId, lead) {
         client_relation: lead.clientRelation || null,
         source_location: lead.sourceLocation || null,
         destination_location: lead.destinationLocation || null,
-        serial_no_2: serialNo2
+        serial_no_2: serialNo2,
+        company: lead.company || null,
+        client_name: lead.clientName || null,
+        client_phone: lead.clientPhone || null,
+        client_email: lead.clientEmail || null,
+        requested_by: lead.requestedBy || null,
+        requested_to: lead.requestedTo || null,
+        referring_hospital: lead.referringHospital || null,
+        receiving_hospital: lead.receivingHospital || null,
+        quotation_type: lead.quotationType || null
     };
 
     const { data, error } = await client
@@ -423,7 +432,16 @@ async function createLead(userId, lead) {
                     sourceLocation: lead.sourceLocation,
                     destinationLocation: lead.destinationLocation,
                     leadSource: lead.leadSource,
-                    field: lead.leadField
+                    field: lead.leadField,
+                    company: lead.company,
+                    clientName: lead.clientName,
+                    clientPhone: lead.clientPhone,
+                    clientEmail: lead.clientEmail,
+                    requestedBy: lead.requestedBy,
+                    requestedTo: lead.requestedTo,
+                    referringHospital: lead.referringHospital,
+                    receivingHospital: lead.receivingHospital,
+                    quotationType: lead.quotationType
                 }
             })
         });
