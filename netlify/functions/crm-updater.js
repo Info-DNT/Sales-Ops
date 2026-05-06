@@ -91,113 +91,120 @@ async function syncLeadToZoho(updates, zohoLeadId = null) {
     // Map web app fields to Zoho fields
     const leadData = {};
 
+    // Normalize updates to handle both camelCase (frontend) and snake_case (DB)
+    const normalized = { ...updates };
+    const getVal = (key1, key2) => normalized[key1] !== undefined ? normalized[key1] : normalized[key2];
+
     if (updates.name) leadData.Last_Name = updates.name;
     if (updates.email) leadData.Email = updates.email;
     if (updates.contact) leadData.Phone = updates.contact;
     if (updates.status) leadData.Lead_Status = mapStatus(updates.status);
-    if (updates.account_name) leadData.Company = updates.account_name;
+    
+    // Account Name / Company
+    const companyName = getVal('account_name', 'company') || getVal('accountName', 'company');
+    if (companyName) leadData.Company = companyName;
 
-    // Additional fields with fallbacks
-    if (updates.assignedTo) {
-        leadData.App_Assigned_To = updates.assignedTo;
-        leadData['App Assigned To'] = updates.assignedTo;
+    // Follow up and Next Action
+    const followUp = getVal('follow_up_date', 'followUpDate');
+    if (followUp) {
+        leadData.Follow_Up_Date = followUp;
+        leadData.Follow_up_Date = followUp;
     }
 
-    if (updates.expectedClose) {
-        leadData.Expected_Close = updates.expectedClose;
-        leadData['Expected Close'] = updates.expectedClose;
+    const nextAction = getVal('next_action', 'nextAction');
+    if (nextAction) {
+        leadData.Description = nextAction;
+        leadData.Next_Action = nextAction;
     }
 
-    if (updates.followUpDate) {
-        leadData.Follow_Up_Date = updates.followUpDate;
-        leadData.Follow_up_Date = updates.followUpDate;
-        leadData['Follow-up Date'] = updates.followUpDate;
+    // Extended fields - Mapping to exact Zoho API names from UI
+    const patientName = getVal('patient_name', 'patientName');
+    if (patientName) {
+        leadData.Patient_Name = patientName;
+        leadData.Name_of_patient = patientName;
+        leadData['Name of patient'] = patientName;
     }
 
-    if (updates.next_action) {
-        leadData.Description = updates.next_action;
-        leadData.Next_Action = updates.next_action;
-        leadData['Next Action'] = updates.next_action;
+    const clientRelation = getVal('client_relation', 'clientRelation');
+    if (clientRelation) {
+        leadData.Client_Relation = clientRelation;
+        leadData.Relation_with_Patient = clientRelation;
+        leadData['Relation with Patient'] = clientRelation;
     }
 
-    // Extended fields
-    if (updates.patientName) {
-        leadData.Patient_Name = updates.patientName;
-        leadData['Patient Name'] = updates.patientName;
+    const sourceLoc = getVal('source_location', 'sourceLocation');
+    if (sourceLoc) {
+        leadData.Source_Location = sourceLoc;
+        leadData.From_location = sourceLoc;
+        leadData['From (location)'] = sourceLoc;
     }
 
-    if (updates.clientRelation) {
-        leadData.Client_Relation = updates.clientRelation;
-        leadData['Client Relation'] = updates.clientRelation;
+    const destLoc = getVal('destination_location', 'destinationLocation');
+    if (destLoc) {
+        leadData.Destination_Location = destLoc;
+        leadData.To_Location = destLoc;
+        leadData['To(Location)'] = destLoc;
     }
 
-    if (updates.sourceLocation) {
-        leadData.Source_Location = updates.sourceLocation;
-        leadData['Source Location'] = updates.sourceLocation;
+    const leadSource = getVal('lead_source', 'leadSource');
+    if (leadSource) leadData.Lead_Source = leadSource;
+
+    const field = getVal('field', 'leadField');
+    if (field) leadData.Field = field;
+
+    const serial2 = getVal('serial_no_2', 'serialNo2');
+    if (serial2) {
+        leadData.Serial_No_2 = serial2;
+        leadData['Serial No. 2'] = serial2;
     }
 
-    if (updates.destinationLocation) {
-        leadData.Destination_Location = updates.destinationLocation;
-        leadData['Destination Location'] = updates.destinationLocation;
+    const clientName = getVal('client_name', 'clientName');
+    if (clientName) {
+        leadData.Client_Name = clientName;
+        leadData['Client Name'] = clientName;
     }
 
-    if (updates.leadSource) {
-        leadData.Lead_Source = updates.leadSource;
-        leadData['Lead Source'] = updates.leadSource;
+    const clientPhone = getVal('client_phone', 'clientPhone');
+    if (clientPhone) {
+        leadData.Client_phone_num = clientPhone;
+        leadData.Client_phone_number = clientPhone;
+        leadData['Client phone number'] = clientPhone;
     }
 
-    if (updates.field) {
-        leadData.Field = updates.field;
-        leadData['Field'] = updates.field;
+    const clientEmail = getVal('client_email', 'clientEmail');
+    if (clientEmail) {
+        leadData.Client_Email = clientEmail;
+        leadData['Client Email'] = clientEmail;
     }
 
-    if (updates.serial_no_2) {
-        leadData.Serial_No_2 = updates.serial_no_2;
-        leadData['Serial No. 2'] = updates.serial_no_2;
+    const reqBy = getVal('requested_by', 'requestedBy');
+    if (reqBy) {
+        leadData.Request_By = reqBy;
+        leadData['Request By'] = reqBy;
     }
 
-    if (updates.company) {
-        leadData.Company = updates.company;
+    const reqTo = getVal('requested_to', 'requestedTo');
+    if (reqTo) {
+        leadData.Request_to = reqTo;
+        leadData['Request to'] = reqTo;
     }
 
-    if (updates.client_name) {
-        leadData.Client_Name = updates.client_name;
-        leadData['Client Name'] = updates.client_name;
+    const refHosp = getVal('referring_hospital', 'referringHospital');
+    if (refHosp) {
+        leadData.Referring_Hospital = refHosp;
+        leadData['Referring Hospital'] = refHosp;
     }
 
-    if (updates.client_phone) {
-        leadData.Client_phone_num = updates.client_phone;
-        leadData['Client phone number'] = updates.client_phone;
+    const recHosp = getVal('receiving_hospital', 'receivingHospital');
+    if (recHosp) {
+        leadData.Receiving_Hospital = recHosp;
+        leadData['Receiving Hospital'] = recHosp;
     }
 
-    if (updates.client_email) {
-        leadData.Client_Email = updates.client_email;
-        leadData['Client Email'] = updates.client_email;
-    }
-
-    if (updates.requested_by) {
-        leadData.Request_By = updates.requested_by;
-        leadData['Request By'] = updates.requested_by;
-    }
-
-    if (updates.requested_to) {
-        leadData.Request_to = updates.requested_to;
-        leadData['Request to'] = updates.requested_to;
-    }
-
-    if (updates.referring_hospital) {
-        leadData.Referring_Hospital = updates.referring_hospital;
-        leadData['Referring Hospital'] = updates.referring_hospital;
-    }
-
-    if (updates.receiving_hospital) {
-        leadData.Receiving_Hospital = updates.receiving_hospital;
-        leadData['Receiving Hospital'] = updates.receiving_hospital;
-    }
-
-    if (updates.quotation_type) {
-        leadData.Quotation_Type = updates.quotation_type;
-        leadData['Quotation Type'] = updates.quotation_type;
+    const quoType = getVal('quotation_type', 'quotationType');
+    if (quoType) {
+        leadData.Quotation_Type = quoType;
+        leadData['Quotation Type'] = quoType;
     }
 
     // Set source for new leads

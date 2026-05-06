@@ -564,12 +564,12 @@ async function updateLead(leadId, updates, userId) {
                         email: updates.email,
                         contact: updates.contact,
                         status: updates.status,
-                        account_name: updates.accountName,
-                        next_action: updates.nextAction,
+                        accountName: updates.accountName,
+                        nextAction: updates.nextAction,
                         assignedTo: updates.owner,
                         followUpDate: updates.followUpDate,
                         expectedClose: updates.expectedClose,
-                        serial_no_2: serialNo2,
+                        serialNo2: serialNo2,
                         // Additional fields
                         patientName: updates.patientName,
                         clientRelation: updates.clientRelation,
@@ -579,14 +579,14 @@ async function updateLead(leadId, updates, userId) {
                         field: updates.field,
                         // Enhanced Sync
                         company: updates.company,
-                        client_name: updates.clientName,
-                        client_phone: updates.clientPhone,
-                        client_email: updates.clientEmail,
-                        requested_by: updates.requestedBy,
-                        requested_to: updates.requestedTo,
-                        referring_hospital: updates.referringHospital,
-                        receiving_hospital: updates.receivingHospital,
-                        quotation_type: updates.quotationType
+                        clientName: updates.clientName,
+                        clientPhone: updates.clientPhone,
+                        clientEmail: updates.clientEmail,
+                        requestedBy: updates.requestedBy,
+                        requestedTo: updates.requestedTo,
+                        referringHospital: updates.referringHospital,
+                        receivingHospital: updates.receivingHospital,
+                        quotationType: updates.quotationType
                     }
                 })
             }).catch(err => {
