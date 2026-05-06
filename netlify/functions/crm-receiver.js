@@ -125,7 +125,18 @@ exports.handler = async (event) => {
             field:          payload.Field || payload.field || null,
             lead_source:    payload.Lead_Source || payload.Source || 'Zoho CRM',
             quotation_id:   payload.Quotation_ID || payload['Quotation ID'] || payload.quotation_id || payload.Quotation_Id || payload.quotationId || null,
-            serial_no_1:    payload.Serial_No_1 || payload['Serial No. 1'] || payload.SerialNo1 || null
+            serial_no_1:    payload.Serial_No_1 || payload['Serial No. 1'] || payload.SerialNo1 || null,
+            // New Enhanced Fields from Zoho Flow
+            company:            payload.Company || payload.company || null,
+            client_name:        payload.Client_Name || payload['Client Name'] || null,
+            client_phone:       payload.Client_phone_num || payload['Client phone number'] || null,
+            client_email:       payload.Client_Email || payload['Client Email'] || null,
+            requested_by:       payload.Request_By || payload['Request By'] || null,
+            requested_to:       payload.Request_to || payload['Request to'] || null,
+            referring_hospital: payload.Referring_Hospital || payload['Referring Hospital'] || null,
+            receiving_hospital: payload.Receiving_Hospital || payload['Receiving Hospital'] || null,
+            quotation_type:     payload.Quotation_Type || payload['Quotation Type'] || null,
+            client_relation:    payload.Relation_with_Patient || payload['Relation with Patient'] || payload.client_relation || null
         };
 
         // ─── Resolve Serial No. 2 ──────────────

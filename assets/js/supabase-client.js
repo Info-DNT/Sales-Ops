@@ -491,7 +491,17 @@ async function updateLead(leadId, updates, userId) {
             destination_location: updates.destinationLocation,
             lead_source: updates.leadSource || null,
             field: updates.field || null,
-            serial_no_2: serialNo2 // Ensure it's saved/updated
+            serial_no_2: serialNo2, // Ensure it's saved/updated
+            // Enhanced Zoho Fields
+            company: updates.company,
+            client_name: updates.clientName,
+            client_phone: updates.clientPhone,
+            client_email: updates.clientEmail,
+            requested_by: updates.requestedBy,
+            requested_to: updates.requestedTo,
+            referring_hospital: updates.referringHospital,
+            receiving_hospital: updates.receivingHospital,
+            quotation_type: updates.quotationType
         })
         .eq('id', leadId)
         .select()
@@ -548,7 +558,17 @@ async function updateLead(leadId, updates, userId) {
                         sourceLocation: updates.sourceLocation,
                         destinationLocation: updates.destinationLocation,
                         leadSource: updates.leadSource,
-                        field: updates.field
+                        field: updates.field,
+                        // Enhanced Sync
+                        company: updates.company,
+                        client_name: updates.clientName,
+                        client_phone: updates.clientPhone,
+                        client_email: updates.clientEmail,
+                        requested_by: updates.requestedBy,
+                        requested_to: updates.requestedTo,
+                        referring_hospital: updates.referringHospital,
+                        receiving_hospital: updates.receivingHospital,
+                        quotation_type: updates.quotationType
                     }
                 })
             }).catch(err => {

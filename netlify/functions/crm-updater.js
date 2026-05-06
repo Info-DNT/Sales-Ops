@@ -156,6 +156,50 @@ async function syncLeadToZoho(updates, zohoLeadId = null) {
         leadData['Serial No. 2'] = updates.serial_no_2;
     }
 
+    if (updates.company) {
+        leadData.Company = updates.company;
+    }
+
+    if (updates.client_name) {
+        leadData.Client_Name = updates.client_name;
+        leadData['Client Name'] = updates.client_name;
+    }
+
+    if (updates.client_phone) {
+        leadData.Client_phone_num = updates.client_phone;
+        leadData['Client phone number'] = updates.client_phone;
+    }
+
+    if (updates.client_email) {
+        leadData.Client_Email = updates.client_email;
+        leadData['Client Email'] = updates.client_email;
+    }
+
+    if (updates.requested_by) {
+        leadData.Request_By = updates.requested_by;
+        leadData['Request By'] = updates.requested_by;
+    }
+
+    if (updates.requested_to) {
+        leadData.Request_to = updates.requested_to;
+        leadData['Request to'] = updates.requested_to;
+    }
+
+    if (updates.referring_hospital) {
+        leadData.Referring_Hospital = updates.referring_hospital;
+        leadData['Referring Hospital'] = updates.referring_hospital;
+    }
+
+    if (updates.receiving_hospital) {
+        leadData.Receiving_Hospital = updates.receiving_hospital;
+        leadData['Receiving Hospital'] = updates.receiving_hospital;
+    }
+
+    if (updates.quotation_type) {
+        leadData.Quotation_Type = updates.quotation_type;
+        leadData['Quotation Type'] = updates.quotation_type;
+    }
+
     // Set source for new leads
     if (!zohoLeadId) {
         if (!leadData.Lead_Source) leadData.Lead_Source = 'Web App';
