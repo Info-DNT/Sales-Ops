@@ -513,16 +513,7 @@
                         <i class="fas fa-info-circle me-1"></i>
                         Fill the form below, then click <strong>Send Request</strong> to notify the Accounts team.
                     </div>
-                    <iframe src="https://zfrmz.in/0MWKhNJYITl6bqVs7TgU" id="invoice-zoho-iframe"
-                        style="width:100%;min-height:500px;border:none;border-radius:8px;background:#f8fafc;"
-                        frameborder="0" allowfullscreen>
                     </iframe>
-                </div>
-                <div class="modal-footer border-0 justify-content-center pb-4">
-                    <button type="button" class="btn btn-primary btn-lg px-5" id="confirm-invoice-btn"
-                        onclick="sendInvoiceRequest()">
-                        <i class="fas fa-paper-plane me-2"></i> Send Request
-                    </button>
                 </div>
             </div>
         </div>
@@ -546,16 +537,7 @@
                         <i class="fas fa-info-circle me-1"></i>
                         Fill the form below, then click <strong>Send Request</strong> to notify the Accounts team.
                     </div>
-                    <iframe src="https://zfrmz.in/dKnCB2FXUvTwVI8N7TZG" id="proforma-zoho-iframe"
-                        style="width:100%;min-height:500px;border:none;border-radius:8px;background:#f8fafc;"
-                        frameborder="0" allowfullscreen>
                     </iframe>
-                </div>
-                <div class="modal-footer border-0 justify-content-center pb-4">
-                    <button type="button" class="btn btn-primary btn-lg px-5" id="confirm-proforma-btn"
-                        onclick="sendProformaRequest()">
-                        <i class="fas fa-paper-plane me-2"></i> Send Request
-                    </button>
                 </div>
             </div>
         </div>
@@ -580,19 +562,7 @@
                         Fill the form below, then click <strong>Send Request</strong> to notify the Accounts team.
                     </div>
                     <!-- Replace 'about:blank' with your Zoho Form URL when available -->
-                    <iframe src="https://forms.zohopublic.in/digitalnexttechnolgy1/form/RequestReceipt/formperma/a8dY9vRfwpbJPCVWvPRMU_3xc0ZMQFCYMyFkNd74uH8" id="receipt-zoho-iframe"
-                        style="width:100%;min-height:400px;border:none;border-radius:8px;background:#f8fafc;"
-                        frameborder="0" allowfullscreen>
                     </iframe>
-                    <p class="text-muted small text-center mt-2 mb-0" id="receipt-iframe-placeholder">
-                        <i class="fas fa-clock me-1"></i>Zoho Form will appear here once the URL is configured.
-                    </p>
-                </div>
-                <div class="modal-footer border-0 justify-content-center pb-4">
-                    <button type="button" class="btn btn-info btn-lg text-white px-5" id="confirm-receipt-btn"
-                        onclick="sendReceiptRequest()">
-                        <i class="fas fa-paper-plane me-2"></i> Send Request
-                    </button>
                 </div>
             </div>
         </div>
@@ -1211,34 +1181,7 @@
         };
 
         window.sendReceiptRequest = async function () {
-            const caseId = receiptRequestCaseId;
-            if (!caseId) return;
-            const c = myCases.find(x => x.id === caseId);
-            if (!c) return;
-
-            const btn = document.getElementById('confirm-receipt-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
-            try {
-                const caseDetails = { caseNumber: c.case_number, title: c.title, status: c.status, priority: c.priority };
-                if (c.lead_id) {
-                    let lead = caseLeadCache[caseId] || await getLeadByLeadId(c.lead_id);
-                    if (lead) {
-                        caseLeadCache[caseId] = lead;
-                        Object.assign(caseDetails, { clientName: lead.name, clientPhone: lead.contact, clientEmail: lead.email, patientName: lead.patient_name, sourceLocation: lead.source_location, destinationLocation: lead.destination_location, field: lead.field });
-                    }
-                }
-                // WhatsApp notification disabled per user request
-                // await sendWhatsAppRequest('receipt_request', caseDetails, { name: session.name || '', email: session.email || '' });
-                bootstrap.Modal.getInstance(document.getElementById('requestReceiptModal')).hide();
-                showToast('✅ Receipt request submitted! Please wait for approval.', 'success');
-            } catch (err) {
-                console.error('Receipt request error:', err);
-                showToast('Failed to send receipt request: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send Request';
-            }
+            // Function disabled as request button was removed. Zoho form handles submission.
         };
 
         // ─────────────────────────────────────────────
@@ -1304,41 +1247,7 @@
         };
 
         window.sendProformaRequest = async function () {
-            if (!proformaRequestCaseId) return;
-            const btn = document.getElementById('confirm-proforma-btn');
-            const originalContent = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
-
-            try {
-                const caseObj = myCases.find(c => c.id === proformaRequestCaseId);
-                if (!caseObj) throw new Error('Case not found');
-
-                // WhatsApp notification disabled per user request
-                /*
-                await sendWhatsAppRequest('proforma_request', {
-                    caseNumber: caseObj.case_number,
-                    clientName: caseObj.name,
-                    clientPhone: caseObj.contact || caseObj.phone,
-                    clientEmail: caseObj.email,
-                    patientName: caseObj.patient_name,
-                    sourceLocation: caseObj.source_location,
-                    destinationLocation: caseObj.destination_location,
-                    field: caseObj.field,
-                    status: caseObj.status,
-                    priority: caseObj.priority
-                }, { name: session.name || session.email, email: session.email });
-                */
-
-                showToast('Proforma request submitted to Accounts team!', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('requestProformaModal')).hide();
-            } catch (err) {
-                console.error('WhatsApp Error:', err);
-                showToast('Failed to send request: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalContent;
-            }
+            // Function disabled as request button was removed. Zoho form handles submission.
         };
 
         window.openInvoiceRequestModal = function (id, title, e) {
@@ -1351,41 +1260,7 @@
         };
 
         window.sendInvoiceRequest = async function () {
-            if (!invoiceRequestCaseId) return;
-            const btn = document.getElementById('confirm-invoice-btn');
-            const originalContent = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
-
-            try {
-                const caseObj = myCases.find(c => c.id === invoiceRequestCaseId);
-                if (!caseObj) throw new Error('Case not found');
-
-                // WhatsApp notification disabled per user request
-                /*
-                await sendWhatsAppRequest('invoice', {
-                    caseNumber: caseObj.case_number,
-                    clientName: caseObj.name,
-                    clientPhone: caseObj.contact || caseObj.phone,
-                    clientEmail: caseObj.email,
-                    patientName: caseObj.patient_name,
-                    sourceLocation: caseObj.source_location,
-                    destinationLocation: caseObj.destination_location,
-                    field: caseObj.field,
-                    status: caseObj.status,
-                    priority: caseObj.priority
-                }, { name: session.name || session.email, email: session.email });
-                */
-
-                showToast('Invoice request submitted to Accounts team!', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('requestInvoiceModal')).hide();
-            } catch (err) {
-                console.error('WhatsApp Error:', err);
-                showToast('Failed to send request: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalContent;
-            }
+            // Function disabled as request button was removed. Zoho form handles submission.
         };
 
         async function runInvoiceUpload(file, caseId, context) {
