@@ -332,10 +332,6 @@
                                 <input type="text" class="form-control" id="edit-receiving-hospital" placeholder="Name of hospital">
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-600">Quotation Type</label>
-                            <input type="text" class="form-control" id="edit-quotation-type" placeholder="e.g. Standard, VIP">
-                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label small fw-600">Status</label>
@@ -1196,11 +1192,8 @@
                     clientName: document.getElementById('edit-client-name').value,
                     clientPhone: document.getElementById('edit-client-phone').value,
                     clientEmail: document.getElementById('edit-client-email').value,
-                    requestedBy: document.getElementById('edit-requested-by').value,
-                    requestedTo: document.getElementById('edit-requested-to').value,
                     referringHospital: document.getElementById('edit-referring-hospital').value,
-                    receivingHospital: document.getElementById('edit-receiving-hospital').value,
-                    quotationType: document.getElementById('edit-quotation-type').value
+                    receivingHospital: document.getElementById('edit-receiving-hospital').value
                 };
 
                 await updateLead(editingLeadId, updates, session.userId);

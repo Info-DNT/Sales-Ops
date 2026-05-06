@@ -1187,11 +1187,8 @@
                     clientName: document.getElementById('edit-client-name').value,
                     clientPhone: document.getElementById('edit-client-phone').value,
                     clientEmail: document.getElementById('edit-client-email').value,
-                    requestedBy: document.getElementById('edit-requested-by').value,
-                    requestedTo: document.getElementById('edit-requested-to').value,
                     referringHospital: document.getElementById('edit-referring-hospital').value,
-                    receivingHospital: document.getElementById('edit-receiving-hospital').value,
-                    quotationType: document.getElementById('edit-quotation-type').value
+                    receivingHospital: document.getElementById('edit-receiving-hospital').value
                 };
 
                 await updateLead(editingLeadId, updates, session.userId);
