@@ -25,7 +25,7 @@
                         <input type="tel" class="form-control" id="header-search-phone" style="width: 150px;"
                             placeholder="Phone" oninput="syncAndSearch('phone', this.value)">
                     </div>
-                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addCallModal">
+                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addCallModal" data-module="calls" data-action="create">
                         <i class="fas fa-plus"></i> Add Call
                     </button>
                 </div>
@@ -115,6 +115,9 @@
         // Check authentication
         if (!initAuthCheck('user')) {
             window.location.href = '../index.html'
+        }
+        if (!canAccessModule('calls')) {
+            window.location.href = 'dashboard.html'
         }
 
         // Insert navigation
@@ -226,12 +229,16 @@
                         </div>
 
                         <div class="lead-actions mt-3">
+                            ${canPerform('calls', 'edit') ? `
                             <button class="btn btn-sm btn-outline-primary" onclick="editCall('${call.id}')">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
+                            ` : ''}
+                            ${canDelete() ? `
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteCall('${call.id}')">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
+                            ` : ''}
                         </div>
                     </div>
                 `)
@@ -300,6 +307,10 @@
 
         // Delete call
         window.deleteCall = async function (callId) {
+            if (!canDelete()) {
+                showToast('Permission denied: Only Super Admin can delete calls', 'error')
+                return
+            }
             if (!confirm('Are you sure you want to delete this call?')) return
 
             try {

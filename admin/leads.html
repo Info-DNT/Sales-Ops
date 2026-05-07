@@ -163,15 +163,15 @@
                                     <div class="small text-muted">Company / Account</div>
                                     <div class="fw-600" id="detail-display-company">—</div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-6">
                                     <div class="small text-muted">Client Name</div>
                                     <div class="fw-600" id="detail-display-client-name">—</div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-6">
                                     <div class="small text-muted">Phone</div>
                                     <div class="fw-600" id="detail-display-client-phone">—</div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-12 mt-2">
                                     <div class="small text-muted">Email</div>
                                     <div class="fw-600" id="detail-display-client-email">—</div>
                                 </div>
@@ -839,9 +839,11 @@
                         </button>
                         ` : ''}
 
+                        ${canDelete() ? `
                         <button class="btn btn-sm btn-outline-danger ms-auto" onclick="event.stopPropagation(); handleDeleteLead('${lead.id}')">
                             <i class="fas fa-trash-alt me-1"></i> Delete
                         </button>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -1264,6 +1266,10 @@
 
         // Delete lead
         window.handleDeleteLead = async function (leadId) {
+            if (!canDelete()) {
+                showToast('Permission denied: Only Super Admin can delete leads', 'error')
+                return
+            }
             if (!confirm('Are you sure you want to delete this lead?')) {
                 return
             }
@@ -1532,7 +1538,11 @@
                 }
             } catch (err) {
                 console.error('Drive fetch error:', err);
-                showToast('Error connecting to Drive system.', 'error');
+                if (err.message.includes('Unexpected end of JSON input')) {
+                    showToast('Drive system unavailable locally. Please run "node dev-server.js" instead of Live Server.', 'error');
+                } else {
+                    showToast('Error connecting to Drive system.', 'error');
+                }
             } finally {
                 btnEl.innerHTML = originalHtml;
                 btnEl.classList.remove('disabled');

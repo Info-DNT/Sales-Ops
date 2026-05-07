@@ -73,8 +73,19 @@ function requireAuth(requiredRole = null) {
     }
 
     const session = getCurrentSession()
+    const ADMIN_ROLES = ['admin', 'super_admin']
 
-    if (requiredRole && session.role !== requiredRole) {
+    if (requiredRole === 'admin') {
+        if (!ADMIN_ROLES.includes(session.role)) {
+            const currentPath = window.location.pathname
+            if (currentPath.includes('/user/') || currentPath.includes('/admin/')) {
+                window.location.href = '../index.html'
+            } else {
+                window.location.href = 'index.html'
+            }
+            return false
+        }
+    } else if (requiredRole && session.role !== requiredRole) {
         const currentPath = window.location.pathname
         if (currentPath.includes('/user/') || currentPath.includes('/admin/')) {
             window.location.href = '../index.html'
@@ -94,7 +105,8 @@ function redirectToDashboard() {
         window.location.href = 'index.html'
         return
     }
-    if (session.role === 'admin') {
+    const ADMIN_ROLES = ['admin', 'super_admin']
+    if (ADMIN_ROLES.includes(session.role)) {
         window.location.href = 'admin/dashboard.html'
     } else {
         window.location.href = 'user/dashboard.html'

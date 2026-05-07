@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Permissions - Super Admin</title>
+    <link rel="icon" href="../assets/logo.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .permission-row {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s;
+        }
+
+        .permission-row:hover {
+            background: #f8fafc;
+        }
+
+        .module-toggle {
+            width: 40px;
+            height: 20px;
+        }
+
+        .perm-checkbox {
+            margin-right: 5px;
+        }
+
+        .perm-label {
+            font-size: 0.85rem;
+            margin-right: 15px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .perm-label.active {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .role-badge-gold {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            font-weight: 600;
+        }
+
+        .module-name {
+            font-weight: 600;
+            width: 120px;
+            display: inline-block;
+        }
+
+        .permissions-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 450px;
+            height: 100%;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            z-index: 1050;
+            padding: 25px;
+            overflow-y: auto;
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(100%);
+        }
+
+        .permissions-panel.show {
+            display: block;
+            transform: translateX(0);
+        }
+
+        .panel-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+        }
+
+        .panel-overlay.show {
+            display: block;
+        }
+
+        .module-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .module-item:last-child {
+            border-bottom: none;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .delete-checkbox:checked {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .text-gold {
+            color: #d97706;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="main-content">
+            <div class="page-header">
+                <div class="d-flex align-items-center">
+                    <h2 class="mb-0">User Permissions</h2>
+                    <span class="badge role-badge-gold ms-3">
+                        <i class="fas fa-shield-alt me-1"></i> Super Admin
+                    </span>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">Manage Access Levels</h5>
+                    <div class="search-box" style="max-width: 300px;">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" id="user-search" class="form-control border-start-0" placeholder="Search users...">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="users-loading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Loading users...</p>
+                </div>
+
+                <div id="users-list-container" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-list-body">
+                                <!-- Users populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="no-users" class="text-center py-5" style="display: none;">
+                    <i class="fas fa-users-slash text-muted mb-3" style="font-size: 3rem;"></i>
+                    <p class="text-muted">No regular users found.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permissions Panel -->
+    <div class="panel-overlay" id="panel-overlay" onclick="closePermissionsPanel()"></div>
+    <div class="permissions-panel" id="permissions-panel">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-1" id="panel-user-name">User Name</h4>
+                <p class="text-muted small mb-0" id="panel-user-email">user@example.com</p>
+            </div>
+            <button class="btn-close" onclick="closePermissionsPanel()"></button>
+        </div>
+
+        <hr>
+
+        <h6 class="text-uppercase small fw-bold text-muted mb-3">Module Permissions</h6>
+        
+        <div id="modules-list">
+            <!-- Modules populated here -->
+        </div>
+
+        <div class="mt-5">
+            <button class="btn btn-primary w-100 mb-2" id="save-permissions-btn" onclick="savePermissions()">
+                <i class="fas fa-save me-2"></i> Save Permissions
+            </button>
+            <p class="text-center small text-muted">
+                <i class="fas fa-info-circle me-1"></i> Changes take effect on next login.
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        // Auth check - Super Admin only
+        const session = getCurrentSession()
+        if (!session || session.role !== 'super_admin') {
+            window.location.href = 'dashboard.html'
+        }
+
+        insertNav('admin', 'permissions')
+        generateAdminBottomNav('permissions')
+
+        let allUsers = []
+        let selectedUserId = null
+        const modules = [
+            { id: 'leads', label: 'Leads', actions: ['view', 'create', 'edit', 'delete'] },
+            { id: 'cases', label: 'Cases', actions: ['view', 'create', 'edit', 'delete'] },
+            { id: 'calls', label: 'Calls', actions: ['view', 'create', 'edit', 'delete'] },
+            { id: 'meetings', label: 'Meetings', actions: ['view', 'create', 'edit', 'delete'] },
+            { id: 'expenses', label: 'Expenses', actions: ['view', 'create', 'edit', 'delete'] },
+            { id: 'attendance', label: 'Attendance', actions: ['view'] },
+            { id: 'work_report', label: 'Work Report', actions: ['view', 'create'] }
+        ]
+
+        async function loadUsers() {
+            const loading = document.getElementById('users-loading')
+            const container = document.getElementById('users-list-container')
+            const noUsers = document.getElementById('no-users')
+            const body = document.getElementById('users-list-body')
+
+            loading.style.display = 'block'
+            container.style.display = 'none'
+            noUsers.style.display = 'none'
+
+            try {
+                allUsers = await getUsersForPermissionsManager()
+                
+                if (allUsers.length === 0) {
+                    loading.style.display = 'none'
+                    noUsers.style.display = 'block'
+                    return
+                }
+
+                renderUsers(allUsers)
+                loading.style.display = 'none'
+                container.style.display = 'block'
+
+            } catch (error) {
+                console.error('Error loading users:', error)
+                showToast('Failed to load users', 'error')
+            }
+        }
+
+        function renderUsers(users) {
+            const body = document.getElementById('users-list-body')
+            body.innerHTML = users.map(user => `
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3 bg-light rounded-circle d-flex align-items-center justify-content-center">
+                                <i class="fas fa-user text-primary"></i>
+                            </div>
+                            <span class="fw-semibold">${user.name || 'Unnamed User'}</span>
+                        </div>
+                    </td>
+                    <td>${user.email}</td>
+                    <td><span class="badge bg-primary">User</span></td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-primary" onclick="openPermissions('${user.id}', '${user.name || user.email}', '${user.email}')">
+                            <i class="fas fa-key me-1"></i> Permissions
+                        </button>
+                    </td>
+                </tr>
+            `).join('')
+        }
+
+        async function openPermissions(userId, name, email) {
+            selectedUserId = userId
+            document.getElementById('panel-user-name').textContent = name
+            document.getElementById('panel-user-email').textContent = email
+            
+            const modulesList = document.getElementById('modules-list')
+            modulesList.innerHTML = '<p class="text-center py-3"><i class="fas fa-spinner fa-spin me-2"></i> Loading permissions...</p>'
+            
+            document.getElementById('panel-overlay').classList.add('show')
+            document.getElementById('permissions-panel').classList.add('show')
+
+            try {
+                const userPerms = await getUserPermissions(userId)
+                const permsMap = {}
+                userPerms.forEach(p => permsMap[p.module] = p)
+
+                modulesList.innerHTML = modules.map(mod => {
+                    const p = permsMap[mod.id] || { enabled: true, can_view: true, can_create: true, can_edit: true, can_delete: false }
+                    
+                    return `
+                        <div class="module-item">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="module-name">${mod.label}</span>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input module-toggle" type="checkbox" id="toggle-${mod.id}" ${p.enabled ? 'checked' : ''} onchange="toggleModule('${mod.id}')">
+                                </div>
+                            </div>
+                            <div id="actions-${mod.id}" class="d-flex flex-wrap ${p.enabled ? '' : 'opacity-50 pointer-events-none'}">
+                                ${mod.actions.map(action => `
+                                    <div class="form-check me-3">
+                                        <input class="form-check-input perm-checkbox ${action === 'delete' ? 'delete-checkbox' : ''}" 
+                                               type="checkbox" value="${action}" 
+                                               id="perm-${mod.id}-${action}" 
+                                               ${p['can_' + action] ? 'checked' : ''}
+                                               ${p.enabled ? '' : 'disabled'}>
+                                        <label class="form-check-label small" for="perm-${mod.id}-${action}">
+                                            ${action.charAt(0).toUpperCase() + action.slice(1)}
+                                        </label>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `
+                }).join('')
+
+            } catch (error) {
+                console.error('Error loading permissions:', error)
+                modulesList.innerHTML = '<p class="text-danger text-center">Failed to load permissions</p>'
+            }
+        }
+
+        function toggleModule(moduleId) {
+            const isEnabled = document.getElementById(`toggle-${moduleId}`).checked
+            const actionsDiv = document.getElementById(`actions-${moduleId}`)
+            const checkboxes = actionsDiv.querySelectorAll('input')
+            
+            if (isEnabled) {
+                actionsDiv.classList.remove('opacity-50', 'pointer-events-none')
+                checkboxes.forEach(cb => cb.disabled = false)
+            } else {
+                actionsDiv.classList.add('opacity-50', 'pointer-events-none')
+                checkboxes.forEach(cb => cb.disabled = true)
+            }
+        }
+
+        function closePermissionsPanel() {
+            document.getElementById('panel-overlay').classList.remove('show')
+            document.getElementById('permissions-panel').classList.remove('show')
+            selectedUserId = null
+        }
+
+        async function savePermissions() {
+            if (!selectedUserId) return
+
+            const btn = document.getElementById('save-permissions-btn')
+            const originalHtml = btn.innerHTML
+            btn.disabled = true
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Saving...'
+
+            try {
+                const permsToSave = modules.map(mod => {
+                    const enabled = document.getElementById(`toggle-${mod.id}`).checked
+                    return {
+                        module: mod.id,
+                        enabled: enabled,
+                        can_view: document.getElementById(`perm-${mod.id}-view`)?.checked ?? false,
+                        can_create: document.getElementById(`perm-${mod.id}-create`)?.checked ?? false,
+                        can_edit: document.getElementById(`perm-${mod.id}-edit`)?.checked ?? false,
+                        can_delete: document.getElementById(`perm-${mod.id}-delete`)?.checked ?? false
+                    }
+                })
+
+                await saveUserPermissions(selectedUserId, permsToSave)
+                showToast('Permissions updated successfully', 'success')
+                closePermissionsPanel()
+                
+            } catch (error) {
+                console.error('Error saving permissions:', error)
+                showToast('Failed to save permissions', 'error')
+            } finally {
+                btn.disabled = false
+                btn.innerHTML = originalHtml
+            }
+        }
+
+        // Search functionality
+        document.getElementById('user-search').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase()
+            const filtered = allUsers.filter(u => 
+                (u.name && u.name.toLowerCase().includes(term)) || 
+                u.email.toLowerCase().includes(term)
+            )
+            renderUsers(filtered)
+        })
+
+        // Initial load
+        loadUsers()
+    </script>
+</body>
+
+</html>

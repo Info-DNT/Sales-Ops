@@ -339,8 +339,8 @@
                         </div>
                     </div>
                     <!-- Add Expense -->
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
-                        <i class="fas fa-plus me-1"></i><span class="d-none d-sm-inline">Add </span>Expense
+                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addExpenseModal" data-module="expenses" data-action="create">
+                        <i class="fas fa-plus"></i> Add Expense
                     </button>
                 </div>
             </div>
@@ -486,6 +486,7 @@
     <script src="../assets/js/common.js"></script>
     <script>
         if (!initAuthCheck('user')) window.location.href = '../index.html';
+        if (!canAccessModule('expenses')) window.location.href = 'dashboard.html';
         insertNav('user', 'expenses');
         generateBottomNav('expenses');
         generateLeadsSubTabs('expenses');

@@ -704,11 +704,11 @@
                             <button class="btn btn-sm btn-success" onclick="openDecision('${exp.id}','${exp.user_id}','approved','${exp.category}','${exp.amount}')"><i class="fas fa-check"></i></button>
                             <button class="btn btn-sm btn-danger"  onclick="openDecision('${exp.id}','${exp.user_id}','rejected','${exp.category}','${exp.amount}')"><i class="fas fa-times"></i></button>
                             <button class="btn btn-sm btn-outline-secondary" onclick="showAuditLog('${exp.id}')" title="History"><i class="fas fa-history"></i></button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteExpense('${exp.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                            ${canDelete() ? `<button class="btn btn-sm btn-outline-danger" onclick="handleDeleteExpense('${exp.id}')" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
                        </div>`
                     : `<div class="action-btn-group">
                             <button class="btn btn-sm btn-outline-secondary" onclick="showAuditLog('${exp.id}')" title="History"><i class="fas fa-history"></i></button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteExpense('${exp.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                            ${canDelete() ? `<button class="btn btn-sm btn-outline-danger" onclick="handleDeleteExpense('${exp.id}')" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
                        </div>`;
                 return `<tr>
                     <td>
@@ -897,6 +897,10 @@
         // Start
         init();
         window.handleDeleteExpense = async function (id) {
+            if (!canDelete()) {
+                showToast('Permission denied: Only Super Admin can delete expenses', 'error')
+                return
+            }
             if (!confirm('Are you sure you want to delete this expense? Data will be kept in backend for audit.')) return;
             try {
                 await deleteExpense(id);

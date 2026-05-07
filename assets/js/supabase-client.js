@@ -72,7 +72,8 @@ async function loginWithSupabase(email, password) {
             email: authData.user.email,
             name: newUser.name || authData.user.email.split('@')[0],
             role: newUser.role,
-            sessionToken
+            sessionToken,
+            permissions: {} // Default empty for new user
         };
         localStorage.setItem('salesAppSession', JSON.stringify(session));
 
@@ -89,8 +90,38 @@ async function loginWithSupabase(email, password) {
         email: userData.email,
         name: userData.name || authData.user.email.split('@')[0],
         role: userData.role,
-        sessionToken
+        sessionToken,
+        permissions: null
     };
+
+    // For user role: fetch their custom permissions
+    if (userData.role === 'user') {
+        try {
+            const { data: perms } = await client
+                .from('user_permissions')
+                .select('module, enabled, can_view, can_create, can_edit, can_delete')
+                .eq('user_id', userData.id);
+
+            if (perms) {
+                session.permissions = {};
+                perms.forEach(p => {
+                    session.permissions[p.module] = {
+                        enabled: p.enabled,
+                        view: p.can_view,
+                        create: p.can_create,
+                        edit: p.can_edit,
+                        delete: p.can_delete
+                    };
+                });
+            } else {
+                session.permissions = {};
+            }
+        } catch (e) {
+            console.warn('Error fetching user permissions:', e);
+            session.permissions = {};
+        }
+    }
+
     localStorage.setItem('salesAppSession', JSON.stringify(session));
 
     return session;
@@ -2268,6 +2299,74 @@ async function deleteCaseReceipt(fileId, storagePath, caseId) {
         await client.from('cases').update({ receipt_uploaded: false }).eq('id', caseId);
     }
     return true;
+}
+
+// =============================================
+// PERMISSIONS MANAGEMENT FUNCTIONS
+// =============================================
+
+/**
+ * Get all user_permissions for a specific user
+ */
+async function getUserPermissions(userId) {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('user_permissions')
+        .select('*')
+        .eq('user_id', userId);
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Save/update permissions for a user
+ */
+async function saveUserPermissions(userId, permissionsArray) {
+    const client = initSupabase();
+    
+    // Upsert all permissions in the array
+    const { error } = await client
+        .from('user_permissions')
+        .upsert(permissionsArray.map(p => ({
+            user_id: userId,
+            module: p.module,
+            enabled: p.enabled,
+            can_view: p.can_view,
+            can_create: p.can_create,
+            can_edit: p.can_edit,
+            can_delete: p.can_delete,
+            updated_at: new Date().toISOString()
+        })), { onConflict: 'user_id,module' });
+
+    if (error) throw error;
+    return true;
+}
+
+/**
+ * Get all users with role='user' for permissions management
+ */
+async function getUsersForPermissionsManager() {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('users')
+        .select('id, name, email, role, created_at')
+        .eq('role', 'user')
+        .order('name', { ascending: true });
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Get all users for super admin management
+ */
+async function getAllUsersAdmin() {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('users')
+        .select('*, user_details(name, designation)')
+        .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
 }
 
 // Initialize on load

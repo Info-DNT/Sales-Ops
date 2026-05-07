@@ -28,6 +28,64 @@ function getCurrentDateString() {
   return new Date().toISOString().split('T')[0]
 }
 
+/**
+ * PERMISSION HELPERS
+ */
+
+// Can the current user delete anything? (super_admin only)
+function canDelete() {
+  const session = getCurrentSession()
+  return session && session.role === 'super_admin'
+}
+
+// Can the current user perform an action on a module?
+// action: 'view' | 'create' | 'edit' | 'delete'
+// Returns true for admin/super_admin always (fixed roles)
+// For 'user' role: checks session.permissions
+function canPerform(module, action) {
+  const session = getCurrentSession()
+  if (!session) return false
+
+  // Admin and super_admin always have view/create/edit
+  // super_admin also has delete (handled by canDelete())
+  const ADMIN_ROLES = ['admin', 'super_admin']
+  if (ADMIN_ROLES.includes(session.role)) {
+    if (action === 'delete') return session.role === 'super_admin'
+    return true
+  }
+
+  // For user role: check their stored permissions
+  const perms = session.permissions || {}
+  const modulePerm = perms[module]
+
+  // If no permission record exists for this module → default allow
+  // (backwards compatible — existing users keep full access until explicitly restricted)
+  if (!modulePerm) return true
+  if (!modulePerm.enabled) return false
+
+  // Map action to permission field name
+  const actionMap = {
+    'view': 'view',
+    'create': 'create',
+    'edit': 'edit',
+    'delete': 'delete'
+  }
+  const field = actionMap[action]
+  return modulePerm[field] === true
+}
+
+// Is a module completely enabled for the current user?
+function canAccessModule(module) {
+  const session = getCurrentSession()
+  if (!session) return false
+  const ADMIN_ROLES = ['admin', 'super_admin']
+  if (ADMIN_ROLES.includes(session.role)) return true
+  const perms = session.permissions || {}
+  const modulePerm = perms[module]
+  if (!modulePerm) return true // no record = default allow
+  return modulePerm.enabled !== false
+}
+
 // Storage helpers (kept for backwards compatibility, but now using Supabase)
 function getUserData(userId) {
   const key = `userData_${userId}`
@@ -83,7 +141,10 @@ function generateUserNav(currentPage) {
         <div class="logo-container">
           <img src="../assets/logo.png" alt="Air Medical 24x7" class="sidebar-logo">
         </div>
-        <p class="text-white-50 small mb-0 mt-2 user-name"></p>
+        <div class="d-flex align-items-center mt-2">
+          <p class="text-white-50 small mb-0 user-name"></p>
+        </div>
+
       </div>
 
       <ul class="nav-menu">
@@ -154,6 +215,12 @@ function generateAdminNav(currentPage) {
     { page: 'settings', icon: 'fa-cog', label: 'Settings' }
   ]
 
+  const session = getCurrentSession()
+  if (session && session.role === 'super_admin') {
+    // Insert Permissions link after Users
+    navItems.splice(2, 0, { page: 'permissions', icon: 'fa-shield-alt', label: 'Permissions' })
+  }
+
   return `
     <!-- Mobile hamburger button -->
     <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
@@ -168,7 +235,10 @@ function generateAdminNav(currentPage) {
         <div class="logo-container">
           <img src="../assets/logo.png" alt="Air Medical 24x7" class="sidebar-logo">
         </div>
-        <p class="text-white-50 small mb-0 mt-2 user-name"></p>
+        <div class="d-flex align-items-center mt-2">
+          <p class="text-white-50 small mb-0 user-name"></p>
+        </div>
+
       </div>
 
       <ul class="nav-menu">
@@ -226,9 +296,41 @@ function insertNav(role, currentPage) {
 
   appDiv.insertAdjacentHTML('afterbegin', nav)
   
+  // Apply permission guards to any element with data-module/data-action
+  applyUIGuards()
+  
   // Inject mobile-only header actions (like logout)
   injectMobileHeaderActions()
 }
+
+/**
+ * Scans the page for elements with data-module and data-action attributes
+ * and removes them if the user doesn't have permission.
+ */
+function applyUIGuards() {
+  document.querySelectorAll('[data-module]').forEach(el => {
+    const module = el.dataset.module
+    const action = el.dataset.action || 'view'
+    
+    if (!canPerform(module, action)) {
+      el.remove()
+    }
+  })
+  
+  // Also check for data-role guards
+  document.querySelectorAll('[data-role]').forEach(el => {
+    const session = getCurrentSession()
+    if (!session || session.role !== el.dataset.role) {
+      el.remove()
+    }
+  })
+}
+
+// Re-run guards when offcanvas or modals are shown (for dynamic content)
+document.addEventListener('shown.bs.offcanvas', function() { applyUIGuards() })
+document.addEventListener('shown.bs.modal', function() { applyUIGuards() })
+// Also run on DOMContentLoaded as a safety net
+document.addEventListener('DOMContentLoaded', function() { applyUIGuards() })
 
 /**
  * Injects a logout button into the page header on mobile devices.
@@ -483,7 +585,7 @@ function generateAdminBottomNav(currentPage) {
         <span>Home</span>
       </a>
       <a href="settings.html" class="mobile-bottom-nav-item ${currentPage === 'settings' ? 'active' : ''}">
-        <i class="fas fa-cog"></i>
+        <i class="fas fa-sliders-h"></i>
         <span>Settings</span>
       </a>
       <a href="leads.html" class="mobile-bottom-nav-item ${isLeadsGroup ? 'active' : ''}">

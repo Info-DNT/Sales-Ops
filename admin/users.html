@@ -69,6 +69,8 @@
         insertNav('admin', 'users')
         generateAdminBottomNav('users')
 
+        const session = getCurrentSession()
+
         async function loadUsers() {
             const usersList = document.getElementById('users-list')
             usersList.innerHTML = '<p class="text-muted">Loading...</p>'
@@ -122,9 +124,22 @@
                                 <h6 class="mb-1">${displayName}</h6>
                                 <p class="text-muted small mb-0">${user.email}</p>
                                 <p class="text-muted small mb-2"><i>${displayDesignation}</i></p>
-                                <span class="badge ${user.role === 'admin' ? 'bg-danger' : 'bg-primary'}">${user.role}</span>
+                                <div class="mt-2">
+                                    ${(() => {
+                        if (user.role === 'super_admin') return '<span class="badge" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">Super Admin</span>';
+                        if (user.role === 'admin') return '<span class="badge bg-warning text-dark">Admin</span>';
+                        return '<span class="badge bg-primary">User</span>';
+                    })()}
+                                </div>
                             </div>
-                            <small class="text-muted">Joined: ${new Date(user.created_at).toLocaleDateString()}</small>
+                            <div class="text-end">
+                                <small class="text-muted d-block mb-2">Joined: ${new Date(user.created_at).toLocaleDateString()}</small>
+                                ${session.role === 'super_admin' && user.role === 'user' ? `
+                                    <a href="permissions.html?userId=${user.id}" class="btn btn-sm btn-outline-primary mt-1">
+                                        <i class="fas fa-key me-1"></i> Permissions
+                                    </a>
+                                ` : ''}
+                            </div>
                         </div>
                         <hr class="my-2">
                         <div class="row text-center mt-2">

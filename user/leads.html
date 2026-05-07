@@ -27,7 +27,7 @@
                             placeholder="Contact" oninput="syncAndSearch('contact', this.value)">
                     </div>
 
-                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addLeadModal">
+                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addLeadModal" data-module="leads" data-action="create">
                         <i class="fas fa-plus"></i> Add Lead
                     </button>
                 </div>
@@ -548,6 +548,7 @@
                                 <input type="date" class="form-control" id="edit-lead-expected-close">
                             </div>
                         </div>
+                        ${canPerform('leads', 'edit') ? `
                         <button type="submit" class="btn btn-primary w-100 mt-2" id="save-lead-btn">
                             <i class="fas fa-save me-1"></i> Save Changes
                         </button>
@@ -555,6 +556,7 @@
                             onclick="openConvertModal(editingLeadId)">
                             <i class="fas fa-exchange-alt me-1"></i> Convert to Case
                         </button>
+                        ` : '<div class="alert alert-light small py-2 mt-2">View-only access</div>'}
                     </form>
                 </div>
 
@@ -655,6 +657,9 @@
         // Check authentication
         if (!initAuthCheck('user')) {
             window.location.href = '../index.html'
+        }
+        if (!canAccessModule('leads')) {
+            window.location.href = 'dashboard.html'
         }
 
         // Insert navigation
