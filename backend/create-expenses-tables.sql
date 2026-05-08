@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.expenses (
     user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
     category TEXT NOT NULL,
     amount NUMERIC(10, 2) NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'AED' CHECK (currency IN ('INR', 'AED')),
     date DATE NOT NULL,
     description TEXT NOT NULL,
     receipt_url TEXT,
@@ -17,6 +18,11 @@ CREATE TABLE IF NOT EXISTS public.expenses (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
+
+-- ── 1b. Migration: add currency column if table already exists ──
+ALTER TABLE public.expenses
+    ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'AED'
+    CHECK (currency IN ('INR', 'AED'));
 
 -- ── 2. notifications table ──
 CREATE TABLE IF NOT EXISTS public.notifications (
@@ -126,7 +132,7 @@ BEGIN
         VALUES (
             admin_record.id,
             'New Expense Submitted 🧾',
-            COALESCE(submitter_name, 'A team member') || ' submitted a ' || NEW.category || ' expense of AED ' || NEW.amount || '.',
+            COALESCE(submitter_name, 'A team member') || ' submitted a ' || NEW.category || ' expense of ' || NEW.currency || ' ' || NEW.amount || '.',
             'new_expense'
         );
     END LOOP;

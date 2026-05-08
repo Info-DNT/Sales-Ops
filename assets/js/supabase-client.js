@@ -1547,6 +1547,7 @@ async function createExpense(userId, expenseData) {
             user_id: userId,
             category: expenseData.category,
             amount: parseFloat(expenseData.amount),
+            currency: expenseData.currency || 'AED',
             date: expenseData.date,
             description: expenseData.description,
             receipt_url: expenseData.receiptUrl || null,

@@ -353,7 +353,7 @@
                             <span class="stat-label">Total</span>
                             <div class="stat-icon-wrap stat-icon-total"><i class="fas fa-dollar-sign"></i></div>
                         </div>
-                        <div class="stat-amount" id="stat-total">AED 0.00</div>
+                        <div class="stat-amount" id="stat-total">0.00</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -362,7 +362,7 @@
                             <span class="stat-label">Pending</span>
                             <div class="stat-icon-wrap stat-icon-pending"><i class="fas fa-clock"></i></div>
                         </div>
-                        <div class="stat-amount" id="stat-pending">AED 0.00</div>
+                        <div class="stat-amount" id="stat-pending">0.00</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -371,7 +371,7 @@
                             <span class="stat-label">Approved</span>
                             <div class="stat-icon-wrap stat-icon-approved"><i class="fas fa-check-circle"></i></div>
                         </div>
-                        <div class="stat-amount" id="stat-approved">AED 0.00</div>
+                        <div class="stat-amount" id="stat-approved">0.00</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -380,7 +380,7 @@
                             <span class="stat-label">Rejected</span>
                             <div class="stat-icon-wrap stat-icon-rejected"><i class="fas fa-times-circle"></i></div>
                         </div>
-                        <div class="stat-amount" id="stat-rejected">AED 0.00</div>
+                        <div class="stat-amount" id="stat-rejected">0.00</div>
                     </div>
                 </div>
             </div>
@@ -451,10 +451,15 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Amount (AED) <span
-                                    class="text-danger">*</span></label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="exp-amount"
-                                placeholder="0.00" required>
+                            <label class="form-label fw-semibold">Currency &amp; Amount <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <select class="form-select" id="exp-currency" style="max-width:100px;" required>
+                                    <option value="INR">INR</option>
+                                    <option value="AED">AED</option>
+                                </select>
+                                <input type="number" step="0.01" min="0" class="form-control" id="exp-amount"
+                                    placeholder="0.00" required>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
@@ -511,13 +516,21 @@
             }
         }
 
+        function formatStatAmount(statusFilter) {
+            const list = statusFilter ? allExpenses.filter(e => e.status === statusFilter) : allExpenses;
+            const aed = list.filter(e => (e.currency || 'AED') === 'AED').reduce((a, e) => a + parseFloat(e.amount), 0);
+            const inr = list.filter(e => e.currency === 'INR').reduce((a, e) => a + parseFloat(e.amount), 0);
+            const parts = [];
+            if (aed > 0) parts.push(`AED ${aed.toFixed(2)}`);
+            if (inr > 0) parts.push(`INR ${inr.toFixed(2)}`);
+            return parts.length ? parts.join(' | ') : 'AED 0.00';
+        }
+
         function updateStats() {
-            const sum = (s) => allExpenses.filter(e => !s || e.status === s)
-                .reduce((a, e) => a + parseFloat(e.amount), 0).toFixed(2);
-            document.getElementById('stat-total').textContent = `AED ${sum(null)}`;
-            document.getElementById('stat-pending').textContent = `AED ${sum('pending')}`;
-            document.getElementById('stat-approved').textContent = `AED ${sum('approved')}`;
-            document.getElementById('stat-rejected').textContent = `AED ${sum('rejected')}`;
+            document.getElementById('stat-total').textContent = formatStatAmount(null);
+            document.getElementById('stat-pending').textContent = formatStatAmount('pending');
+            document.getElementById('stat-approved').textContent = formatStatAmount('approved');
+            document.getElementById('stat-rejected').textContent = formatStatAmount('rejected');
         }
 
         function filterExpenses(status, btn) {
@@ -539,7 +552,7 @@
                 const statusLabel = exp.status.charAt(0).toUpperCase() + exp.status.slice(1);
                 return `<tr>
                     <td style="white-space:nowrap;" class="fw-medium">${exp.category}</td>
-                    <td class="fw-semibold" style="white-space:nowrap;">AED ${parseFloat(exp.amount).toFixed(2)}</td>
+                    <td class="fw-semibold" style="white-space:nowrap;">${exp.currency || 'AED'} ${parseFloat(exp.amount).toFixed(2)}</td>
                     <td style="white-space:nowrap;">${new Date(exp.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                     <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${exp.description}">${exp.description}</td>
                     <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
@@ -561,6 +574,7 @@
                     await createExpense(session.userId, {
                         category: document.getElementById('exp-category').value,
                         amount: document.getElementById('exp-amount').value,
+                        currency: document.getElementById('exp-currency').value,
                         date: document.getElementById('exp-date').value,
                         description: document.getElementById('exp-description').value,
                         receiptUrl: null

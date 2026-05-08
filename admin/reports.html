@@ -191,8 +191,12 @@
 
                 document.getElementById('total-cases').textContent = allCases.length
                 const approvedExpenses = allExpenses.filter(e => e.status === 'approved')
-                const totalExpenseAmount = approvedExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0)
-                document.getElementById('total-expenses').textContent = 'AED ' + totalExpenseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                const approvedAED = approvedExpenses.filter(e => (e.currency || 'AED') === 'AED').reduce((sum, e) => sum + parseFloat(e.amount || 0), 0)
+                const approvedINR = approvedExpenses.filter(e => e.currency === 'INR').reduce((sum, e) => sum + parseFloat(e.amount || 0), 0)
+                const expParts = []
+                if (approvedAED > 0) expParts.push('AED ' + approvedAED.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
+                if (approvedINR > 0) expParts.push('INR ' + approvedINR.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
+                document.getElementById('total-expenses').textContent = expParts.length ? expParts.join(' | ') : 'AED 0.00'
 
                 // Render Analytics
                 renderLeadPipeline(allLeads)
@@ -420,7 +424,7 @@
                                     let label = context.label || '';
                                     if (label) { label += ': '; }
                                     if (context.parsed !== null) {
-                                        label += 'AED ' + context.parsed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                        label += context.parsed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                                     }
                                     return label;
                                 }

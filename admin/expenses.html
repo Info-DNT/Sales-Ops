@@ -435,7 +435,7 @@
                             <span class="stat-label">Total</span>
                             <div class="stat-icon-wrap stat-icon-total"><i class="fas fa-dollar-sign"></i></div>
                         </div>
-                        <div class="stat-amount" id="stat-total">AED 0</div>
+                        <div class="stat-amount" id="stat-total">0</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -444,7 +444,7 @@
                             <span class="stat-label">Pending</span>
                             <div class="stat-icon-wrap stat-icon-pending"><i class="fas fa-clock"></i></div>
                         </div>
-                        <div class="stat-amount" id="stat-pending">AED 0</div>
+                        <div class="stat-amount" id="stat-pending">0</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -453,7 +453,7 @@
                             <span class="stat-label">Approved</span>
                             <div class="stat-icon-wrap stat-icon-approved"><i class="fas fa-check-circle"></i></div>
                         </div>
-                        <div class="stat-amount" id="stat-approved">AED 0</div>
+                        <div class="stat-amount" id="stat-approved">0</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -462,7 +462,7 @@
                             <span class="stat-label">Rejected</span>
                             <div class="stat-icon-wrap stat-icon-rejected"><i class="fas fa-times-circle"></i></div>
                         </div>
-                        <div class="stat-amount" id="stat-rejected">AED 0</div>
+                        <div class="stat-amount" id="stat-rejected">0</div>
                     </div>
                 </div>
             </div>
@@ -679,13 +679,21 @@
             renderExpenses();
         }
 
+        function formatStatAmount(statusFilter) {
+            const list = statusFilter ? allExpenses.filter(e => e.status === statusFilter) : allExpenses;
+            const aed = list.filter(e => (e.currency || 'AED') === 'AED').reduce((a, e) => a + parseFloat(e.amount), 0);
+            const inr = list.filter(e => e.currency === 'INR').reduce((a, e) => a + parseFloat(e.amount), 0);
+            const parts = [];
+            if (aed > 0) parts.push(`AED ${aed.toFixed(2)}`);
+            if (inr > 0) parts.push(`INR ${inr.toFixed(2)}`);
+            return parts.length ? parts.join(' | ') : 'AED 0.00';
+        }
+
         function updateStats() {
-            const sum = (s) => allExpenses.filter(e => !s || e.status === s)
-                .reduce((a, e) => a + parseFloat(e.amount), 0).toFixed(2);
-            document.getElementById('stat-total').textContent = `AED ${sum(null)}`;
-            document.getElementById('stat-pending').textContent = `AED ${sum('pending')}`;
-            document.getElementById('stat-approved').textContent = `AED ${sum('approved')}`;
-            document.getElementById('stat-rejected').textContent = `AED ${sum('rejected')}`;
+            document.getElementById('stat-total').textContent = formatStatAmount(null);
+            document.getElementById('stat-pending').textContent = formatStatAmount('pending');
+            document.getElementById('stat-approved').textContent = formatStatAmount('approved');
+            document.getElementById('stat-rejected').textContent = formatStatAmount('rejected');
         }
 
         function renderExpenses() {
@@ -699,10 +707,11 @@
                 const staffName = exp.users?.name || exp.users?.email || 'Unknown';
                 const statusClass = `status-${exp.status}`;
                 const statusLabel = exp.status.charAt(0).toUpperCase() + exp.status.slice(1);
+                const expCurrency = exp.currency || 'AED';
                 const actions = exp.status === 'pending'
                     ? `<div class="action-btn-group">
-                            <button class="btn btn-sm btn-success" onclick="openDecision('${exp.id}','${exp.user_id}','approved','${exp.category}','${exp.amount}')"><i class="fas fa-check"></i></button>
-                            <button class="btn btn-sm btn-danger"  onclick="openDecision('${exp.id}','${exp.user_id}','rejected','${exp.category}','${exp.amount}')"><i class="fas fa-times"></i></button>
+                            <button class="btn btn-sm btn-success" onclick="openDecision('${exp.id}','${exp.user_id}','approved','${exp.category}','${exp.amount}','${expCurrency}')"><i class="fas fa-check"></i></button>
+                            <button class="btn btn-sm btn-danger"  onclick="openDecision('${exp.id}','${exp.user_id}','rejected','${exp.category}','${exp.amount}','${expCurrency}')"><i class="fas fa-times"></i></button>
                             <button class="btn btn-sm btn-outline-secondary" onclick="showAuditLog('${exp.id}')" title="History"><i class="fas fa-history"></i></button>
                             ${canDelete() ? `<button class="btn btn-sm btn-outline-danger" onclick="handleDeleteExpense('${exp.id}')" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
                        </div>`
@@ -716,7 +725,7 @@
                         <div class="text-muted" style="font-size:11px;">${new Date(exp.created_at).toLocaleDateString()}</div>
                     </td>
                     <td style="white-space:nowrap;">${exp.category}</td>
-                    <td class="fw-semibold" style="white-space:nowrap;">AED ${parseFloat(exp.amount).toFixed(2)}</td>
+                    <td class="fw-semibold" style="white-space:nowrap;">${exp.currency || 'AED'} ${parseFloat(exp.amount).toFixed(2)}</td>
                     <td style="white-space:nowrap;">${new Date(exp.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                     <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${exp.description}">${exp.description}</td>
                     <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
@@ -726,7 +735,7 @@
         }
 
         // ── Decision ──
-        function openDecision(expenseId, ownerId, action, category, amount) {
+        function openDecision(expenseId, ownerId, action, category, amount, currency) {
             document.getElementById('decision-expense-id').value = expenseId;
             document.getElementById('decision-owner-id').value = ownerId;
             document.getElementById('decision-action').value = action;
@@ -734,7 +743,7 @@
             const isApprove = action === 'approved';
             const btn = document.getElementById('decision-confirm-btn');
             document.getElementById('decisionModalTitle').textContent = isApprove ? 'Approve Expense' : 'Reject Expense';
-            document.getElementById('decision-summary').innerHTML = `<p class="mb-1"><strong>Category:</strong> ${category}</p><p class="mb-0"><strong>Amount:</strong> AED ${parseFloat(amount).toFixed(2)}</p>`;
+            document.getElementById('decision-summary').innerHTML = `<p class="mb-1"><strong>Category:</strong> ${category}</p><p class="mb-0"><strong>Amount:</strong> ${currency || 'AED'} ${parseFloat(amount).toFixed(2)}</p>`;
             btn.className = `btn flex-grow-1 ${isApprove ? 'btn-success' : 'btn-danger'}`;
             btn.innerHTML = `${isApprove ? '<i class="fas fa-check me-1"></i>Approve' : '<i class="fas fa-times me-1"></i>Reject'} <span class="spinner-border spinner-border-sm ms-2 d-none" id="decision-spinner"></span>`;
             document.getElementById('decision-note-label').textContent = isApprove ? 'Note (Optional)' : 'Reason (Optional)';
@@ -821,7 +830,7 @@
                     type: 'bar',
                     data: {
                         labels: monthLabels,
-                        datasets: [{ label: 'Total Expenses (AED)', data: monthValues, backgroundColor: 'rgba(99,102,241,.7)', borderRadius: 6, borderSkipped: false }]
+                        datasets: [{ label: 'Total Expenses', data: monthValues, backgroundColor: 'rgba(99,102,241,.7)', borderRadius: 6, borderSkipped: false }]
                     },
                     options: {
                         responsive: true, maintainAspectRatio: false,
