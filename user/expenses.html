@@ -408,6 +408,7 @@
                             <tr>
                                 <th>Category</th>
                                 <th>Amount</th>
+                                <th>Currency</th>
                                 <th>Date</th>
                                 <th>Description</th>
                                 <th>Status</th>
@@ -416,7 +417,7 @@
                         </thead>
                         <tbody id="expenses-tbody">
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">Loading...</td>
+                                <td colspan="7" class="text-center text-muted py-4">Loading...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -518,12 +519,7 @@
 
         function formatStatAmount(statusFilter) {
             const list = statusFilter ? allExpenses.filter(e => e.status === statusFilter) : allExpenses;
-            const aed = list.filter(e => (e.currency || 'AED') === 'AED').reduce((a, e) => a + parseFloat(e.amount), 0);
-            const inr = list.filter(e => e.currency === 'INR').reduce((a, e) => a + parseFloat(e.amount), 0);
-            const parts = [];
-            if (aed > 0) parts.push(`AED ${aed.toFixed(2)}`);
-            if (inr > 0) parts.push(`INR ${inr.toFixed(2)}`);
-            return parts.length ? parts.join(' | ') : 'AED 0.00';
+            return list.reduce((a, e) => a + parseFloat(e.amount), 0).toFixed(2);
         }
 
         function updateStats() {
@@ -544,7 +540,7 @@
             const tbody = document.getElementById('expenses-tbody');
             const list = filter === 'all' ? allExpenses : allExpenses.filter(e => e.status === filter);
             if (!list.length) {
-                tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-receipt"></i><p>No ${filter === 'all' ? '' : filter} expenses found.</p></div></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-receipt"></i><p>No ${filter === 'all' ? '' : filter} expenses found.</p></div></td></tr>`;
                 return;
             }
             tbody.innerHTML = list.map(exp => {
@@ -552,7 +548,8 @@
                 const statusLabel = exp.status.charAt(0).toUpperCase() + exp.status.slice(1);
                 return `<tr>
                     <td style="white-space:nowrap;" class="fw-medium">${exp.category}</td>
-                    <td class="fw-semibold" style="white-space:nowrap;">${exp.currency || 'AED'} ${parseFloat(exp.amount).toFixed(2)}</td>
+                    <td class="fw-semibold" style="white-space:nowrap;">${parseFloat(exp.amount).toFixed(2)}</td>
+                    <td style="white-space:nowrap;"><span class="status-badge" style="background:var(--primary-light,#ede9fe);color:var(--primary,#6366f1);font-size:11px;">${exp.currency || 'AED'}</span></td>
                     <td style="white-space:nowrap;">${new Date(exp.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                     <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${exp.description}">${exp.description}</td>
                     <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
