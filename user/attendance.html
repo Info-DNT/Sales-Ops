@@ -149,7 +149,7 @@
                 if (spinner) spinner.classList.remove('d-none')
 
                 try {
-                    todayAttendance = await clockIn(session.userId)
+                    todayAttendance = await clockIn(session.userId, session.name)
 
                     const clockOutBtn = document.getElementById('clock-out-btn');
                     if (clockOutBtn) clockOutBtn.disabled = false

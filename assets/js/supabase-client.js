@@ -833,8 +833,9 @@ async function getAllAttendance(userId) {
 /**
  * Clock in
  * @param {string} userId 
+ * @param {string} userName
  */
-async function clockIn(userId) {
+async function clockIn(userId, userName = null) {
     const client = initSupabase();
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toLocaleTimeString('en-US', { hour12: false });
@@ -843,6 +844,7 @@ async function clockIn(userId) {
         .from('attendance')
         .upsert({
             user_id: userId,
+            user_name: userName,
             date: today,
             clock_in: now
         }, {

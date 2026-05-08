@@ -95,7 +95,7 @@
                         <tbody>
                             ${records.map(record => `
                                 <tr>
-                                    <td>${record.users?.name || record.users?.email || 'Unknown'}</td>
+                                    <td>${record.user_name || record.users?.name || record.users?.email || 'Unknown'}</td>
                                     <td>${new Date(record.date).toLocaleDateString()}</td>
                                     <td>${record.clock_in || '--'}</td>
                                     <td>${record.clock_out || 'Pending'}</td>
