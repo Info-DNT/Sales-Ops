@@ -22,7 +22,7 @@
                         <i class="fas fa-file-export"></i> Export CSV
                     </button>
 
-                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addLeadModal">
+                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addLeadModal" data-module="leads" data-action="create">
                         <i class="fas fa-plus"></i> Add Lead
                     </button>
                 </div>
@@ -256,7 +256,7 @@
 
                     <hr class="my-4">
                     <h6 class="mb-3 text-muted small fw-bold text-uppercase">Edit Lead Details</h6>
-                    <form id="edit-lead-form">
+                    <form id="edit-lead-form" data-module="leads" data-action="edit">
                         <input type="hidden" id="edit-lead-id">
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -341,7 +341,7 @@
                                     <option value="Qualified">Qualified</option>
                                     <option value="Closed">Closed</option>
                                     <option value="Not Converted">Not Converted</option>
-                                    <option value="Converted">&#10003; Converted</option>
+                                    <option value="Converted">Converted</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -369,7 +369,7 @@
                             <i class="fas fa-save me-1"></i> Save Changes
                         </button>
                         <button type="button" class="btn btn-outline-success w-100 mt-2"
-                            onclick="openConvertModal(editingLeadId)">
+                            onclick="openConvertModal(editingLeadId)" data-module="cases" data-action="create">
                             <i class="fas fa-exchange-alt me-1"></i> Convert to Case
                         </button>
                     </form>
@@ -509,7 +509,7 @@
                                     <option value="Qualified">Qualified</option>
                                     <option value="Closed">Closed</option>
                                     <option value="Not Converted">Not Converted</option>
-                                    <option value="Converted">&#10003; Converted</option>
+                                    <option value="Converted">Converted</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -646,6 +646,8 @@
         const session = getCurrentSession()
         let leads = []
         let allLeads = []
+        let pageSize = 20
+        let currentPageLeads = 1
         let editingLeadId = null
 
         // Load all leads
@@ -654,11 +656,20 @@
             container.innerHTML = '<p class="text-muted">Loading...</p>'
 
             try {
+                // ── DIAGNOSTIC START (remove after debugging) ──
+                const client = initSupabase()
+                const { data: authData } = await client.auth.getSession()
+                console.log('🔍 [DIAG] Supabase auth session:', authData?.session ? 'ACTIVE (uid: ' + authData.session.user.id + ')' : 'NO SESSION')
+                console.log('🔍 [DIAG] localStorage session:', JSON.stringify(getCurrentSession()))
+                // ── DIAGNOSTIC END ──
+
                 allLeads = await getAllLeadsAdmin()
+                console.log('🔍 [DIAG] getAllLeadsAdmin returned:', allLeads?.length, 'leads')
                 leads = allLeads
                 displayLeads()
             } catch (error) {
                 console.error('Error loading leads:', error)
+                console.error('🔍 [DIAG] Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
                 showToast('Failed to load leads', 'error')
                 container.innerHTML = '<p class="text-danger">Error loading leads.</p>'
             }
@@ -770,7 +781,9 @@
                 return
             }
 
-            container.innerHTML = leads.map(lead => {
+            const visibleLeads = leads.slice(0, pageSize * currentPageLeads)
+            
+            container.innerHTML = visibleLeads.map(lead => {
                 const isCRM = lead.lead_source && lead.lead_source !== '';
 
                 // 1. Calculate Stale Status (Aging)
@@ -802,26 +815,29 @@
                                 ${diffDays > 0 ? ` | <span class="${diffDays >= 3 ? 'text-warning fw-bold' : ''}">Activity: ${diffDays}d ago</span>` : ' | <span>Activity: Today</span>'}
                             </p>
                         </div>
-                        <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>
+                        <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">
+                            ${lead.status === 'Converted' ? '<i class="fas fa-check-circle me-1"></i>' : ''}
+                            ${lead.status}
+                        </span>
                     </div>
                     <div class="lead-details mt-2">
                         <div class="row g-2">
-                             <div class="col-md-3">
-                                <small><i class="fas fa-phone me-1 text-muted"></i><strong>Phone:</strong> ${lead.contact || 'N/A'}</small>
+                             <div class="col-6 col-md-4">
+                                <small class="text-break"><i class="fas fa-phone me-1 text-muted"></i><strong>Phone:</strong> ${lead.contact || 'N/A'}</small>
                             </div>
-                            <div class="col-md-3">
-                                <small><i class="fas fa-envelope me-1 text-muted"></i><strong>Email:</strong> ${lead.email || 'N/A'}</small>
+                            <div class="col-6 col-md-4">
+                                <small class="text-break"><i class="fas fa-envelope me-1 text-muted"></i><strong>Email:</strong> ${lead.email || 'N/A'}</small>
                             </div>
-                            <div class="col-md-3">
-                                <small><i class="fas fa-fingerprint me-1 text-muted"></i><strong>Quo ID:</strong> 
+                            <div class="col-6 col-md-4">
+                                <small class="text-break"><i class="fas fa-fingerprint me-1 text-muted"></i><strong>Quo ID:</strong> 
                                     ${lead.quotation_id
                         ? `<span class="fw-bold text-primary" id="quo-id-${lead.id}">${lead.quotation_id}</span>`
                         : `<span class="text-muted small" id="quo-id-${lead.id}"><i class="fas fa-clock fa-xs"></i> Quo Pending</span>`
                     }
                                 </small>
                             </div>
-                            <div class="col-md-3">
-                                <small><i class="fas fa-calendar-check me-1 text-muted"></i><strong>Follow-up:</strong> <span class="${isUrgent ? 'text-danger fw-bold' : ''}">${lead.follow_up_date || 'N/A'}</span></small>
+                            <div class="col-6 col-md-4">
+                                <small class="text-break"><i class="fas fa-calendar-check me-1 text-muted"></i><strong>Follow-up:</strong> <span class="${isUrgent ? 'text-danger fw-bold' : ''}">${lead.follow_up_date || 'N/A'}</span></small>
                             </div>
                         </div>
                     </div>
@@ -840,7 +856,7 @@
                         ` : ''}
 
                         ${canDelete() ? `
-                        <button class="btn btn-sm btn-outline-danger ms-auto" onclick="event.stopPropagation(); handleDeleteLead('${lead.id}')">
+                        <button class="btn btn-sm btn-outline-danger ms-auto" onclick="event.stopPropagation(); handleDeleteLead('${lead.id}')" data-module="leads" data-action="delete">
                             <i class="fas fa-trash-alt me-1"></i> Delete
                         </button>
                         ` : ''}
@@ -848,6 +864,26 @@
                 </div>
             `;
             }).join('')
+
+            // Add Load More button if needed
+            if (leads.length > visibleLeads.length) {
+                const loadMoreBtn = document.createElement('div')
+                loadMoreBtn.className = 'text-center mt-4 mb-5'
+                loadMoreBtn.innerHTML = `
+                    <button class="btn btn-outline-primary px-5" onclick="loadMoreLeads()">
+                        Show More Leads (${leads.length - visibleLeads.length} remaining)
+                    </button>
+                `
+                container.appendChild(loadMoreBtn)
+            }
+
+            // Apply UI guards to the new cards
+            applyUIGuards(container)
+        }
+
+        window.loadMoreLeads = function() {
+            currentPageLeads++
+            displayLeads()
         }
 
         function applyFilter() {

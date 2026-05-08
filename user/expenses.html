@@ -549,31 +549,37 @@
         }
 
         // ── Form ──
-        document.getElementById('add-expense-form').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const btn = document.getElementById('submit-expense-btn');
-            const spinner = document.getElementById('expense-spinner');
-            btn.disabled = true; spinner.classList.remove('d-none');
-            try {
-                await createExpense(session.userId, {
-                    category: document.getElementById('exp-category').value,
-                    amount: document.getElementById('exp-amount').value,
-                    date: document.getElementById('exp-date').value,
-                    description: document.getElementById('exp-description').value,
-                    receiptUrl: null
-                });
-                this.reset();
-                document.getElementById('exp-date').valueAsDate = new Date();
-                bootstrap.Modal.getInstance(document.getElementById('addExpenseModal')).hide();
-                showToast('Expense submitted! Admin will review it shortly.', 'success');
-                await loadExpenses();
-            } catch (err) {
-                console.error(err);
-                showToast('Failed to submit: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false; spinner.classList.add('d-none');
-            }
-        });
+        const expenseForm = document.getElementById('add-expense-form');
+        if (expenseForm) {
+            expenseForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const btn = document.getElementById('submit-expense-btn');
+                const spinner = document.getElementById('expense-spinner');
+                if (btn) btn.disabled = true; 
+                if (spinner) spinner.classList.remove('d-none');
+                try {
+                    await createExpense(session.userId, {
+                        category: document.getElementById('exp-category').value,
+                        amount: document.getElementById('exp-amount').value,
+                        date: document.getElementById('exp-date').value,
+                        description: document.getElementById('exp-description').value,
+                        receiptUrl: null
+                    });
+                    this.reset();
+                    document.getElementById('exp-date').valueAsDate = new Date();
+                    const modalEl = document.getElementById('addExpenseModal');
+                    if (modalEl) bootstrap.Modal.getInstance(modalEl).hide();
+                    showToast('Expense submitted! Admin will review it shortly.', 'success');
+                    await loadExpenses();
+                } catch (err) {
+                    console.error(err);
+                    showToast('Failed to submit: ' + err.message, 'error');
+                } finally {
+                    if (btn) btn.disabled = false; 
+                    if (spinner) spinner.classList.add('d-none');
+                }
+            });
+        }
 
         // ── Notifications ──
         async function loadNotifications() {
@@ -610,11 +616,18 @@
             document.getElementById('notifDropdown').classList.remove('show');
         }
 
-        document.getElementById('notifBellWrapper').addEventListener('click', function (e) {
-            e.stopPropagation();
-            document.getElementById('notifDropdown').classList.toggle('show');
+        const bell = document.getElementById('notifBellWrapper');
+        if (bell) {
+            bell.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const dropdown = document.getElementById('notifDropdown');
+                if (dropdown) dropdown.classList.toggle('show');
+            });
+        }
+        document.addEventListener('click', () => {
+            const dropdown = document.getElementById('notifDropdown');
+            if (dropdown) dropdown.classList.remove('show');
         });
-        document.addEventListener('click', () => document.getElementById('notifDropdown').classList.remove('show'));
 
         // Set today as default date
         document.getElementById('exp-date').valueAsDate = new Date();

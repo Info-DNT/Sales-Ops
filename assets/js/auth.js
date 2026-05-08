@@ -278,6 +278,38 @@ function startSessionWatcher() {
     window._sessionWatcherInterval = setInterval(checkRemote, 30000)
 }
 
+// Refresh user permissions from the database and update localStorage
+async function refreshUserPermissions() {
+    const session = getCurrentSession()
+    if (!session || !session.userId) return
+    
+    // Admin/Super Admin don't need module-level permission refresh (fixed roles)
+    if (session.role === 'admin' || session.role === 'super_admin') return
+
+    try {
+        if (typeof getUserPermissions !== 'function') return
+        
+        const perms = await getUserPermissions(session.userId)
+        if (perms) {
+            session.permissions = {}
+            perms.forEach(p => {
+                session.permissions[p.module] = {
+                    enabled: p.enabled,
+                    view: p.can_view,
+                    create: p.can_create,
+                    edit: p.can_edit,
+                    delete: p.can_delete
+                }
+            })
+            localStorage.setItem('salesAppSession', JSON.stringify(session))
+            // Re-apply guards after permissions are updated
+            if (typeof applyUIGuards === 'function') applyUIGuards()
+        }
+    } catch (e) {
+        console.warn('Silent permission refresh failed:', e)
+    }
+}
+
 // Initialize auth check on page load (for protected pages)
 function initAuthCheck(requiredRole = null) {
     if (!requireAuth(requiredRole)) {
@@ -288,6 +320,9 @@ function initAuthCheck(requiredRole = null) {
     if (session) {
         document.querySelectorAll('.user-name').forEach(el => el.textContent = session.name || session.email)
         document.querySelectorAll('.user-email').forEach(el => el.textContent = session.email)
+        
+        // Refresh permissions in the background
+        refreshUserPermissions()
     }
 
     // Start single-session enforcement

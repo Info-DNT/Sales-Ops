@@ -115,17 +115,31 @@ function generateUserNav(currentPage) {
       page: 'leads',
       icon: 'fa-bullseye',
       label: 'Leads',
+      module: 'leads',
       hasDropdown: true,
       dropdownItems: [
-        { page: 'cases', icon: 'fa-briefcase', label: 'Cases' },
-        { page: 'calls', icon: 'fa-phone', label: 'Calls' },
-        { page: 'meetings', icon: 'fa-video', label: 'Meetings' },
-        { page: 'expenses', icon: 'fa-receipt', label: 'Expenses' }
+        { page: 'cases', icon: 'fa-briefcase', label: 'Cases', module: 'cases' },
+        { page: 'calls', icon: 'fa-phone', label: 'Calls', module: 'calls' },
+        { page: 'meetings', icon: 'fa-video', label: 'Meetings', module: 'meetings' },
+        { page: 'expenses', icon: 'fa-receipt', label: 'Expenses', module: 'expenses' }
       ]
     },
     { page: 'manual', icon: 'fa-book-open', label: 'User Manual' },
     { page: 'settings', icon: 'fa-cog', label: 'Settings' }
   ]
+
+  // Filter items based on permissions
+  const filteredItems = navItems.filter(item => {
+    if (item.module) return canPerform(item.module, 'view')
+    return true
+  })
+
+  // Filter dropdown items
+  filteredItems.forEach(item => {
+    if (item.hasDropdown && item.dropdownItems) {
+      item.dropdownItems = item.dropdownItems.filter(sub => canPerform(sub.module, 'view'))
+    }
+  })
 
   return `
     <!-- Mobile hamburger button -->
@@ -148,7 +162,7 @@ function generateUserNav(currentPage) {
       </div>
 
       <ul class="nav-menu">
-        ${navItems.map(item => {
+        ${filteredItems.map(item => {
     const hideClass = item.page === 'quotations' ? 'd-none-quotation' : '';
     if (item.hasDropdown) {
       const isLeadsActive = currentPage === 'leads' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings' || currentPage === 'expenses';
@@ -304,11 +318,16 @@ function insertNav(role, currentPage) {
 }
 
 /**
- * Scans the page for elements with data-module and data-action attributes
+ * Scans a container for elements with data-module and data-action attributes
  * and removes them if the user doesn't have permission.
+ * Optimized to take an optional container to avoid full-page scans.
  */
-function applyUIGuards() {
-  document.querySelectorAll('[data-module]').forEach(el => {
+function applyUIGuards(container = document) {
+  // If container is a string, assume it's a selector
+  const root = typeof container === 'string' ? document.querySelector(container) : container
+  if (!root) return
+
+  root.querySelectorAll('[data-module]').forEach(el => {
     const module = el.dataset.module
     const action = el.dataset.action || 'view'
     
@@ -318,7 +337,7 @@ function applyUIGuards() {
   })
   
   // Also check for data-role guards
-  document.querySelectorAll('[data-role]').forEach(el => {
+  root.querySelectorAll('[data-role]').forEach(el => {
     const session = getCurrentSession()
     if (!session || session.role !== el.dataset.role) {
       el.remove()
@@ -326,9 +345,9 @@ function applyUIGuards() {
   })
 }
 
-// Re-run guards when offcanvas or modals are shown (for dynamic content)
-document.addEventListener('shown.bs.offcanvas', function() { applyUIGuards() })
-document.addEventListener('shown.bs.modal', function() { applyUIGuards() })
+// Re-run guards when offcanvas or modals are shown (optimized for target content)
+document.addEventListener('shown.bs.offcanvas', function(e) { applyUIGuards(e.target) })
+document.addEventListener('shown.bs.modal', function(e) { applyUIGuards(e.target) })
 // Also run on DOMContentLoaded as a safety net
 document.addEventListener('DOMContentLoaded', function() { applyUIGuards() })
 

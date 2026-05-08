@@ -343,6 +343,13 @@ async function saveWorkReport(userId, report) {
 async function getLeads(userId, filters = {}) {
     const client = initSupabase();
 
+    // Validate UUID to prevent Supabase 22P02 error
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!userId || !uuidRegex.test(userId)) {
+        console.error('[getLeads] Invalid or missing User ID:', userId);
+        return [];
+    }
+
     let query = client
         .from('leads')
         .select('*, users(name, email)')
@@ -361,14 +368,16 @@ async function getLeads(userId, filters = {}) {
     }
 
     try {
+        console.log(`[getLeads] Fetching leads for user: ${userId}`);
         const { data, error } = await query;
         if (error) {
             console.error('[getLeads] Supabase error:', JSON.stringify(error));
             throw error;
         }
+        console.log(`[getLeads] Successfully fetched ${data ? data.length : 0} leads.`);
         return data || [];
     } catch (e) {
-        console.error('[getLeads] Catch error:', JSON.stringify(e));
+        console.error('[getLeads] Catch error:', e.message || JSON.stringify(e));
         throw e;
     }
 }
@@ -1055,6 +1064,11 @@ async function createUserByAdmin(email, name, role = 'user') {
  */
 async function getCalls(userId, filters = {}) {
     const client = initSupabase();
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!userId || !uuidRegex.test(userId)) {
+        console.warn('[getCalls] Invalid or missing userId:', userId);
+        return [];
+    }
 
     let query = client
         .from('calls')
@@ -1169,6 +1183,11 @@ async function getAllCallsAdmin() {
  */
 async function getMeetings(userId, filters = {}) {
     const client = initSupabase();
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!userId || !uuidRegex.test(userId)) {
+        console.warn('[getMeetings] Invalid or missing userId:', userId);
+        return [];
+    }
 
     let query = client
         .from('meetings')
@@ -1313,16 +1332,41 @@ async function deleteCase(caseId) {
 async function getCasesForUser(userId) {
     const client = initSupabase();
 
+    // Validate UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!userId || !uuidRegex.test(userId)) {
+        console.warn('[getCasesForUser] Invalid or missing User ID:', userId);
+        return [];
+    }
+
+    // Primary query: try with lead join
     const { data, error } = await client
+        .from('cases')
+        .select('*, leads(name, contact)')
+        .eq('user_id', userId)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false });
+
+    if (!error) {
+        return data || [];
+    }
+
+    // Fallback: if join fails (e.g. RLS on leads table), query cases only
+    console.warn('[getCasesForUser] Join query failed, falling back to cases-only query. Error:', error.message);
+    const { data: fallbackData, error: fallbackError } = await client
         .from('cases')
         .select('*')
         .eq('user_id', userId)
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data || [];
+    if (fallbackError) {
+        console.error('[getCasesForUser] Fallback query also failed:', fallbackError.message);
+        throw fallbackError;
+    }
+    return fallbackData || [];
 }
+
 
 /**
  * Get lead details by lead ID (used when opening a case detail panel)
@@ -1448,6 +1492,11 @@ async function deleteCase(caseId) {
  */
 async function getExpenses(userId) {
     const client = initSupabase();
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!userId || !uuidRegex.test(userId)) {
+        console.warn('[getExpenses] Invalid or missing userId:', userId);
+        return [];
+    }
     const { data, error } = await client
         .from('expenses')
         .select('*')

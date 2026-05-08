@@ -139,62 +139,70 @@
         }
 
         // Clock In
-        document.getElementById('clock-in-btn').addEventListener('click', async function () {
-            const btn = this
-            const spinner = btn.querySelector('.spinner-border')
+        const clockInBtn = document.getElementById('clock-in-btn');
+        if (clockInBtn) {
+            clockInBtn.addEventListener('click', async function () {
+                const btn = this
+                const spinner = btn.querySelector('.spinner-border')
 
-            btn.disabled = true
-            spinner.classList.remove('d-none')
+                btn.disabled = true
+                if (spinner) spinner.classList.remove('d-none')
 
-            try {
-                todayAttendance = await clockIn(session.userId)
+                try {
+                    todayAttendance = await clockIn(session.userId)
 
-                document.getElementById('clock-out-btn').disabled = false
-                document.getElementById('clock-in-time').textContent = todayAttendance.clock_in
-                document.getElementById('attendance-time-status').textContent = 'Currently Working'
+                    const clockOutBtn = document.getElementById('clock-out-btn');
+                    if (clockOutBtn) clockOutBtn.disabled = false
+                    document.getElementById('clock-in-time').textContent = todayAttendance.clock_in
+                    document.getElementById('attendance-time-status').textContent = 'Currently Working'
 
-                showToast('Clocked in successfully!', 'success')
-            } catch (error) {
-                console.error('Error clocking in:', error)
-                showToast('Failed to clock in', 'error')
-                btn.disabled = false
-            } finally {
-                spinner.classList.add('d-none')
-            }
-        })
+                    showToast('Clocked in successfully!', 'success')
+                } catch (error) {
+                    console.error('Error clocking in:', error)
+                    showToast('Failed to clock in', 'error')
+                    btn.disabled = false
+                } finally {
+                    if (spinner) spinner.classList.add('d-none')
+                }
+            })
+        }
 
         // Clock Out
-        document.getElementById('clock-out-btn').addEventListener('click', async function () {
-            const btn = this
-            const spinner = btn.querySelector('.spinner-border')
+        const clockOutBtn = document.getElementById('clock-out-btn');
+        if (clockOutBtn) {
+            clockOutBtn.addEventListener('click', async function () {
+                const btn = this
+                const spinner = btn.querySelector('.spinner-border')
 
-            btn.disabled = true
-            spinner.classList.remove('d-none')
+                btn.disabled = true
+                if (spinner) spinner.classList.remove('d-none')
 
-            try {
-                todayAttendance = await clockOut(session.userId)
+                try {
+                    todayAttendance = await clockOut(session.userId)
 
-                document.getElementById('clock-in-btn').disabled = false
-                document.getElementById('clock-out-time').textContent = todayAttendance.clock_out
+                    const clockInBtn = document.getElementById('clock-in-btn');
+                    if (clockInBtn) clockInBtn.disabled = false
+                    document.getElementById('clock-out-time').textContent = todayAttendance.clock_out
 
-                const hours = Math.floor(todayAttendance.hours_worked || 0)
-                const minutes = Math.round(((todayAttendance.hours_worked || 0) % 1) * 60)
-                document.getElementById('hours-worked').textContent = `${hours}h ${minutes}m`
-                document.getElementById('attendance-time-status').textContent = 'Shift Completed'
+                    const hours = Math.floor(todayAttendance.hours_worked || 0)
+                    const minutes = Math.round(((todayAttendance.hours_worked || 0) % 1) * 60)
+                    document.getElementById('hours-worked').textContent = `${hours}h ${minutes}m`
+                    document.getElementById('attendance-time-status').textContent = 'Shift Completed'
 
-                // Reload history
-                attendanceHistory = await getAllAttendance(session.userId)
-                displayAttendanceHistory()
+                    // Reload history
+                    attendanceHistory = await getAllAttendance(session.userId)
+                    displayAttendanceHistory()
 
-                showToast(`Shift completed! Hours worked: ${hours}h ${minutes}m`, 'success')
-            } catch (error) {
-                console.error('Error clocking out:', error)
-                showToast('Failed to clock out', 'error')
-                btn.disabled = false
-            } finally {
-                spinner.classList.add('d-none')
-            }
-        })
+                    showToast(`Shift completed! Hours worked: ${hours}h ${minutes}m`, 'success')
+                } catch (error) {
+                    console.error('Error clocking out:', error)
+                    showToast('Failed to clock out', 'error')
+                    btn.disabled = false
+                } finally {
+                    if (spinner) spinner.classList.add('d-none')
+                }
+            })
+        }
 
         // Display Attendance History
         function displayAttendanceHistory() {

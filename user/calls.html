@@ -246,49 +246,54 @@
         }
 
         // Handle form submission
-        document.getElementById('call-form').addEventListener('submit', async function (e) {
-            e.preventDefault()
-
-            const saveBtn = document.getElementById('save-call-btn')
-            const spinner = saveBtn.querySelector('.spinner-border')
-
-            saveBtn.disabled = true
-            spinner.classList.remove('d-none')
-
-            try {
-                const callData = {
-                    name: document.getElementById('call-name').value,
-                    phone: document.getElementById('call-phone').value,
-                    designation: document.getElementById('call-designation').value,
-                    hospitalName: document.getElementById('call-hospital').value
+        const callForm = document.getElementById('call-form');
+        if (callForm) {
+            callForm.addEventListener('submit', async function (e) {
+                e.preventDefault()
+    
+                const saveBtn = document.getElementById('save-call-btn')
+                if (!saveBtn) return;
+                const spinner = saveBtn.querySelector('.spinner-border')
+    
+                saveBtn.disabled = true
+                if (spinner) spinner.classList.remove('d-none')
+    
+                try {
+                    const callData = {
+                        name: document.getElementById('call-name').value,
+                        phone: document.getElementById('call-phone').value,
+                        designation: document.getElementById('call-designation').value,
+                        hospitalName: document.getElementById('call-hospital').value
+                    }
+    
+                    if (editingCallId) {
+                        // Update existing call
+                        await updateCall(editingCallId, callData)
+                        showToast('Call updated successfully!', 'success')
+                    } else {
+                        // Create new call
+                        await createCall(session.userId, callData)
+                        showToast('Call added successfully!', 'success')
+                    }
+    
+                    // Reset form and close modal
+                    this.reset()
+                    editingCallId = null
+                    document.getElementById('callModalTitle').textContent = 'Add Call'
+                    const modalEl = document.getElementById('addCallModal');
+                    if (modalEl) bootstrap.Modal.getInstance(modalEl).hide()
+    
+                    // Reload calls
+                    await loadCalls()
+                } catch (error) {
+                    console.error('Error saving call:', error)
+                    showToast('Failed to save call', 'error')
+                } finally {
+                    saveBtn.disabled = false
+                    if (spinner) spinner.classList.add('d-none')
                 }
-
-                if (editingCallId) {
-                    // Update existing call
-                    await updateCall(editingCallId, callData)
-                    showToast('Call updated successfully!', 'success')
-                } else {
-                    // Create new call
-                    await createCall(session.userId, callData)
-                    showToast('Call added successfully!', 'success')
-                }
-
-                // Reset form and close modal
-                this.reset()
-                editingCallId = null
-                document.getElementById('callModalTitle').textContent = 'Add Call'
-                bootstrap.Modal.getInstance(document.getElementById('addCallModal')).hide()
-
-                // Reload calls
-                await loadCalls()
-            } catch (error) {
-                console.error('Error saving call:', error)
-                showToast('Failed to save call', 'error')
-            } finally {
-                saveBtn.disabled = false
-                spinner.classList.add('d-none')
-            }
-        })
+            })
+        }
 
         // Edit call
         window.editCall = async function (callId) {

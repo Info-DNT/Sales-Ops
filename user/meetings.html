@@ -245,45 +245,50 @@
         }
 
         // Handle form submission
-        document.getElementById('meeting-form').addEventListener('submit', async function (e) {
-            e.preventDefault()
-
-            const saveBtn = document.getElementById('save-meeting-btn')
-            const spinner = saveBtn.querySelector('.spinner-border')
-
-            saveBtn.disabled = true
-            spinner.classList.remove('d-none')
-
-            try {
-                const meetingData = {
-                    meetingWith: document.getElementById('meeting-with').value,
-                    clientName: document.getElementById('meeting-client').value,
-                    agenda: document.getElementById('meeting-agenda').value,
-                    outcome: document.getElementById('meeting-outcome').value
+        const meetingForm = document.getElementById('meeting-form');
+        if (meetingForm) {
+            meetingForm.addEventListener('submit', async function (e) {
+                e.preventDefault()
+    
+                const saveBtn = document.getElementById('save-meeting-btn')
+                if (!saveBtn) return;
+                const spinner = saveBtn.querySelector('.spinner-border')
+    
+                saveBtn.disabled = true
+                if (spinner) spinner.classList.remove('d-none')
+    
+                try {
+                    const meetingData = {
+                        meetingWith: document.getElementById('meeting-with').value,
+                        clientName: document.getElementById('meeting-client').value,
+                        agenda: document.getElementById('meeting-agenda').value,
+                        outcome: document.getElementById('meeting-outcome').value
+                    }
+    
+                    if (editingMeetingId) {
+                        await updateMeeting(editingMeetingId, meetingData)
+                        showToast('Meeting updated successfully!', 'success')
+                    } else {
+                        await createMeeting(session.userId, meetingData)
+                        showToast('Meeting added successfully!', 'success')
+                    }
+    
+                    this.reset()
+                    editingMeetingId = null
+                    document.getElementById('meetingModalTitle').textContent = 'Add Meeting'
+                    const modalEl = document.getElementById('addMeetingModal');
+                    if (modalEl) bootstrap.Modal.getInstance(modalEl).hide()
+    
+                    await loadMeetings()
+                } catch (error) {
+                    console.error('Error saving meeting:', error)
+                    showToast('Failed to save meeting', 'error')
+                } finally {
+                    saveBtn.disabled = false
+                    if (spinner) spinner.classList.add('d-none')
                 }
-
-                if (editingMeetingId) {
-                    await updateMeeting(editingMeetingId, meetingData)
-                    showToast('Meeting updated successfully!', 'success')
-                } else {
-                    await createMeeting(session.userId, meetingData)
-                    showToast('Meeting added successfully!', 'success')
-                }
-
-                this.reset()
-                editingMeetingId = null
-                document.getElementById('meetingModalTitle').textContent = 'Add Meeting'
-                bootstrap.Modal.getInstance(document.getElementById('addMeetingModal')).hide()
-
-                await loadMeetings()
-            } catch (error) {
-                console.error('Error saving meeting:', error)
-                showToast('Failed to save meeting', 'error')
-            } finally {
-                saveBtn.disabled = false
-                spinner.classList.add('d-none')
-            }
-        })
+            })
+        }
 
         // Edit meeting
         window.editMeeting = async function (meetingId) {
