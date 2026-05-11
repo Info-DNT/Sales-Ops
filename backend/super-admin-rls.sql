@@ -46,7 +46,7 @@ BEGIN
     FOREACH table_name IN ARRAY tables
     LOOP
         EXECUTE format('DROP POLICY IF EXISTS "super_admin_all_%I" ON %I', table_name, table_name);
-        EXECUTE format('CREATE POLICY "super_admin_all_%I" ON %I FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = "super_admin"))', table_name, table_name);
+        EXECUTE format('CREATE POLICY "super_admin_all_%I" ON %I FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = ''super_admin''))', table_name, table_name);
     END LOOP;
 END $$;
 
