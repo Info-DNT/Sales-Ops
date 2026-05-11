@@ -1511,6 +1511,7 @@ async function getExpenses(userId) {
         .from('expenses')
         .select('*')
         .eq('user_id', userId)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
     if (error) throw error;
     return data || [];
@@ -1527,13 +1528,14 @@ async function getAllExpensesAdmin() {
     const { data: expenses, error } = await client
         .from('expenses')
         .select('*')
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
     if (error) {
         console.error('[getAllExpensesAdmin] Query error:', error);
         throw error;
     }
 
-    const rows = (expenses || []).filter(e => e.is_deleted !== true);
+    const rows = expenses || [];
 
     if (rows.length > 0) {
         const userIds = [...new Set(rows.map(e => e.user_id))];
@@ -1747,7 +1749,8 @@ async function getPendingExpensesCount() {
     const { count, error } = await client
         .from('expenses')
         .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending');
+        .eq('status', 'pending')
+        .eq('is_deleted', false);
     if (error) return 0;
     return count || 0;
 }
@@ -1759,7 +1762,8 @@ async function getExpenseAnalytics() {
     const client = initSupabase();
     const { data, error } = await client
         .from('expenses')
-        .select('category, amount, date, status');
+        .select('category, amount, date, status')
+        .eq('is_deleted', false);
     if (error) throw error;
     const rows = data || [];
 

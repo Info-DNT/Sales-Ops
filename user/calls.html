@@ -96,6 +96,16 @@
                                 required>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="call-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="call-email" placeholder="Enter email address">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="call-followup" class="form-label">Follow-Up Date</label>
+                            <input type="date" class="form-control" id="call-followup">
+                        </div>
+
                         <button type="submit" class="btn btn-primary w-100" id="save-call-btn">
                             <i class="fas fa-save"></i> Save Call
                             <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
@@ -218,10 +228,22 @@
                                 <span class="lead-detail-label">Phone</span>
                                 <span class="lead-detail-value">${call.phone}</span>
                             </div>
+                            ${call.email ? `
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Email</span>
+                                <span class="lead-detail-value">${call.email}</span>
+                            </div>
+                            ` : ''}
                             <div class="lead-detail-item">
                                 <span class="lead-detail-label">Date</span>
                                 <span class="lead-detail-value">${call.call_date || new Date(call.created_at).toLocaleDateString()}</span>
                             </div>
+                            ${call.follow_up_date ? `
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Follow-Up</span>
+                                <span class="lead-detail-value">${new Date(call.follow_up_date).toLocaleDateString()}</span>
+                            </div>
+                            ` : ''}
                             <div class="lead-detail-item">
                                 <span class="lead-detail-label">Created</span>
                                 <span class="lead-detail-value">${new Date(call.created_at).toLocaleDateString()}</span>
@@ -263,7 +285,9 @@
                         name: document.getElementById('call-name').value,
                         phone: document.getElementById('call-phone').value,
                         designation: document.getElementById('call-designation').value,
-                        hospitalName: document.getElementById('call-hospital').value
+                        hospitalName: document.getElementById('call-hospital').value,
+                        email: document.getElementById('call-email').value || null,
+                        followUpDate: document.getElementById('call-followup').value || null
                     }
     
                     if (editingCallId) {
@@ -306,6 +330,8 @@
             document.getElementById('call-phone').value = call.phone
             document.getElementById('call-designation').value = call.designation
             document.getElementById('call-hospital').value = call.hospital_name
+            document.getElementById('call-email').value = call.email || ''
+            document.getElementById('call-followup').value = call.follow_up_date || ''
 
             new bootstrap.Modal(document.getElementById('addCallModal')).show()
         }

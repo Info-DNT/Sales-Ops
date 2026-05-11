@@ -554,6 +554,9 @@ function generateBottomNav(currentPage) {
   const leadsPages = ['leads', 'cases', 'calls', 'meetings', 'expenses']
   const isLeadsGroup = leadsPages.includes(currentPage)
 
+  // Check if user has access to any module in the Leads group
+  const hasAnyLeadsAccess = canPerform('leads', 'view') || canPerform('cases', 'view') || canPerform('calls', 'view') || canPerform('meetings', 'view') || canPerform('expenses', 'view')
+
   const html = `
     <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile navigation">
       <a href="attendance.html" class="mobile-bottom-nav-item ${currentPage === 'attendance' ? 'active' : ''}">
@@ -572,10 +575,12 @@ function generateBottomNav(currentPage) {
         <i class="fas fa-file-alt"></i>
         <span>Report</span>
       </a>
+      ${hasAnyLeadsAccess ? `
       <a href="leads.html" class="mobile-bottom-nav-item ${isLeadsGroup ? 'active' : ''}">
         <i class="fas fa-bullseye"></i>
         <span>Leads</span>
       </a>
+      ` : ''}
     </nav>
   `
   document.body.insertAdjacentHTML('beforeend', html)
@@ -624,13 +629,21 @@ function generateAdminBottomNav(currentPage) {
  */
 function generateLeadsSubTabs(currentSubPage, basePath) {
   basePath = basePath || ''
-  const tabs = [
-    { id: 'leads',    icon: 'fa-list',     label: 'All Leads' },
-    { id: 'cases',    icon: 'fa-briefcase',label: 'Cases'     },
-    { id: 'calls',    icon: 'fa-phone',    label: 'Calls'     },
-    { id: 'meetings', icon: 'fa-video',    label: 'Meetings'  },
-    { id: 'expenses', icon: 'fa-receipt',  label: 'Expenses'  }
+
+  // Define all tabs with their module identifiers for permission checks
+  const allTabs = [
+    { id: 'leads',    icon: 'fa-list',     label: 'All Leads', module: 'leads'    },
+    { id: 'cases',    icon: 'fa-briefcase',label: 'Cases',     module: 'cases'    },
+    { id: 'calls',    icon: 'fa-phone',    label: 'Calls',     module: 'calls'    },
+    { id: 'meetings', icon: 'fa-video',    label: 'Meetings',  module: 'meetings' },
+    { id: 'expenses', icon: 'fa-receipt',  label: 'Expenses',  module: 'expenses' }
   ]
+
+  // Filter tabs based on user permissions (admins/super_admins always pass)
+  const tabs = allTabs.filter(tab => canPerform(tab.module, 'view'))
+
+  // If no tabs are accessible, don't render the strip at all
+  if (tabs.length === 0) return
 
   const pills = tabs.map(tab => `
     <a href="${basePath}${tab.id}.html"

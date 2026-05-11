@@ -97,6 +97,16 @@
                                 placeholder="Enter meeting outcome"></textarea>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="meeting-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="meeting-email" placeholder="Enter email address">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="meeting-followup" class="form-label">Follow-Up Date</label>
+                            <input type="date" class="form-control" id="meeting-followup">
+                        </div>
+
                         <button type="submit" class="btn btn-primary w-100" id="save-meeting-btn">
                             <i class="fas fa-save"></i> Save Meeting
                             <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
@@ -227,6 +237,21 @@
                             </div>
                         ` : ''}
 
+                        <div class="lead-details mt-3">
+                            ${meeting.email ? `
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Email</span>
+                                <span class="lead-detail-value">${meeting.email}</span>
+                            </div>
+                            ` : ''}
+                            ${meeting.follow_up_date ? `
+                            <div class="lead-detail-item">
+                                <span class="lead-detail-label">Follow-Up</span>
+                                <span class="lead-detail-value">${new Date(meeting.follow_up_date).toLocaleDateString()}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+
                         <div class="lead-actions mt-3">
                             ${canPerform('meetings', 'edit') ? `
                             <button class="btn btn-sm btn-outline-primary" onclick="editMeeting('${meeting.id}')">
@@ -262,7 +287,9 @@
                         meetingWith: document.getElementById('meeting-with').value,
                         clientName: document.getElementById('meeting-client').value,
                         agenda: document.getElementById('meeting-agenda').value,
-                        outcome: document.getElementById('meeting-outcome').value
+                        outcome: document.getElementById('meeting-outcome').value,
+                        email: document.getElementById('meeting-email').value || null,
+                        followUpDate: document.getElementById('meeting-followup').value || null
                     }
     
                     if (editingMeetingId) {
@@ -301,6 +328,8 @@
             document.getElementById('meeting-client').value = meeting.client_name
             document.getElementById('meeting-agenda').value = meeting.agenda
             document.getElementById('meeting-outcome').value = meeting.outcome || ''
+            document.getElementById('meeting-email').value = meeting.email || ''
+            document.getElementById('meeting-followup').value = meeting.follow_up_date || ''
 
             new bootstrap.Modal(document.getElementById('addMeetingModal')).show()
         }
