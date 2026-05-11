@@ -84,9 +84,19 @@ CREATE POLICY "admin_update_meetings" ON meetings FOR UPDATE USING (EXISTS (SELE
 
 -- Expenses
 DROP POLICY IF EXISTS "admin_select_all_expenses" ON expenses;
-CREATE POLICY "admin_select_expenses" ON expenses FOR SELECT USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));
-CREATE POLICY "admin_insert_expenses" ON expenses FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));
-CREATE POLICY "admin_update_expenses" ON expenses FOR UPDATE USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));
+DROP POLICY IF EXISTS "admin_select_expenses" ON expenses;
+DROP POLICY IF EXISTS "admin_insert_expenses" ON expenses;
+DROP POLICY IF EXISTS "admin_update_expenses" ON expenses;
+DROP POLICY IF EXISTS "super_admin_all_expenses" ON expenses;
+
+CREATE POLICY "admin_select_expenses" ON expenses FOR SELECT
+    USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "admin_insert_expenses" ON expenses FOR INSERT
+    WITH CHECK (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "admin_update_expenses" ON expenses FOR UPDATE
+    USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "super_admin_delete_expenses" ON expenses FOR DELETE
+    USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'super_admin'));
 
 -- User Management (Admin can still read/update users but not delete)
 DROP POLICY IF EXISTS "admin_select_all_users" ON users;
