@@ -1517,21 +1517,37 @@ async function getExpenses(userId) {
 }
 
 /**
- * Get ALL expenses (admin only), with user name joined
+ * Get ALL expenses (admin only), with user name merged separately
+ * Uses two queries to avoid PostgREST join-RLS issues where an embedded
+ * resource blocked by RLS can silently suppress the parent rows.
  */
 async function getAllExpensesAdmin() {
     const client = initSupabase();
-    const { data, error } = await client
+
+    const { data: expenses, error } = await client
         .from('expenses')
-        .select('*, users(id, name, email)')
+        .select('*')
         .order('created_at', { ascending: false });
     if (error) {
         console.error('[getAllExpensesAdmin] Query error:', error);
         throw error;
     }
-    // Filter out soft-deleted expenses in JS
-    // (defensive: works even if is_deleted column isn't in PostgREST cache yet)
-    return (data || []).filter(e => e.is_deleted !== true);
+
+    const rows = (expenses || []).filter(e => e.is_deleted !== true);
+
+    if (rows.length > 0) {
+        const userIds = [...new Set(rows.map(e => e.user_id))];
+        const { data: users } = await client
+            .from('users')
+            .select('id, name, email')
+            .in('id', userIds);
+        if (users && users.length > 0) {
+            const userMap = Object.fromEntries(users.map(u => [u.id, u]));
+            rows.forEach(exp => { exp.users = userMap[exp.user_id] || null; });
+        }
+    }
+
+    return rows;
 }
 
 /**
