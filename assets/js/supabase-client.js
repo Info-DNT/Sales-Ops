@@ -1106,7 +1106,9 @@ async function createCall(userId, call) {
             phone: call.phone,
             designation: call.designation,
             hospital_name: call.hospitalName,
-            call_date: call.callDate || new Date().toISOString().split('T')[0]
+            call_date: call.callDate || new Date().toISOString().split('T')[0],
+            email: call.email || null,
+            follow_up_date: call.followUpDate || null
         })
         .select()
         .single();
@@ -1129,7 +1131,9 @@ async function updateCall(callId, updates) {
             name: updates.name,
             phone: updates.phone,
             designation: updates.designation,
-            hospital_name: updates.hospitalName
+            hospital_name: updates.hospitalName,
+            email: updates.email || null,
+            follow_up_date: updates.followUpDate || null
         })
         .eq('id', callId)
         .select()
@@ -1225,7 +1229,9 @@ async function createMeeting(userId, meeting) {
             client_name: meeting.clientName,
             agenda: meeting.agenda,
             outcome: meeting.outcome || '',
-            meeting_date: meeting.meetingDate || new Date().toISOString().split('T')[0]
+            meeting_date: meeting.meetingDate || new Date().toISOString().split('T')[0],
+            email: meeting.email || null,
+            follow_up_date: meeting.followUpDate || null
         })
         .select()
         .single();
@@ -1248,7 +1254,9 @@ async function updateMeeting(meetingId, updates) {
             meeting_with: updates.meetingWith,
             client_name: updates.clientName,
             agenda: updates.agenda,
-            outcome: updates.outcome
+            outcome: updates.outcome,
+            email: updates.email || null,
+            follow_up_date: updates.followUpDate || null
         })
         .eq('id', meetingId)
         .select()
@@ -1516,10 +1524,14 @@ async function getAllExpensesAdmin() {
     const { data, error } = await client
         .from('expenses')
         .select('*, users(id, name, email)')
-        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data || [];
+    if (error) {
+        console.error('[getAllExpensesAdmin] Query error:', error);
+        throw error;
+    }
+    // Filter out soft-deleted expenses in JS
+    // (defensive: works even if is_deleted column isn't in PostgREST cache yet)
+    return (data || []).filter(e => e.is_deleted !== true);
 }
 
 /**
@@ -1527,12 +1539,20 @@ async function getAllExpensesAdmin() {
  */
 async function deleteExpense(expenseId) {
     const client = initSupabase();
-    const { error } = await client
+    // Try soft delete first; if is_deleted column doesn't exist, hard delete
+    const { error: softErr } = await client
         .from('expenses')
         .update({ is_deleted: true })
         .eq('id', expenseId);
 
-    if (error) throw error;
+    if (softErr) {
+        console.warn('[deleteExpense] Soft delete failed, trying hard delete:', softErr);
+        const { error: hardErr } = await client
+            .from('expenses')
+            .delete()
+            .eq('id', expenseId);
+        if (hardErr) throw hardErr;
+    }
     return true;
 }
 
