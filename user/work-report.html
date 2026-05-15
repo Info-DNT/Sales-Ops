@@ -235,32 +235,40 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add Lead</h5>
+                    <h5 class="modal-title">Add New Lead</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="lead-form">
                         <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="lead-owner" class="form-label small fw-600">Lead Owner</label>
+                                <input type="text" class="form-control" id="lead-owner" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="lead-name" class="form-label">Client Name</label>
+                                <label for="lead-name" class="form-label small fw-600">Client Name</label>
                                 <input type="text" class="form-control" id="lead-name" placeholder="Enter client name"
                                     required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="lead-contact" class="form-label">Client Phone</label>
+                                <label for="lead-contact" class="form-label small fw-600">Client Phone</label>
                                 <input type="tel" class="form-control" id="lead-contact"
                                     placeholder="Enter client phone" required>
                             </div>
                         </div>
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="lead-email" class="form-label">Client Email</label>
+                                <label for="lead-email" class="form-label small fw-600">Client Email</label>
                                 <input type="email" class="form-control" id="lead-email"
-                                    placeholder="Enter client email" required>
+                                    placeholder="Enter client email">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="lead-owner" class="form-label">Lead Owner</label>
-                                <input type="text" class="form-control" id="lead-owner" readonly>
+                                <label for="lead-company" class="form-label small fw-600">Company / Account</label>
+                                <input type="text" class="form-control" id="lead-company" placeholder="Enter company name">
                             </div>
                         </div>
 
@@ -268,22 +276,14 @@
                         <h6 class="mb-3">Patient Information</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="patient-name" class="form-label">Patient Name</label>
+                                <label for="patient-name" class="form-label small fw-600">Patient Name</label>
                                 <input type="text" class="form-control" id="patient-name"
                                     placeholder="Enter patient name">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="patient-contact" class="form-label">Patient Contact</label>
-                                <input type="tel" class="form-control" id="patient-contact"
-                                    placeholder="Enter patient contact">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="patient-email" class="form-label">Patient Email</label>
-                                <input type="email" class="form-control" id="patient-email"
-                                    placeholder="Enter patient email">
+                                <label for="client-relation" class="form-label small fw-600">Client Relation</label>
+                                <input type="text" class="form-control" id="client-relation"
+                                    placeholder="Enter relation with client">
                             </div>
                         </div>
 
@@ -291,22 +291,45 @@
                         <h6 class="mb-3">Travel Details</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="source-location" class="form-label">Source Location</label>
+                                <label for="source-location" class="form-label small fw-600">Source Location</label>
                                 <input type="text" class="form-control" id="source-location"
                                     placeholder="Enter source location">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="destination-location" class="form-label">Destination Location</label>
+                                <label for="destination-location" class="form-label small fw-600">Destination Location</label>
                                 <input type="text" class="form-control" id="destination-location"
                                     placeholder="Enter destination location">
                             </div>
                         </div>
 
                         <hr class="my-3">
-
+                        <h6 class="mb-3">Hospital Details</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="lead-source" class="form-label">Lead Source</label>
+                                <label for="referring-hospital" class="form-label small fw-600">Referring Hospital</label>
+                                <input type="text" class="form-control" id="referring-hospital" placeholder="Hospital name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="receiving-hospital" class="form-label small fw-600">Receiving Hospital</label>
+                                <input type="text" class="form-control" id="receiving-hospital" placeholder="Hospital name">
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-status" class="form-label small fw-600">Lead Status</label>
+                                <select class="form-control" id="lead-status" required>
+                                    <option value="New">New</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Qualified">Qualified</option>
+                                    <option value="Closed">Closed</option>
+                                    <option value="Not Converted">Not Converted</option>
+                                    <option value="Converted">Converted</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-source" class="form-label small fw-600">Lead Source</label>
                                 <select class="form-control" id="lead-source">
                                     <option value="">Select Source</option>
                                     <option value="WhatsApp">WhatsApp</option>
@@ -317,49 +340,42 @@
                                     <option value="Embassy">Embassy</option>
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="lead-field" class="form-label">Field</label>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="lead-field" class="form-label small fw-600">Category</label>
                                 <select class="form-control" id="lead-field">
-                                    <option value="">Select Field</option>
+                                    <option value="">Select Category</option>
                                     <option value="Medical Tourism">Medical Tourism</option>
                                     <option value="Medical Evacuation">Medical Evacuation</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="lead-status" class="form-label">Status</label>
-                                <select class="form-select" id="lead-status">
-                                    <option value="">Select status</option>
-                                    <option value="New">New</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Qualified">Qualified</option>
-                                    <option value="Closed">Closed</option>
-                                    <option value="Not Converted">Not Converted</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="follow-up-date" class="form-label">Follow-up Date</label>
-                                <input type="date" class="form-control" id="follow-up-date" required>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="expected-close" class="form-label">Expected Close</label>
-                                <input type="date" class="form-control" id="expected-close">
-                            </div>
-                        </div>
+
                         <div class="mb-3">
-                            <label for="next-action" class="form-label">Next Action</label>
-                            <textarea class="form-control" id="next-action" rows="2" placeholder="Enter next action"
-                                required></textarea>
+                            <label for="follow-up-date" class="form-label small fw-600">Lead Creation Date</label>
+                            <input type="date" class="form-control" id="follow-up-date" required>
                         </div>
+
                         <div class="mb-3">
-                            <label for="lead-date" class="form-label">Date</label>
+                            <label for="next-action" class="form-label small fw-600">Next Action</label>
+                            <textarea class="form-control" id="next-action" rows="2"
+                                placeholder="Describe next action"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="expected-close" class="form-label small fw-600">Expected Close Date</label>
+                            <input type="date" class="form-control" id="expected-close">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="lead-date" class="form-label small fw-600">Report Date</label>
                             <input type="date" class="form-control" id="lead-date" required>
                         </div>
+
                         <button type="submit" class="btn btn-primary w-100" id="save-lead-btn">
-                            <i class="fas fa-save"></i> Save Lead
+                            <i class="fas fa-check"></i> Save Lead
                             <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
                         </button>
                     </form>
@@ -460,14 +476,15 @@
             spinner.classList.remove('d-none')
 
             try {
+                const getVal = (id) => document.getElementById(id)?.value || '';
                 const callData = {
-                    name: document.getElementById('call-name').value,
-                    phone: document.getElementById('call-phone').value,
-                    designation: document.getElementById('call-designation').value,
-                    hospitalName: document.getElementById('call-hospital').value,
-                    callDate: document.getElementById('call-date').value,
-                    email: document.getElementById('call-email').value || null,
-                    followUpDate: document.getElementById('call-followup').value || null
+                    name: getVal('call-name'),
+                    phone: getVal('call-phone'),
+                    designation: getVal('call-designation'),
+                    hospitalName: getVal('call-hospital'),
+                    callDate: getVal('call-date'),
+                    email: getVal('call-email') || null,
+                    followUpDate: getVal('call-followup') || null
                 }
 
                 await createCall(session.userId, callData)
@@ -496,14 +513,15 @@
             spinner.classList.remove('d-none')
 
             try {
+                const getVal = (id) => document.getElementById(id)?.value || '';
                 const meetingData = {
-                    meetingWith: document.getElementById('meeting-with').value,
-                    clientName: document.getElementById('meeting-client').value,
-                    agenda: document.getElementById('meeting-agenda').value,
-                    outcome: document.getElementById('meeting-outcome').value,
-                    meetingDate: document.getElementById('meeting-date').value,
-                    email: document.getElementById('meeting-email').value || null,
-                    followUpDate: document.getElementById('meeting-followup').value || null
+                    meetingWith: getVal('meeting-with'),
+                    clientName: getVal('meeting-client'),
+                    agenda: getVal('meeting-agenda'),
+                    outcome: getVal('meeting-outcome'),
+                    meetingDate: getVal('meeting-date'),
+                    email: getVal('meeting-email') || null,
+                    followUpDate: getVal('meeting-followup') || null
                 }
 
                 await createMeeting(session.userId, meetingData)
@@ -531,23 +549,31 @@
             saveBtn.disabled = true
             spinner.classList.remove('d-none')
 
+            const getVal = (id) => document.getElementById(id)?.value || '';
+
             try {
                 const leadData = {
-                    name: document.getElementById('lead-name').value,
-                    contact: document.getElementById('lead-contact').value,
-                    email: document.getElementById('lead-email').value,
-                    patientName: document.getElementById('patient-name').value,
-                    patientContact: document.getElementById('patient-contact').value,
-                    patientEmail: document.getElementById('patient-email').value,
-                    sourceLocation: document.getElementById('source-location').value,
-                    destinationLocation: document.getElementById('destination-location').value,
-                    owner: document.getElementById('lead-owner').value,
-                    status: document.getElementById('lead-status').value,
-                    leadSource: document.getElementById('lead-source').value,
-                    leadField: document.getElementById('lead-field').value,
-                    followUpDate: document.getElementById('follow-up-date').value,
-                    nextAction: document.getElementById('next-action').value,
-                    expectedClose: document.getElementById('expected-close').value
+                    name: getVal('lead-name'),
+                    contact: getVal('lead-contact'),
+                    email: getVal('lead-email'),
+                    accountName: getVal('lead-company') || getVal('lead-name'),
+                    company: getVal('lead-company'),
+                    clientName: getVal('lead-name'),
+                    clientPhone: getVal('lead-contact'),
+                    clientEmail: getVal('lead-email'),
+                    patientName: getVal('patient-name'),
+                    clientRelation: getVal('client-relation'),
+                    sourceLocation: getVal('source-location'),
+                    destinationLocation: getVal('destination-location'),
+                    owner: getVal('lead-owner'),
+                    status: getVal('lead-status'),
+                    leadSource: getVal('lead-source'),
+                    leadField: getVal('lead-field'),
+                    followUpDate: getVal('follow-up-date'),
+                    nextAction: getVal('next-action'),
+                    expectedClose: getVal('expected-close'),
+                    referringHospital: getVal('referring-hospital'),
+                    receivingHospital: getVal('receiving-hospital')
                 }
 
                 await createLead(session.userId, leadData)

@@ -69,6 +69,7 @@ async function loginWithSupabase(email, password) {
         // Save session to localStorage
         const session = {
             userId: authData.user.id,
+            teamId: null,
             email: authData.user.email,
             name: newUser.name || authData.user.email.split('@')[0],
             role: newUser.role,
@@ -87,6 +88,7 @@ async function loginWithSupabase(email, password) {
     // Save session to localStorage
     const session = {
         userId: authData.user.id,
+        teamId: userData.team_id,
         email: userData.email,
         name: userData.name || authData.user.email.split('@')[0],
         role: userData.role,
@@ -99,7 +101,7 @@ async function loginWithSupabase(email, password) {
         try {
             const { data: perms } = await client
                 .from('user_permissions')
-                .select('module, enabled, can_view, can_create, can_edit, can_delete')
+                .select('module, enabled, can_view, can_create, can_edit, can_delete, can_view_team')
                 .eq('user_id', userData.id);
 
             if (perms) {
@@ -110,7 +112,8 @@ async function loginWithSupabase(email, password) {
                         view: p.can_view,
                         create: p.can_create,
                         edit: p.can_edit,
-                        delete: p.can_delete
+                        delete: p.can_delete,
+                        viewTeam: p.can_view_team
                     };
                 });
             } else {
@@ -194,6 +197,58 @@ async function getCurrentUser() {
     const client = initSupabase();
     const { data: { user } } = await client.auth.getUser();
     return user;
+}
+
+// =============================================
+// SHARED ACCESS HELPERS
+// =============================================
+
+/**
+ * Log activity to the universal activity log
+ */
+async function logActivity(module, recordId, ownerId, action, details = {}) {
+    try {
+        const client = initSupabase();
+        const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+        
+        await client.from('activity_log').insert({
+            module,
+            record_id: recordId,
+            record_owner_id: ownerId,
+            user_id: session.userId,
+            action,
+            details: {
+                ...details,
+                userName: session.name,
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (e) {
+        console.warn(`[logActivity] Failed to log ${action} for ${module}:`, e);
+    }
+}
+
+/**
+ * Get IDs of all members in the same team
+ */
+async function getTeamUserIds() {
+    const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+    if (!session.teamId) return [session.userId];
+
+    try {
+        const client = initSupabase();
+        const { data, error } = await client
+            .from('users')
+            .select('id')
+            .eq('team_id', session.teamId);
+        
+        if (error) throw error;
+        const ids = data.map(u => u.id);
+        return ids.length > 0 ? ids : [session.userId];
+    } catch (e) {
+        console.warn('[getTeamUserIds] Error:', e);
+        return [session.userId];
+    }
 }
 
 // =============================================
@@ -293,10 +348,16 @@ async function getWorkReport(userId, date) {
 async function getAllWorkReports(userId) {
     const client = initSupabase();
 
+    const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+    let userIds = [userId];
+    if (session.permissions?.work_report?.viewTeam && session.teamId) {
+        userIds = await getTeamUserIds();
+    }
+
     const { data, error } = await client
         .from('work_reports')
-        .select('*')
-        .eq('user_id', userId)
+        .select('*, users(name, email)')
+        .in('user_id', userIds)
         .order('report_date', { ascending: false });
 
     if (error) throw error;
@@ -328,6 +389,12 @@ async function saveWorkReport(userId, report) {
         .single();
 
     if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('work_report', data.user_id, data.user_id, 'UPDATED', {
+        date: data.report_date
+    });
+
     return data;
 }
 
@@ -342,6 +409,7 @@ async function saveWorkReport(userId, report) {
  */
 async function getLeads(userId, filters = {}) {
     const client = initSupabase();
+    const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
 
     // Validate UUID to prevent Supabase 22P02 error
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -353,14 +421,25 @@ async function getLeads(userId, filters = {}) {
     let query = client
         .from('leads')
         .select('*, users(name, email)')
-        .eq('user_id', userId)
         .eq('is_deleted', false)
         .not('is_converted', 'is', true)
         .order('created_at', { ascending: false });
 
+    // TEAM ACCESS LOGIC
+    const isAdmin = session.role === 'admin' || session.role === 'super_admin';
+    if (isAdmin) {
+        // Admins see everything
+    } else if (session.permissions?.leads?.viewTeam && session.teamId) {
+        const teamIds = await getTeamUserIds();
+        query = query.in('user_id', teamIds);
+    } else {
+        query = query.eq('user_id', userId);
+    }
+
     // Apply date filter if provided
     if (filters.date) {
-        query = query.eq('created_at::date', filters.date);
+        query = query.gte('created_at', `${filters.date}T00:00:00Z`)
+                     .lte('created_at', `${filters.date}T23:59:59Z`);
     }
 
     if (filters.status) {
@@ -390,9 +469,6 @@ async function getLeads(userId, filters = {}) {
 async function createLead(userId, lead) {
     const client = initSupabase();
 
-    // Autogenerate unique 6-digit Serial No. 2
-    const serialNo2 = String(Math.floor(100000 + Math.random() * 900000));
-
     const insertData = {
         user_id: userId,
         name: lead.name,
@@ -409,7 +485,7 @@ async function createLead(userId, lead) {
         client_relation: lead.clientRelation || null,
         source_location: lead.sourceLocation || null,
         destination_location: lead.destinationLocation || null,
-        serial_no_2: serialNo2,
+        // serial_no_2 removed here - now handled by database trigger for sequence
         company: lead.company || null,
         client_name: lead.clientName || null,
         client_phone: lead.clientPhone || null,
@@ -432,11 +508,19 @@ async function createLead(userId, lead) {
         throw error;
     }
 
+    const generatedSerialNo2 = data.serial_no_2;
+
     // Log creation in history
     await logLeadActivity(data.id, userId, 'Lead Created', {
         name: lead.name,
         status: lead.status,
-        serial_no_2: serialNo2
+        serial_no_2: generatedSerialNo2
+    });
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('leads', data.id, userId, 'CREATED', {
+        name: lead.name,
+        source: lead.leadSource
     });
 
     // BIDIRECTIONAL SYNC: Create lead in Zoho CRM and capture ID
@@ -465,7 +549,7 @@ async function createLead(userId, lead) {
                     assignedTo: lead.owner,
                     followUpDate: lead.followUpDate,
                     expectedClose: lead.expectedClose,
-                    serial_no_2: serialNo2,
+                    serial_no_2: generatedSerialNo2,
                     // Additional fields for CRM
                     patientName: lead.patientName,
                     clientRelation: lead.clientRelation,
@@ -481,7 +565,7 @@ async function createLead(userId, lead) {
                     requestedTo: lead.requestedTo,
                     referringHospital: lead.referringHospital,
                     receivingHospital: lead.receivingHospital,
-                    quotationType: lead.quotationType
+                    quotation_type: lead.quotationType
                 }
             })
         });
@@ -579,6 +663,11 @@ async function updateLead(leadId, updates, userId) {
             await logLeadActivity(leadId, userId, 'Lead Updated', {
                 changes: changedFields,
                 summary: changedFields.join(', ')
+            });
+
+            // UNIVERSAL ACTIVITY LOG
+            await logActivity('leads', leadId, currentLead.user_id, 'UPDATED', {
+                changes: changedFields
             });
         }
     }
@@ -694,6 +783,16 @@ async function getLeadHistory(leadId) {
 async function deleteLead(leadId) {
     const client = initSupabase();
 
+    // UNIVERSAL ACTIVITY LOG
+    try {
+        const { data: lead } = await client.from('leads').select('user_id').eq('id', leadId).single();
+        if (lead) {
+            await logActivity('leads', leadId, lead.user_id, 'DELETED');
+        }
+    } catch (e) {
+        console.warn('Failed to log deletion:', e);
+    }
+
     const { error } = await client
         .from('leads')
         .update({ is_deleted: true })
@@ -714,10 +813,16 @@ async function deleteLead(leadId) {
 async function getQuotations(userId) {
     const client = initSupabase();
 
+    const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+    let userIds = [userId];
+    if (session.permissions?.quotations?.viewTeam && session.teamId) {
+        userIds = await getTeamUserIds();
+    }
+
     const { data, error } = await client
         .from('quotations')
         .select('*')
-        .eq('user_id', userId)
+        .in('user_id', userIds)
         .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -820,10 +925,16 @@ async function getAttendance(userId, date) {
 async function getAllAttendance(userId) {
     const client = initSupabase();
 
+    const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+    let userIds = [userId];
+    if (session.permissions?.attendance?.viewTeam && session.teamId) {
+        userIds = await getTeamUserIds();
+    }
+
     const { data, error } = await client
         .from('attendance')
         .select('*')
-        .eq('user_id', userId)
+        .in('user_id', userIds)
         .order('date', { ascending: false });
 
     if (error) throw error;
@@ -1072,12 +1183,20 @@ async function getCalls(userId, filters = {}) {
         return [];
     }
 
+    const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
     let query = client
         .from('calls')
-        .select('*')
-        .eq('user_id', userId)
+        .select('*, users(name, email)')
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
+
+    // TEAM ACCESS LOGIC
+    if (session.permissions?.calls?.viewTeam && session.teamId) {
+        const teamIds = await getTeamUserIds();
+        query = query.in('user_id', teamIds);
+    } else {
+        query = query.eq('user_id', userId);
+    }
 
     // Apply date filter if provided
     if (filters.date) {
@@ -1114,6 +1233,13 @@ async function createCall(userId, call) {
         .single();
 
     if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('calls', data.id, userId, 'CREATED', {
+        name: data.name,
+        phone: data.phone
+    });
+
     return data;
 }
 
@@ -1140,6 +1266,13 @@ async function updateCall(callId, updates) {
         .single();
 
     if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('calls', data.id, data.user_id, 'UPDATED', {
+        name: data.name,
+        updates: Object.keys(updates)
+    });
+
     return data;
 }
 
@@ -1156,6 +1289,15 @@ async function deleteCall(callId) {
         .eq('id', callId);
 
     if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    try {
+        const { data: call } = await client.from('calls').select('user_id').eq('id', callId).single();
+        if (call) {
+            await logActivity('calls', callId, call.user_id, 'DELETED');
+        }
+    } catch (e) { /* ignore */ }
+
     return true;
 }
 
@@ -1195,12 +1337,20 @@ async function getMeetings(userId, filters = {}) {
         return [];
     }
 
+    const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
     let query = client
         .from('meetings')
-        .select('*')
-        .eq('user_id', userId)
+        .select('*, users(name, email)')
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
+
+    // TEAM ACCESS LOGIC
+    if (session.permissions?.meetings?.viewTeam && session.teamId) {
+        const teamIds = await getTeamUserIds();
+        query = query.in('user_id', teamIds);
+    } else {
+        query = query.eq('user_id', userId);
+    }
 
     // Apply date filter if provided
     if (filters.date) {
@@ -1237,6 +1387,13 @@ async function createMeeting(userId, meeting) {
         .single();
 
     if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('meetings', data.id, userId, 'CREATED', {
+        meeting_with: data.meeting_with,
+        client: data.client_name
+    });
+
     return data;
 }
 
@@ -1263,6 +1420,13 @@ async function updateMeeting(meetingId, updates) {
         .single();
 
     if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('meetings', data.id, data.user_id, 'UPDATED', {
+        meeting_with: data.meeting_with,
+        updates: Object.keys(updates)
+    });
+
     return data;
 }
 
@@ -1279,6 +1443,15 @@ async function deleteMeeting(meetingId) {
         .eq('id', meetingId);
 
     if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    try {
+        const { data: meeting } = await client.from('meetings').select('user_id').eq('id', meetingId).single();
+        if (meeting) {
+            await logActivity('meetings', meetingId, meeting.user_id, 'DELETED');
+        }
+    } catch (e) { /* ignore */ }
+
     return true;
 }
 
@@ -1349,11 +1522,19 @@ async function getCasesForUser(userId) {
         return [];
     }
 
+    const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+    
+    // TEAM ACCESS LOGIC
+    let userIds = [userId];
+    if (session.permissions?.cases?.viewTeam && session.teamId) {
+        userIds = await getTeamUserIds();
+    }
+
     // Primary query: try with lead join
     const { data, error } = await client
         .from('cases')
-        .select('*, leads(name, contact)')
-        .eq('user_id', userId)
+        .select('*, leads(name, contact), users(name, email)')
+        .in('user_id', userIds)
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
@@ -1366,7 +1547,7 @@ async function getCasesForUser(userId) {
     const { data: fallbackData, error: fallbackError } = await client
         .from('cases')
         .select('*')
-        .eq('user_id', userId)
+        .in('user_id', userIds)
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
@@ -1447,6 +1628,13 @@ async function createCase(caseData) {
         .single();
 
     if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('cases', data.id, data.user_id, 'CREATED', {
+        case_number: data.case_number,
+        title: data.title
+    });
+
     return data;
 }
 
@@ -1473,6 +1661,13 @@ async function updateCase(caseId, updates) {
         .single();
 
     if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('cases', data.id, data.user_id, 'UPDATED', {
+        title: data.title,
+        status: data.status
+    });
+
     return data;
 }
 
@@ -1507,10 +1702,16 @@ async function getExpenses(userId) {
         console.warn('[getExpenses] Invalid or missing userId:', userId);
         return [];
     }
+    const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+    let userIds = [userId];
+    if (session.permissions?.expenses?.viewTeam && session.teamId) {
+        userIds = await getTeamUserIds();
+    }
+
     const { data, error } = await client
         .from('expenses')
-        .select('*')
-        .eq('user_id', userId)
+        .select('*, users(name, email)')
+        .in('user_id', userIds)
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
     if (error) throw error;
@@ -1571,6 +1772,14 @@ async function deleteExpense(expenseId) {
             .eq('id', expenseId);
         if (hardErr) throw hardErr;
     }
+    // UNIVERSAL ACTIVITY LOG
+    try {
+        const { data: exp } = await client.from('expenses').select('user_id').eq('id', expenseId).single();
+        if (exp) {
+            await logActivity('expenses', expenseId, exp.user_id, 'DELETED');
+        }
+    } catch (e) {}
+
     return true;
 }
 
@@ -1594,6 +1803,13 @@ async function createExpense(userId, expenseData) {
         .select()
         .single();
     if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('expenses', data.id, userId, 'CREATED', {
+        amount: data.amount,
+        category: data.category
+    });
+
     return data;
 }
 
@@ -1625,6 +1841,11 @@ async function updateExpenseStatus(expenseId, status, adminNote, ownerUserId) {
             is_read: false
         }]);
     if (notifError) console.error('Notification insert error:', notifError);
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('expenses', expenseId, ownerUserId, status === 'approved' ? 'APPROVED' : 'REJECTED', {
+        admin_note: adminNote
+    });
 
     return true;
 }
@@ -2427,6 +2648,7 @@ async function saveUserPermissions(userId, permissionsArray) {
             can_create: p.can_create,
             can_edit: p.can_edit,
             can_delete: p.can_delete,
+            can_view_team: p.can_view_team || false,
             updated_at: new Date().toISOString()
         })), { onConflict: 'user_id,module' });
 
@@ -2457,6 +2679,71 @@ async function getAllUsersAdmin() {
         .from('users')
         .select('*, user_details(name, designation)')
         .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+}
+
+// =============================================
+// TEAM MANAGEMENT FUNCTIONS (ADMIN)
+// =============================================
+
+/**
+ * Get all teams
+ */
+async function getTeams() {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('teams')
+        .select('*')
+        .order('name');
+    
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Create a new team
+ */
+async function createTeam(name) {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('teams')
+        .insert({ name })
+        .select()
+        .single();
+    
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Assign a user to a team
+ */
+async function assignUserToTeam(userId, teamId) {
+    const client = initSupabase();
+    const { error } = await client
+        .from('users')
+        .update({ team_id: teamId })
+        .eq('id', userId);
+    
+    if (error) throw error;
+    return true;
+}
+
+/**
+ * Get activity log for a specific record
+ * @param {string} module 
+ * @param {string} recordId 
+ */
+async function getActivityLogs(module, recordId) {
+    const client = initSupabase();
+    const { data, error } = await client
+        .from('activity_log')
+        .select('*, users(name, email)')
+        .eq('module', module)
+        .eq('record_id', recordId)
+        .order('created_at', { ascending: false });
+    
     if (error) throw error;
     return data || [];
 }

@@ -413,11 +413,12 @@
                                 <th>Description</th>
                                 <th>Status</th>
                                 <th>Admin Note</th>
+                                <th>History</th>
                             </tr>
                         </thead>
                         <tbody id="expenses-tbody">
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">Loading...</td>
+                                <td colspan="8" class="text-center text-muted py-4">Loading...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -554,6 +555,11 @@
                     <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${exp.description}">${exp.description}</td>
                     <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
                     <td class="text-muted" style="font-size:12px;">${exp.admin_note || '—'}</td>
+                    <td>
+                        <button class="btn btn-link btn-sm p-0" onclick="showHistoryModal('expenses', '${exp.id}', '${exp.category}')">
+                            <i class="fas fa-history text-muted"></i>
+                        </button>
+                    </td>
                 </tr>`;
             }).join('');
         }

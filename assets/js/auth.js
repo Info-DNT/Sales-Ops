@@ -287,24 +287,27 @@ async function refreshUserPermissions() {
     if (session.role === 'admin' || session.role === 'super_admin') return
 
     try {
-        if (typeof getUserPermissions !== 'function') return
-        
-        const perms = await getUserPermissions(session.userId)
-        if (perms) {
-            session.permissions = {}
+        const user = await getUserById(session.userId)
+        if (user) {
+            session.teamId = user.team_id
+            const perms = await getUserPermissions(session.userId)
+            if (perms) {
+                session.permissions = {}
             perms.forEach(p => {
                 session.permissions[p.module] = {
                     enabled: p.enabled,
                     view: p.can_view,
                     create: p.can_create,
                     edit: p.can_edit,
-                    delete: p.can_delete
+                    delete: p.can_delete,
+                    viewTeam: p.can_view_team
                 }
             })
             localStorage.setItem('salesAppSession', JSON.stringify(session))
             // Re-apply guards after permissions are updated
             if (typeof applyUIGuards === 'function') applyUIGuards()
         }
+    }
     } catch (e) {
         console.warn('Silent permission refresh failed:', e)
     }

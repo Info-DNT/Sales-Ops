@@ -100,6 +100,13 @@
                 <div class="modal-body">
                     <form id="add-lead-form">
                         <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="lead-owner" class="form-label">Lead Owner</label>
+                                <input type="text" class="form-control" id="lead-owner" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="lead-name" class="form-label">Client Name</label>
                                 <input type="text" class="form-control" id="lead-name" placeholder="Enter client name"
@@ -121,30 +128,6 @@
                             <div class="col-md-6 mb-3">
                                 <label for="lead-company" class="form-label">Company / Account</label>
                                 <input type="text" class="form-control" id="lead-company" placeholder="Enter company name">
-                            </div>
-                        </div>
-
-                        <hr class="my-3">
-                        <h6 class="mb-3">Detailed Client Info</h6>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="client-name" class="form-label">Client Name</label>
-                                <input type="text" class="form-control" id="client-name" placeholder="Name">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="client-phone" class="form-label">Client Phone</label>
-                                <input type="tel" class="form-control" id="client-phone" placeholder="Phone">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="client-email" class="form-label">Client Email</label>
-                                <input type="email" class="form-control" id="client-email" placeholder="Email">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="lead-owner" class="form-label">Lead Owner</label>
-                                <input type="text" class="form-control" id="lead-owner" readonly>
                             </div>
                         </div>
 
@@ -230,8 +213,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="follow-up-date" class="form-label">Follow-up Date</label>
-                            <input type="date" class="form-control" id="follow-up-date" required>
+                            <label for="follow-up-date" class="form-label">Lead Creation Date</label>
+                            <input type="date" class="form-control" id="follow-up-date" readonly required>
                         </div>
 
                         <div class="mb-3">
@@ -266,6 +249,7 @@
             <ul class="nav nav-tabs-custom px-4" id="detailsTabs">
                 <li><a href="#" class="nav-link active" onclick="switchDetailsTab('overview')">Overview</a></li>
                 <li><a href="#" class="nav-link" onclick="switchDetailsTab('timeline')">Timeline</a></li>
+                <li><a href="#" class="nav-link" onclick="switchDetailsTab('activity')">Activity Log</a></li>
                 <li><a href="#" class="nav-link" onclick="switchDetailsTab('files')"><i
                             class="fas fa-paperclip me-1"></i>Quotations</a></li>
             </ul>
@@ -338,37 +322,30 @@
 
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <i class="fas fa-building text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Detailed Client Info</span>
+                            <i class="fas fa-calendar-alt text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Creation Date</span>
                         </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
-                            <div class="row g-2">
-                                <div class="col-12 mb-2">
-                                    <div class="small text-muted">Company / Account</div>
-                                    <div class="fw-600" id="detail-display-company">—</div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="small text-muted">Client Name</div>
-                                    <div class="fw-600" id="detail-display-client-name">—</div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="small text-muted">Phone</div>
-                                    <div class="fw-600" id="detail-display-client-phone">—</div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="small text-muted">Email</div>
-                                    <div class="fw-600" id="detail-display-client-email">—</div>
-                                </div>
-                            </div>
+                             <div class="fw-600" id="detail-display-creation-date">—</div>
                         </div>
                     </div>
 
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <i class="fas fa-plane text-primary" style="width:16px;"></i>
-                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Travel &
-                                Category</span>
+                            <i class="fas fa-calendar-alt text-primary" style="width:16px;"></i>
+                            <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Creation Date</span>
                         </div>
+                        <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                             <div class="fw-600" id="detail-display-creation-date">—</div>
+                        </div>
+                    </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fas fa-plane text-primary" style="width:16px;"></i>
+                                <span class="fw-600 small text-uppercase text-muted" style="letter-spacing:.5px;">Travel &
+                                    Category</span>
+                            </div>
                         <div class="p-3 rounded" style="background:#f8fafc;border:1px solid #f1f5f9;">
                             <div class="row g-2">
                                 <div class="col-6">
@@ -465,21 +442,6 @@
                         </div>
 
                         <hr class="my-3">
-                        <h6 class="mb-3">Detailed Client Info</h6>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-600">Client Name</label>
-                                <input type="text" class="form-control" id="edit-client-name" placeholder="Name">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-600">Client Phone</label>
-                                <input type="tel" class="form-control" id="edit-client-phone" placeholder="Phone">
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label small fw-600">Client Email</label>
-                                <input type="email" class="form-control" id="edit-client-email" placeholder="Email">
-                            </div>
-                        </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -557,6 +519,13 @@
                     <div id="timeline-container" class="timeline">
                         <!-- Activity items will be inserted here -->
                         <p class="text-muted text-center py-4">Loading history...</p>
+                    </div>
+                </div>
+
+                <!-- Activity Log Tab -->
+                <div id="tab-activity" class="details-tab-content d-none">
+                    <div class="activity-timeline mt-3 px-4 pb-4" id="lead-activity-list">
+                        <p class="text-muted small text-center py-4">Loading activity logs...</p>
                     </div>
                 </div>
 
@@ -666,12 +635,30 @@
         let pageSize = 20
         let currentPageLeads = 1
         let editingLeadId = null
+        let userMap = {}
 
-        // Auto-fill lead owner for new leads
+        // Fetch user names for mapping (to avoid complex joins)
+        async function fetchUserNames() {
+            try {
+                const client = initSupabase()
+                const { data } = await client.from('users').select('id, name, email')
+                if (data) {
+                    data.forEach(u => userMap[u.id] = u.name || u.email || 'Unknown')
+                }
+            } catch (e) {
+                console.warn('Could not load user map:', e)
+            }
+        }
+
+        // Auto-fill lead owner and creation date
         if (session) {
             const ownerInput = document.getElementById('lead-owner');
             if (ownerInput) {
                 ownerInput.value = session.name || session.email || '';
+            }
+            const dateInput = document.getElementById('follow-up-date');
+            if (dateInput) {
+                dateInput.value = new Date().toISOString().split('T')[0];
             }
         }
 
@@ -681,6 +668,8 @@
             if (container) container.innerHTML = generateSkeletonCards(4)
 
             try {
+                if (Object.keys(userMap).length === 0) await fetchUserNames()
+                
                 allLeads = await getLeads(session.userId)
                 leads = allLeads
                 displayLeads()
@@ -782,63 +771,68 @@
                         <div class="lead-header">
                             <div class="lead-title">
                                 <h6>
-                                    ${lead.serial_no_2 ? `<span class="bg-light text-success px-1 rounded small border me-1">${lead.serial_no_2}</span>` : ''}
-                                    ${lead.name}
-                                    ${isCRM ? '<span class="crm-badge">CRM</span>' : ''}
-                                    ${isUrgent ? '<span class="urgent-badge"><i class="fas fa-exclamation-circle"></i> Follow-up Due</span>' : ''}
-                                </h6>
+            container.innerHTML = visibleLeads.map(lead => {
+                const today = new Date().toISOString().split('T')[0];
+                const isUrgent = lead.follow_up_date && lead.follow_up_date <= today && lead.status !== 'Closed';
+                const isCRM = lead.lead_source && lead.lead_source !== '';
+
+                return `
+                    <div class="lead-card mb-3 p-3 shadow-sm border-0 bg-white rounded position-relative overflow-hidden" 
+                        onclick="openLeadDetails('${lead.id}')" 
+                        style="cursor: pointer; transition: transform 0.2s; border-left: 4px solid #3b82f6 !important;">
+                        
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <h5 class="mb-0 fw-bold text-dark">${lead.name}</h5>
+                                    ${isCRM ? '<span class="badge bg-light text-primary border">CRM</span>' : ''}
+                                </div>
+                                <div class="small text-muted d-flex align-items-center gap-2">
+                                    <i class="fas fa-calendar-alt"></i> Created: ${lead.follow_up_date || 'N/A'}
+                                    ${lead.serial_no_2 ? `&nbsp;•&nbsp; <span class="text-success fw-600">${lead.serial_no_2}</span>` : ''}
+                                </div>
                             </div>
                             <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">
-                            ${lead.status === 'Converted' ? '<i class="fas fa-check-circle me-1"></i>' : ''}
-                            ${lead.status}
-                        </span>
-                    </div>
-
-                    <div class="lead-details mt-2">
-                        <div class="row g-2">
-                            <div class="col-6 col-md-4">
-                                <small class="text-break"><i class="fas fa-phone me-1 text-muted"></i><strong>Phone:</strong> ${lead.contact || 'N/A'}</small>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <small class="text-break"><i class="fas fa-envelope me-1 text-muted"></i><strong>Email:</strong> ${lead.email || 'N/A'}</small>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <small class="text-break"><i class="fas fa-fingerprint me-1 text-muted"></i><strong>Quo ID:</strong> 
-                                    ${lead.quotation_id
-                        ? `<span class="fw-bold text-primary" id="quo-id-${lead.id}">${lead.quotation_id}</span>`
-                        : `<span class="text-muted small" id="quo-id-${lead.id}"><i class="fas fa-clock fa-xs"></i> Quo Pending</span>`
-                    }
-                                </small>
-                            </div>
-                             <div class="col-6 col-md-4">
-                                <small class="text-break"><i class="fas fa-calendar-check me-1 text-muted"></i><strong>Follow-up:</strong> <span class="${isUrgent ? 'text-danger fw-bold' : ''}">${lead.follow_up_date || 'N/A'}</span></small>
-                            </div>
-                        </div>
-                    </div>
-
-                        <div class="mt-3 p-2 bg-light rounded">
-                            <p class="mb-0 text-muted small"><strong>Next Action:</strong> ${lead.next_action || 'No action specified'}</p>
+                                ${lead.status}
+                            </span>
                         </div>
 
-                        <!-- Lead Actions -->
-                        <div class="mt-3 d-flex gap-2 flex-wrap">
+                        <div class="lead-details mt-2">
+                            <div class="row g-2">
+                                <div class="col-6 col-md-4">
+                                    <small class="text-break"><i class="fas fa-phone me-1 text-muted"></i><strong>Phone:</strong> ${lead.contact || 'N/A'}</small>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <small class="text-break"><i class="fas fa-envelope me-1 text-muted"></i><strong>Email:</strong> ${lead.email || 'N/A'}</small>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <small class="text-break"><i class="fas fa-fingerprint me-1 text-muted"></i><strong>Quo ID:</strong> 
+                                        ${lead.quotation_id
+                                            ? `<span class="fw-bold text-primary">${lead.quotation_id}</span>`
+                                            : `<span class="text-muted small"><i class="fas fa-clock fa-xs"></i> Pending</span>`
+                                        }
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 d-flex gap-2 flex-wrap align-items-center">
                             <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#medicalAssessmentModal" onclick="event.stopPropagation();">
-                                <i class="fas fa-notes-medical me-1"></i> Medical Assessment
+                                <i class="fas fa-notes-medical me-1"></i> Medical
                             </button>
                             <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quotationModal" onclick="event.stopPropagation(); prepareQuotationModal('${lead.id}', '${lead.name}', '${lead.serial_no_2}')">
-                                <i class="fas fa-file-invoice-dollar"></i> Request Quotation
+                                <i class="fas fa-file-invoice-dollar me-1"></i> Quotation
                             </button>
                             
                             ${lead.quotation_id ? `
                             <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); downloadQuotationFromDrive('${lead.quotation_id}', this)">
-                                <i class="fas fa-file-download me-1"></i> Download Quotation
+                                <i class="fas fa-file-download me-1"></i> Download
                             </button>
                             ` : ''}
                         </div>
                     </div>
-                    `;
-                })
-                .join('')
+                `;
+            }).join('')
 
             // Add Load More button if needed
             if (leads.length > visibleLeads.length) {
@@ -928,28 +922,30 @@
             spinner.classList.remove('d-none')
 
             try {
+                const getVal = (id) => document.getElementById(id)?.value || '';
+
                 const lead = {
-                    name: document.getElementById('lead-name').value,
-                    contact: document.getElementById('lead-contact').value,
-                    email: document.getElementById('lead-email').value,
-                    accountName: document.getElementById('lead-company').value || document.getElementById('lead-name').value,
-                    company: document.getElementById('lead-company').value,
-                    clientName: document.getElementById('client-name').value,
-                    clientPhone: document.getElementById('client-phone').value,
-                    clientEmail: document.getElementById('client-email').value,
-                    patientName: document.getElementById('patient-name').value,
-                    clientRelation: document.getElementById('client-relation').value,
-                    sourceLocation: document.getElementById('source-location').value,
-                    destinationLocation: document.getElementById('destination-location').value,
-                    owner: document.getElementById('lead-owner').value,
-                    status: document.getElementById('lead-status').value,
-                    leadSource: document.getElementById('lead-source').value,
-                    leadField: document.getElementById('lead-field').value,
-                    followUpDate: document.getElementById('follow-up-date').value,
-                    nextAction: document.getElementById('next-action').value,
-                    expectedClose: document.getElementById('expected-close').value,
-                    referringHospital: document.getElementById('referring-hospital').value,
-                    receivingHospital: document.getElementById('receiving-hospital').value
+                    name: getVal('lead-name'),
+                    contact: getVal('lead-contact'),
+                    email: getVal('lead-email'),
+                    accountName: getVal('lead-company') || getVal('lead-name'),
+                    company: getVal('lead-company'),
+                    clientName: getVal('lead-name'),
+                    clientPhone: getVal('lead-contact'),
+                    clientEmail: getVal('lead-email'),
+                    patientName: getVal('patient-name'),
+                    clientRelation: getVal('client-relation'),
+                    sourceLocation: getVal('source-location'),
+                    destinationLocation: getVal('destination-location'),
+                    owner: getVal('lead-owner'),
+                    status: getVal('lead-status'),
+                    leadSource: getVal('lead-source'),
+                    leadField: getVal('lead-field'),
+                    followUpDate: getVal('follow-up-date'),
+                    nextAction: getVal('next-action'),
+                    expectedClose: getVal('expected-close'),
+                    referringHospital: getVal('referring-hospital'),
+                    receivingHospital: getVal('receiving-hospital')
                 }
 
                 const result = await createLead(session.userId, lead)
@@ -980,54 +976,50 @@
 
             // Fill overview form and display fields
             const dash = '—';
-            document.getElementById('details-lead-name').textContent = lead.name;
+            function setSafeText(id, value) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value || dash;
+            }
+            function setSafeValue(id, value) {
+                const el = document.getElementById(id);
+                if (el) el.value = value || '';
+            }
 
             // Display Info
-            document.getElementById('detail-display-name').textContent = lead.name || dash;
-            document.getElementById('detail-display-phone').textContent = lead.contact || dash;
-            document.getElementById('detail-display-email').textContent = lead.email || dash;
-            document.getElementById('detail-display-patient').textContent = lead.patient_name || dash;
-            document.getElementById('detail-display-relation').textContent = lead.client_relation || dash;
-            document.getElementById('detail-display-source').textContent = lead.source_location || dash;
-            document.getElementById('detail-display-destination').textContent = lead.destination_location || dash;
-            document.getElementById('detail-display-field').textContent = lead.field || dash;
-            document.getElementById('detail-display-source-name').textContent = lead.lead_source || dash;
-            document.getElementById('detail-display-quotation').textContent = lead.quotation_id || dash;
-            document.getElementById('detail-display-serial-1').textContent = lead.serial_no_1 || dash;
-            document.getElementById('detail-display-serial-2').textContent = lead.serial_no_2 || dash;
-
-            // Enhanced Zoho Fields
-            document.getElementById('detail-display-company').textContent = lead.company || dash;
-            document.getElementById('detail-display-client-name').textContent = lead.client_name || dash;
-            document.getElementById('detail-display-client-phone').textContent = lead.client_phone || dash;
-            document.getElementById('detail-display-client-email').textContent = lead.client_email || dash;
-            document.getElementById('detail-display-ref-hosp').textContent = lead.referring_hospital || dash;
-            document.getElementById('detail-display-rec-hosp').textContent = lead.receiving_hospital || dash;
+            setSafeText('detail-display-name', lead.name);
+            setSafeText('detail-display-phone', lead.contact);
+            setSafeText('detail-display-email', lead.email);
+            setSafeText('detail-display-patient', lead.patient_name);
+            setSafeText('detail-display-relation', lead.client_relation);
+            setSafeText('detail-display-source', lead.source_location);
+            setSafeText('detail-display-destination', lead.destination_location);
+            setSafeText('detail-display-field', lead.field);
+            setSafeText('detail-display-source-name', lead.lead_source);
+            setSafeText('detail-display-quotation', lead.quotation_id);
+            setSafeText('detail-display-serial-1', lead.serial_no_1);
+            setSafeText('detail-display-serial-2', lead.serial_no_2);
+            setSafeText('detail-display-creation-date', lead.follow_up_date);
+            setSafeText('detail-display-company', lead.company);
+            setSafeText('detail-display-ref-hosp', lead.referring_hospital);
+            setSafeText('detail-display-rec-hosp', lead.receiving_hospital);
 
             // Form Fields
-            document.getElementById('edit-lead-id').value = lead.id;
-            document.getElementById('edit-lead-name').value = lead.name;
-            document.getElementById('edit-lead-contact').value = lead.contact;
-            document.getElementById('edit-lead-email').value = lead.email || '';
-            document.getElementById('edit-lead-company').value = lead.company || '';
-            document.getElementById('edit-client-name').value = lead.client_name || '';
-            document.getElementById('edit-client-phone').value = lead.client_phone || '';
-            document.getElementById('edit-client-email').value = lead.client_email || '';
-            document.getElementById('edit-patient-name').value = lead.patient_name || '';
-            document.getElementById('edit-client-relation').value = lead.client_relation || '';
-            document.getElementById('edit-source-location').value = lead.source_location || '';
-            document.getElementById('edit-destination-location').value = lead.destination_location || '';
-            document.getElementById('edit-referring-hospital').value = lead.referring_hospital || '';
-            document.getElementById('edit-receiving-hospital').value = lead.receiving_hospital || '';
-            document.getElementById('edit-lead-status').value = lead.status;
-            document.getElementById('edit-lead-owner').value = lead.owner || '';
-            document.getElementById('edit-patient-name').value = lead.patient_name || '';
-            document.getElementById('edit-client-relation').value = lead.client_relation || '';
-            document.getElementById('edit-source-location').value = lead.source_location || '';
-            document.getElementById('edit-destination-location').value = lead.destination_location || '';
-            document.getElementById('edit-lead-next-action').value = lead.next_action || '';
-            document.getElementById('edit-lead-follow-up').value = lead.follow_up_date || '';
-            document.getElementById('edit-lead-expected-close').value = lead.expected_close || '';
+            setSafeValue('edit-lead-id', lead.id);
+            setSafeValue('edit-lead-name', lead.name);
+            setSafeValue('edit-lead-contact', lead.contact);
+            setSafeValue('edit-lead-email', lead.email || '');
+            setSafeValue('edit-lead-company', lead.company || '');
+            setSafeValue('edit-patient-name', lead.patient_name || '');
+            setSafeValue('edit-client-relation', lead.client_relation || '');
+            setSafeValue('edit-source-location', lead.source_location || '');
+            setSafeValue('edit-destination-location', lead.destination_location || '');
+            setSafeValue('edit-referring-hospital', lead.referring_hospital || '');
+            setSafeValue('edit-receiving-hospital', lead.receiving_hospital || '');
+            setSafeValue('edit-lead-status', lead.status);
+            setSafeValue('edit-lead-owner', lead.owner || '');
+            setSafeValue('edit-lead-next-action', lead.next_action || '');
+            setSafeValue('edit-lead-follow-up', lead.follow_up_date || '');
+            setSafeValue('edit-lead-expected-close', lead.expected_close || '');
 
             // Render edit actions based on permission
             const actionsContainer = document.getElementById('lead-edit-actions');
@@ -1187,25 +1179,27 @@
             saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
 
             try {
+                const getVal = (id) => document.getElementById(id)?.value || '';
+
                 const updates = {
-                    name: document.getElementById('edit-lead-name').value,
-                    contact: document.getElementById('edit-lead-contact').value,
-                    email: document.getElementById('edit-lead-email').value,
+                    name: getVal('edit-lead-name'),
+                    contact: getVal('edit-lead-contact'),
+                    email: getVal('edit-lead-email'),
                     status: selectedStatus,
-                    owner: document.getElementById('edit-lead-owner').value,
-                    nextAction: document.getElementById('edit-lead-next-action').value,
-                    followUpDate: document.getElementById('edit-lead-follow-up').value,
-                    expectedClose: document.getElementById('edit-lead-expected-close').value,
-                    patientName: document.getElementById('edit-patient-name').value,
-                    clientRelation: document.getElementById('edit-client-relation').value,
-                    sourceLocation: document.getElementById('edit-source-location').value,
-                    destinationLocation: document.getElementById('edit-destination-location').value,
-                    company: document.getElementById('edit-lead-company').value,
-                    clientName: document.getElementById('edit-client-name').value,
-                    clientPhone: document.getElementById('edit-client-phone').value,
-                    clientEmail: document.getElementById('edit-client-email').value,
-                    referringHospital: document.getElementById('edit-referring-hospital').value,
-                    receivingHospital: document.getElementById('edit-receiving-hospital').value
+                    owner: getVal('edit-lead-owner'),
+                    nextAction: getVal('edit-lead-next-action'),
+                    followUpDate: getVal('edit-lead-follow-up'),
+                    expectedClose: getVal('edit-lead-expected-close'),
+                    patientName: getVal('edit-patient-name'),
+                    clientRelation: getVal('edit-client-relation'),
+                    sourceLocation: getVal('edit-source-location'),
+                    destinationLocation: getVal('edit-destination-location'),
+                    company: getVal('edit-lead-company'),
+                    clientName: getVal('edit-lead-name'),
+                    clientPhone: getVal('edit-lead-contact'),
+                    clientEmail: getVal('edit-lead-email'),
+                    referringHospital: getVal('edit-referring-hospital'),
+                    receivingHospital: getVal('edit-receiving-hospital')
                 };
 
                 await updateLead(editingLeadId, updates, session.userId);

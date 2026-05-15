@@ -318,6 +318,13 @@
                                         </label>
                                     </div>
                                 `).join('')}
+                                <div class="form-check me-3 w-100 mt-1">
+                                    <input class="form-check-input" type="checkbox" id="perm-${mod.id}-viewTeam" 
+                                           ${p.can_view_team ? 'checked' : ''} ${p.enabled ? '' : 'disabled'}>
+                                    <label class="form-check-label small fw-bold text-primary" for="perm-${mod.id}-viewTeam">
+                                        <i class="fas fa-users-viewfinder me-1"></i> View Team Records
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     `
@@ -366,7 +373,8 @@
                         can_view: document.getElementById(`perm-${mod.id}-view`)?.checked ?? false,
                         can_create: document.getElementById(`perm-${mod.id}-create`)?.checked ?? false,
                         can_edit: document.getElementById(`perm-${mod.id}-edit`)?.checked ?? false,
-                        can_delete: document.getElementById(`perm-${mod.id}-delete`)?.checked ?? false
+                        can_delete: document.getElementById(`perm-${mod.id}-delete`)?.checked ?? false,
+                        can_view_team: document.getElementById(`perm-${mod.id}-viewTeam`)?.checked ?? false
                     }
                 })
 

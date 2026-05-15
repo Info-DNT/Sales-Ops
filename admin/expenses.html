@@ -708,11 +708,11 @@
                     ? `<div class="action-btn-group">
                             <button class="btn btn-sm btn-success" onclick="openDecision('${exp.id}','${exp.user_id}','approved','${exp.category}','${exp.amount}','${expCurrency}')"><i class="fas fa-check"></i></button>
                             <button class="btn btn-sm btn-danger"  onclick="openDecision('${exp.id}','${exp.user_id}','rejected','${exp.category}','${exp.amount}','${expCurrency}')"><i class="fas fa-times"></i></button>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="showAuditLog('${exp.id}')" title="History"><i class="fas fa-history"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="showHistoryModal('expenses', '${exp.id}', '${exp.category}')" title="History"><i class="fas fa-history"></i></button>
                             ${canDelete() ? `<button class="btn btn-sm btn-outline-danger" onclick="handleDeleteExpense('${exp.id}')" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
                        </div>`
                     : `<div class="action-btn-group">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="showAuditLog('${exp.id}')" title="History"><i class="fas fa-history"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="showHistoryModal('expenses', '${exp.id}', '${exp.category}')" title="History"><i class="fas fa-history"></i></button>
                             ${canDelete() ? `<button class="btn btn-sm btn-outline-danger" onclick="handleDeleteExpense('${exp.id}')" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
                        </div>`;
                 return `<tr>

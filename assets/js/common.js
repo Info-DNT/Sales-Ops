@@ -733,3 +733,84 @@ if (document.readyState === 'loading') {
   activateBottomSheetModals()
 }
 // END OF MOBILE UX OVERHAUL FUNCTIONS
+
+/**
+ * Universal History/Timeline Modal
+ * Fetches and displays activity logs for a specific record.
+ */
+async function showHistoryModal(module, recordId, title = 'Record History') {
+  // Ensure modal HTML exists in document
+  if (!document.getElementById('universalHistoryModal')) {
+    const modalHtml = `
+      <div class="modal fade" id="universalHistoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="historyModalLabel">Timeline: ${title}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+              <div id="history-timeline-content" class="timeline-container p-4">
+                <div class="text-center py-4">
+                  <div class="spinner-border text-primary" role="status"></div>
+                  <p class="mt-2 text-muted">Fetching history...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+  }
+
+  const modalEl = document.getElementById('universalHistoryModal');
+  const modal = new bootstrap.Modal(modalEl);
+  document.getElementById('historyModalLabel').textContent = `Timeline: ${title}`;
+  modal.show();
+
+  try {
+    const logs = await getActivityLogs(module, recordId);
+    const content = document.getElementById('history-timeline-content');
+
+    if (!logs || logs.length === 0) {
+      content.innerHTML = `<div class="text-center py-5 text-muted"><i class="fas fa-history fa-2x mb-3 opacity-50"></i><p>No activity recorded yet.</p></div>`;
+      return;
+    }
+
+    content.innerHTML = logs.map(log => {
+      const date = new Date(log.created_at);
+      const actionClass = {
+        'CREATED': 'bg-success',
+        'UPDATED': 'bg-primary',
+        'DELETED': 'bg-danger'
+      }[log.action] || 'bg-secondary';
+
+      return `
+        <div class="timeline-item d-flex gap-3 mb-4">
+          <div class="timeline-icon-wrap">
+            <div class="timeline-icon ${actionClass}">
+              <i class="fas ${log.action === 'CREATED' ? 'fa-plus' : log.action === 'UPDATED' ? 'fa-pen' : 'fa-trash'}"></i>
+            </div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content flex-grow-1">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6 class="mb-1">${log.action}</h6>
+              <span class="text-muted small">${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+            <p class="mb-1 text-dark small">Action by <strong>${log.users?.name || log.users?.email || 'Unknown User'}</strong></p>
+            ${log.details && Object.keys(log.details).length > 0 ? `
+              <div class="bg-light p-2 rounded small mt-2 border-start border-3 border-secondary">
+                ${Object.entries(log.details).map(([key, val]) => `<div><span class="text-muted">${key}:</span> ${typeof val === 'object' ? JSON.stringify(val) : val}</div>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Error fetching history:', error);
+    document.getElementById('history-timeline-content').innerHTML = `<div class="alert alert-danger m-3">Failed to load history.</div>`;
+  }
+}

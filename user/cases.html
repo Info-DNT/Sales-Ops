@@ -671,48 +671,41 @@
                 const hasInvoice = c.invoice_uploaded === true || invoiceCount(c.id) > 0;
                 const hasReceipt = c.receipt_uploaded === true || caseReceiptCounts[c.id] > 0;
                 return `
-                <div class="lead-card mb-3 ${isConverted(c) ? 'converted-case' : ''}" onclick="openCaseDetails('${c.id}')" style="cursor: pointer;">
-                    <div class="lead-header">
-                        <div class="lead-title">
-                            <h6 class="mb-0">
-                                ${c.quotation_id 
-                                    ? `<span class="text-primary small me-1" id="quo-id-${c.id}">${c.quotation_id}</span>`
-                                    : `<span class="text-muted small me-1" id="quo-id-${c.id}"><i class="fas fa-clock" style="font-size:0.65rem;"></i> Quo Pending</span>`
-                                }
-                                ${c.title}
-                                ${isConverted(c) ? '<span class="converted-case-badge ms-1"><i class="fas fa-exchange-alt"></i> Converted</span>' : ''}
-                            </h6>
+                <div class="lead-card mb-3 p-3 shadow-sm border-0 bg-white rounded position-relative overflow-hidden" 
+                    onclick="openCaseDetails('${c.id}')" 
+                    style="cursor: pointer; transition: transform 0.2s; border-left: 4px solid #6366f1 !important;">
+                    
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <h5 class="mb-0 fw-bold text-dark">${c.title}</h5>
+                                ${isConverted(c) ? '<span class="badge bg-light text-indigo border px-2 py-1"><i class="fas fa-exchange-alt me-1"></i>Converted</span>' : ''}
+                                ${c.priority === 'High' ? '<span class="badge bg-danger">High</span>' : ''}
+                            </div>
+                            <div class="small text-muted d-flex align-items-center gap-2">
+                                <i class="fas fa-user-circle"></i> ${c.users?.name || c.users?.email || 'Owner'}
+                                ${c.quotation_id ? `<span class="text-primary fw-600 ms-2">${c.quotation_id}</span>` : ''}
+                            </div>
                         </div>
-                        <div class="d-flex gap-2 flex-shrink-0">
-                            <span class="badge ${getPriorityBadge(c.priority)}">${c.priority}</span>
-                            <span class="badge ${getStatusBadge(c.status)}">${c.status}</span>
-                        </div>
+                        <span class="lead-status-badge ${c.status.toLowerCase().replace(' ', '-')}">
+                            ${c.status}
+                        </span>
                     </div>
 
                     <div class="lead-details mt-3">
-                        <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-user me-1"></i>Client Name</span>
-                            <span class="lead-detail-value">${c.title}</span>
-                        </div>
-                        <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-phone me-1"></i>Client Phone</span>
-                            <span class="lead-detail-value">${c.contact || 'N/A'}</span>
-                        </div>
-                        <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-hospital-user me-1"></i>Patient Name</span>
-                            <span class="lead-detail-value">${c.patient_name || '--'}</span>
-                        </div>
-                        <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-route me-1"></i>Route</span>
-                            <span class="lead-detail-value">${(c.source_location || c.destination_location) ? `${c.source_location || '?'} → ${c.destination_location || '?'}` : '--'}</span>
-                        </div>
-                        <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-info-circle me-1"></i>Notes</span>
-                            <span class="lead-detail-value text-truncate" style="max-width:150px;">${c.description ? c.description.split(' | ')[0] : '--'}</span>
-                        </div>
-                        <div class="lead-detail-item">
-                            <span class="lead-detail-label"><i class="fas fa-calendar me-1"></i>Created At</span>
-                            <span class="lead-detail-value">${new Date(c.created_at).toLocaleDateString()}</span>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-4">
+                                <small class="text-muted d-block">Client Phone</small>
+                                <span class="fw-600">${c.contact || 'N/A'}</span>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <small class="text-muted d-block">Patient</small>
+                                <span class="text-dark">${c.patient_name || '--'}</span>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <small class="text-muted d-block">Route</small>
+                                <span class="small">${(c.source_location || c.destination_location) ? `${c.source_location || '?'} → ${c.destination_location || '?'}` : '--'}</span>
+                            </div>
                         </div>
                     </div>
 
@@ -1166,12 +1159,13 @@
             if (!btn) return;
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+            const getVal = (id) => document.getElementById(id)?.value || '';
             try {
                 await updateCase(editingCaseId, {
                     title: myCases.find(c => c.id === editingCaseId)?.title,
-                    description: document.getElementById('edit-case-description').value,
-                    status: document.getElementById('edit-case-status').value,
-                    priority: document.getElementById('edit-case-priority').value,
+                    description: getVal('edit-case-description'),
+                    status: getVal('edit-case-status'),
+                    priority: getVal('edit-case-priority'),
                     userId: session.userId
                 });
                 showToast('Case updated', 'success');
@@ -1192,11 +1186,12 @@
             e.preventDefault();
             const btn = document.getElementById('add-case-btn');
             btn.disabled = true;
+            const getVal = (id) => document.getElementById(id)?.value || '';
             try {
                 await createCase({
-                    title: document.getElementById('case-title').value,
-                    description: document.getElementById('case-description').value,
-                    priority: document.getElementById('case-priority').value,
+                    title: getVal('case-title'),
+                    description: getVal('case-description'),
+                    priority: getVal('case-priority'),
                     userId: session.userId,
                     status: 'Pending'
                 });
