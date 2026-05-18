@@ -752,26 +752,6 @@
 
             const visibleLeads = leads.slice(0, pageSize * currentPageLeads)
 
-            container.innerHTML = visibleLeads
-                .map(lead => {
-                    const isCRM = lead.lead_source && lead.lead_source !== '';
-
-                    // 1. Calculate Stale Status (Aging)
-                    const lastUpdate = new Date(lead.updated_at || lead.created_at);
-                    const diffDays = Math.floor((new Date() - lastUpdate) / (1000 * 60 * 60 * 24));
-                    let agingClass = '';
-                    if (diffDays >= 7) agingClass = 'stale-pulse-danger';
-                    else if (diffDays >= 3) agingClass = 'stale-pulse-warning';
-
-                    // 2. Calculate Follow-up Status (Urgent)
-                    const today = new Date().toISOString().split('T')[0];
-                    const isUrgent = lead.follow_up_date && lead.follow_up_date <= today && lead.status !== 'Closed';
-
-                    return `
-                    <div class="lead-card mb-3 ${isCRM ? 'crm-lead' : ''} ${agingClass}" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer;">
-                        <div class="lead-header">
-                            <div class="lead-title">
-                                <h6>
             container.innerHTML = visibleLeads.map(lead => {
                 const today = new Date().toISOString().split('T')[0];
                 const isUrgent = lead.follow_up_date && lead.follow_up_date <= today && lead.status !== 'Closed';
@@ -983,7 +963,11 @@
                 const result = await createLead(session.userId, lead)
 
                 if (result.crmSync && result.crmSync.success) {
-                    showToast('Lead created and synced to CRM!', 'success')
+                    if (result.crmSync.isSkipped) {
+                        showToast(result.crmSync.message || 'Lead saved locally (CRM sync skipped)', 'info')
+                    } else {
+                        showToast('Lead created and synced to CRM!', 'success')
+                    }
                 } else {
                     showToast(`Lead saved locally, but CRM sync failed: ${result.crmSync?.message || 'Unknown error'}`, 'warning')
                 }

@@ -580,13 +580,24 @@ async function createLead(userId, lead) {
 
             data.zoho_lead_id = syncResult.zohoLeadId;
             data.crmSync = { success: true, message: 'Synced to Zoho' };
+        } else if (syncResult.isSkipped) {
+            data.crmSync = { success: true, isSkipped: true, message: syncResult.message };
         } else {
             console.warn('CRM sync response success was false:', syncResult);
             data.crmSync = { success: false, message: syncResult.error || 'CRM rejected request' };
         }
     } catch (err) {
         console.warn('Initial CRM sync failed:', err);
-        data.crmSync = { success: false, message: err.message };
+        // Auto-detect local development without Netlify dev server
+        if (window.location.port === '5500') {
+            data.crmSync = { 
+                success: true, 
+                isSkipped: true, 
+                message: 'CRM sync skipped (Live Server port 5500 cannot run backend functions)' 
+            };
+        } else {
+            data.crmSync = { success: false, message: 'Connection to CRM system failed' };
+        }
     }
 
     return data;

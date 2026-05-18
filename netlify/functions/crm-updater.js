@@ -304,7 +304,11 @@ exports.handler = async (event) => {
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true, message: 'CRM sync skipped' })
+                body: JSON.stringify({ 
+                    success: true, 
+                    isSkipped: true, 
+                    message: 'CRM sync skipped (local environment without credentials)' 
+                })
             };
         }
 
@@ -321,19 +325,30 @@ exports.handler = async (event) => {
 
         const result = await syncLeadToZoho(updates, zohoLeadId);
 
-        // Extract the Zoho ID from response
+        // Extract the Zoho ID from response or check for nested error
         let returnedZohoId = zohoLeadId;
-        if (!zohoLeadId && result.data && result.data[0] && result.data[0].details) {
-            returnedZohoId = result.data[0].details.id;
+        let isSuccess = true;
+        let errorMessage = null;
+
+        if (result.data && result.data[0]) {
+            const recordResult = result.data[0];
+            if (recordResult.status === 'error') {
+                isSuccess = false;
+                errorMessage = recordResult.message || `Zoho CRM error: ${recordResult.code}`;
+            } else if (!zohoLeadId && recordResult.details) {
+                returnedZohoId = recordResult.details.id;
+            }
         }
 
         return {
-            statusCode: 200,
+            statusCode: isSuccess ? 200 : 400,
             headers,
             body: JSON.stringify({
-                success: true,
-                message: zohoLeadId ? 'Lead updated in Zoho' : 'Lead created in Zoho',
+                success: isSuccess,
+                isSkipped: false,
+                message: isSuccess ? (zohoLeadId ? 'Lead updated in Zoho' : 'Lead created in Zoho') : 'Zoho rejected the request',
                 zohoLeadId: returnedZohoId,
+                error: errorMessage,
                 zohoResponse: result
             })
         };
