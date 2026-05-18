@@ -125,6 +125,32 @@ exports.handler = async function (event) {
         quo_id = data.quo_id;
         console.log(`✅ Found Quotation ID in Sheets: ${quo_id}`);
 
+        // --- UPDATE SUPABASE ---
+        const { createClient } = require('@supabase/supabase-js');
+        const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+        // Try updating Leads
+        const { data: leadUpdate, error: leadErr } = await supabase
+            .from('leads')
+            .update({ quotation_id: quo_id })
+            .or(`serial_no_2.eq.${serialNo2 || ''},contact.eq.${phone || ''}`)
+            .select();
+        
+        if (leadUpdate && leadUpdate.length > 0) {
+            console.log(`✅ Updated Supabase Lead(s) with Quo ID: ${quo_id}`);
+        }
+
+        // Try updating Cases
+        const { data: caseUpdate, error: caseErr } = await supabase
+            .from('cases')
+            .update({ quotation_id: quo_id })
+            .or(`serial_no_2.eq.${serialNo2 || ''},contact.eq.${phone || ''}`)
+            .select();
+
+        if (caseUpdate && caseUpdate.length > 0) {
+            console.log(`✅ Updated Supabase Case(s) with Quo ID: ${quo_id}`);
+        }
+
         // --- PUSH TO ZOHO CRM IF REQUESTED ---
         let crmUpdated = false;
         if (zohoLeadId && quo_id) {
@@ -138,7 +164,8 @@ exports.handler = async function (event) {
             body: JSON.stringify({
                 success: true,
                 quo_id: quo_id,
-                crmUpdated: crmUpdated
+                crmUpdated: crmUpdated,
+                supabaseUpdated: (leadUpdate?.length > 0 || caseUpdate?.length > 0)
             })
         };
 

@@ -124,7 +124,7 @@ exports.handler = async (event) => {
             expected_close: payload.Expected_Close || payload['Expected Close'] || null,
             field:          payload.Field || payload.field || null,
             lead_source:    payload.Lead_Source || payload.Source || 'Zoho CRM',
-            quotation_id:   payload.Quotation_ID || payload['Quotation ID'] || payload.quotation_id || payload.Quotation_Id || payload.quotationId || null,
+            quotation_id:   payload.Quotation_ID || payload['Quotation ID'] || payload.quotation_id || payload.Quotation_Id || payload.quotationId || payload.Quote_Number || payload.Quotation_No || payload.Quote_No || null,
             serial_no_1:    payload.Serial_No_1 || payload['Serial No. 1'] || payload.SerialNo1 || null,
             // New Enhanced Fields from Zoho Flow
             company:            payload.Company || payload.company || null,
@@ -141,6 +141,17 @@ exports.handler = async (event) => {
             source_location:    payload.Source_Location || payload['Source Location'] || null,
             destination_location: payload.Destination_Location || payload['Destination Location'] || null
         };
+
+        // Sanitize quotation_id: reject string literals like 'null', 'Pending', empty
+        if (!leadData.quotation_id ||
+            leadData.quotation_id === 'null' ||
+            leadData.quotation_id === 'Pending' ||
+            leadData.quotation_id === '') {
+            leadData.quotation_id = null;
+        }
+        if (leadData.quotation_id) {
+            console.log(`📌 Quotation ID from Zoho payload: ${leadData.quotation_id}`);
+        }
 
         // ─── Resolve Serial No. 2 ──────────────
         // Priority 1: From Zoho Payload
@@ -170,9 +181,21 @@ exports.handler = async (event) => {
         let data, error;
 
         if (isUpdate) {
+            // ⚠️ ROOT CAUSE FIX: Strip out null/undefined fields before updating.
+            // If Zoho sends a status-change webhook WITHOUT a Quotation_ID,
+            // we must NOT overwrite an already-saved quotation_id with null.
+            const updatePayload = Object.fromEntries(
+                Object.entries(leadData).filter(([, v]) => v !== null && v !== undefined && v !== '')
+            );
+            // Always keep zoho_lead_id and serial_no_2 even if they look empty
+            updatePayload.zoho_lead_id = leadData.zoho_lead_id;
+            if (leadData.serial_no_2) updatePayload.serial_no_2 = leadData.serial_no_2;
+
+            console.log('Updating lead with payload keys:', Object.keys(updatePayload).join(', '));
+
             ({ data, error } = await supabase
                 .from('leads')
-                .update(leadData)
+                .update(updatePayload)
                 .eq('id', existingLead.id)
                 .select());
         } else {

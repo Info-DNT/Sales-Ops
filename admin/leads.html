@@ -616,6 +616,7 @@
 
                 allLeads = await getAllLeadsAdmin()
                 console.log('🔍 [DIAG] getAllLeadsAdmin returned:', allLeads?.length, 'leads')
+
                 leads = allLeads
                 displayLeads()
             } catch (error) {
@@ -792,11 +793,9 @@
                                 <i class="fas fa-file-invoice-dollar me-1"></i> Quotation
                             </button>
                             
-                            ${lead.quotation_id ? `
-                            <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); downloadQuotationFromDrive('${lead.quotation_id}', this)">
+                            <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); downloadQuotationFromDrive('${lead.quotation_id || ''}', this, '${lead.id}')">
                                 <i class="fas fa-file-download me-1"></i> Download
                             </button>
-                            ` : ''}
 
                             ${canDelete() ? `
                             <button class="btn btn-sm btn-outline-danger ms-auto" onclick="event.stopPropagation(); handleDeleteLead('${lead.id}')" data-module="leads" data-action="delete">
@@ -1389,33 +1388,88 @@
             }
         }
 
-        // ── Google Sheet Sync Disabled ──
-        // syncQuotationId (Google Sheet) has been disabled.
-        // Quotation ID is now synced automatically via CRM webhook (crm-receiver.js).
-        // The functions below have been removed but kept as comments for reference.
-        // async function syncQuotationId(leadId, phone) { ... }
-        // async function syncQuotationId(leadId, phone, serialNo2, zohoLeadId) { ... }}
+        async function syncQuotationId(leadId, phone, serialNo2, zohoLeadId) {
+            const el = document.getElementById(`quo-id-${leadId}`);
+            if (!el) return;
+            const originalHtml = el.innerHTML;
+            el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+
+            try {
+                const response = await fetch('/.netlify/functions/google-sheet-sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        serialNo2: serialNo2, 
+                        phone: phone,
+                        zohoLeadId: zohoLeadId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.quo_id) {
+                    el.innerHTML = `<span class="fw-bold text-primary">${data.quo_id}</span>`;
+                    showToast('Quotation ID synced successfully!', 'success');
+                    
+                    // Update local state and trigger re-render if needed
+                    const lead = allLeads.find(l => l.id === leadId);
+                    if (lead) {
+                        lead.quotation_id = data.quo_id;
+                        // displayLeads(); // Optional: Full re-render
+                    }
+                } else {
+                    el.innerHTML = originalHtml;
+                    showToast(data.error || 'Quotation not yet found in Google Sheet.', 'info');
+                }
+            } catch (err) {
+                console.error('Sync error:', err);
+                el.innerHTML = originalHtml;
+                showToast('Error connecting to sync system.', 'error');
+            }
+        }
 
         async function checkAndDownloadFile(leadId, type) {
             try {
-                const { data: files, error } = await initSupabase()
+                const client = initSupabase();
+                // We try to filter by file_type, but we'll fall back if it fails
+                let query = client
                     .from('lead_files')
-                    .select('file_url')
+                    .select('file_url, file_name')
                     .eq('lead_id', leadId)
-                    .eq('file_type', type)
-                    .order('uploaded_at', { ascending: false })
-                    .limit(1);
+                    .order('uploaded_at', { ascending: false });
 
-                if (error) throw error;
+                // Add file_type filter if possible
+                const { data: files, error } = await query;
+
+                if (error) {
+                    console.warn('Initial file fetch error (might be missing column):', error);
+                    // If it failed because of missing column, try without filter
+                    const { data: fallbackFiles, error: fallbackError } = await client
+                        .from('lead_files')
+                        .select('file_url')
+                        .eq('lead_id', leadId)
+                        .limit(5);
+                    
+                    if (fallbackError) throw fallbackError;
+                    
+                    if (fallbackFiles && fallbackFiles.length > 0) {
+                        window.open(fallbackFiles[0].file_url, '_blank');
+                    } else {
+                        showToast('No documents found for this lead yet.', 'info');
+                    }
+                    return;
+                }
 
                 if (files && files.length > 0) {
-                    window.open(files[0].file_url, '_blank');
+                    // If we have multiple, try to find the best match for 'type' in filename if column was missing
+                    const match = files.find(f => f.file_name.toLowerCase().includes(type.toLowerCase())) || files[0];
+                    window.open(match.file_url, '_blank');
                 } else {
                     showToast('PDF file not yet available.', 'info');
                 }
             } catch (err) {
                 console.error('Download error:', err);
-                showToast('Error retrieving file.', 'error');
+                showToast('Error retrieving file. Please check database schema.', 'error');
             }
         }
 
@@ -1486,10 +1540,10 @@
 
         setupRealtimeLeads()
 
-        async function downloadQuotationFromDrive(quotationId, btnEl) {
-            if (!quotationId || quotationId === 'undefined' || quotationId === 'null') {
-                showToast('No Quotation ID available for this lead.', 'warning');
-                return;
+        async function downloadQuotationFromDrive(quotationId, btnEl, leadId) {
+            if (!quotationId || quotationId === 'undefined' || quotationId === 'null' || quotationId === '') {
+                // No quotation ID yet — check internal storage directly
+                return checkAndDownloadFile(leadId, 'quotation');
             }
 
             const originalHtml = btnEl.innerHTML;
@@ -1503,21 +1557,30 @@
                     body: JSON.stringify({ quotationId: quotationId })
                 });
 
+                // ⚠️ Check response.ok BEFORE parsing JSON.
+                // A 405 (Live Server) or 500 returns empty/HTML body,
+                // which makes response.json() throw a SyntaxError.
+                if (!response.ok) {
+                    console.warn(`Drive-fetch returned HTTP ${response.status}. Falling back to internal storage.`);
+                    btnEl.innerHTML = originalHtml;
+                    btnEl.classList.remove('disabled');
+                    return checkAndDownloadFile(leadId, 'quotation');
+                }
+
                 const data = await response.json();
 
                 if (data.success && data.downloadUrl) {
                     window.open(data.downloadUrl, '_blank');
                     showToast('Opening quotation PDF...', 'success');
+                } else if (data.isPending) {
+                    showToast('Quotation PDF is pending — the accounts team has not uploaded it yet.', 'info');
                 } else {
                     showToast(data.error || 'Quotation PDF not found in Drive.', 'warning');
                 }
             } catch (err) {
+                // Catches genuine network failures (e.g. no internet)
                 console.error('Drive fetch error:', err);
-                if (err.message.includes('Unexpected end of JSON input')) {
-                    showToast('Drive system unavailable locally. Please run "node dev-server.js" instead of Live Server.', 'error');
-                } else {
-                    showToast('Error connecting to Drive system.', 'error');
-                }
+                showToast('Network error — could not reach Drive system.', 'error');
             } finally {
                 btnEl.innerHTML = originalHtml;
                 btnEl.classList.remove('disabled');

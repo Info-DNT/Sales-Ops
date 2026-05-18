@@ -106,6 +106,18 @@ exports.handler = async function (event) {
         return { statusCode: 500, body: JSON.stringify({ error: 'Failed to attach file', detail: insertError.message }) };
     }
 
+    // ── 3. Update Quotation ID in target table if found in filename ──
+    // This ensures the "Download" button appears on the cards immediately
+    const quoIdMatch = fileName.match(/(QUO-\d+)/i);
+    if (quoIdMatch) {
+        const extractedQuoId = quoIdMatch[0].toUpperCase();
+        console.log(`📝 Updating ${targetTable} ${targetId} with Quotation ID: ${extractedQuoId}`);
+        await supabase
+            .from(targetTable)
+            .update({ quotation_id: extractedQuoId })
+            .eq('id', targetId);
+    }
+
     return {
         statusCode: 200,
         body: JSON.stringify({

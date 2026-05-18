@@ -1589,8 +1589,9 @@
 
         async function downloadFileFromDrive(docType, quotationId, btnEl, caseId) {
             if (!quotationId || quotationId === 'undefined' || quotationId === 'null') {
-                showToast('No Quotation ID linked to this case.', 'warning');
-                return;
+                // Fallback: Check if file exists in case_files table even if ID is missing
+                console.log('Quotation ID missing, checking local files fallback...');
+                return checkAndDownloadFile(caseId, docType);
             }
 
             const docNames = {
