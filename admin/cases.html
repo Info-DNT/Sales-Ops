@@ -356,6 +356,14 @@
                             </div>
                         </div>
                         <div id="invoice-files-list"></div>
+                        <div class="d-flex gap-2 mt-2">
+                            <button class="btn btn-sm btn-outline-success flex-fill" id="oc-download-proforma-btn" style="display:none;" onclick="downloadFileFromDrive('proforma', editingCaseQuotationId, this, editingCaseId)">
+                                <i class="fas fa-file-download me-1"></i> Download Proforma
+                            </button>
+                            <button class="btn btn-sm btn-outline-success flex-fill" id="oc-download-invoice-btn" style="display:none;" onclick="downloadFileFromDrive('invoice', editingCaseQuotationId, this, editingCaseId)">
+                                <i class="fas fa-file-download me-1"></i> Download Tax Invoice
+                            </button>
+                        </div>
                     </div>
 
                     <hr class="my-4">
@@ -380,6 +388,11 @@
                             </div>
                         </div>
                         <div id="receipt-files-list"></div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-success w-100" id="oc-download-receipt-btn" style="display:none;" onclick="downloadFileFromDrive('receipt', editingCaseQuotationId, this, editingCaseId)">
+                                <i class="fas fa-file-download me-1"></i> Download Receipt
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -515,7 +528,7 @@
         generateLeadsSubTabs('cases')
 
         const session = getCurrentSession();
-        let allCases = [], filteredCases = [], allUsers = [], caseFileCounts = {}, caseInvoiceCounts = {}, caseReceiptCounts = {}, caseLeadCache = {}, editingCaseId = null, quickUploadCaseId = null, proformaRequestCaseId = null, invoiceRequestCaseId = null, receiptRequestCaseId = null;
+        let allCases = [], filteredCases = [], allUsers = [], caseFileCounts = {}, caseInvoiceCounts = {}, caseReceiptCounts = {}, caseLeadCache = {}, editingCaseId = null, editingCaseQuotationId = null, quickUploadCaseId = null, proformaRequestCaseId = null, invoiceRequestCaseId = null, receiptRequestCaseId = null;
         let pageSize = 20, currentPageCases = 1;
 
         async function loadData() {
@@ -579,16 +592,19 @@
 
             const visibleCases = filteredCases.slice(0, pageSize * currentPageCases);
             
-            list.innerHTML = visibleCases.map(c => `
-                <div class="lead-card mb-3 p-3 shadow-sm border-0 bg-white rounded position-relative overflow-hidden" 
-                    onclick="openCaseDetails('${c.id}')" 
+            list.innerHTML = visibleCases.map(c => {
+                const hasInvoice = c.invoice_uploaded === true || (caseInvoiceCounts[c.id] || 0) > 0;
+                const hasReceipt = c.receipt_uploaded === true || (caseReceiptCounts[c.id] || 0) > 0;
+                return `
+                <div class="lead-card mb-3 p-3 shadow-sm border-0 bg-white rounded position-relative"
+                    onclick="openCaseDetails('${c.id}')"
                     style="cursor: pointer; transition: transform 0.2s; border-left: 4px solid #6366f1 !important;">
                     
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div class="flex-grow-1">
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <h5 class="mb-0 fw-bold text-dark">${c.title}</h5>
-                                ${c.lead_id ? '<span class="badge bg-light text-indigo border px-2 py-1"><i class="fas fa-exchange-alt me-1"></i>Converted</span>' : ''}
+                                ${c.lead_id ? '<span class="badge bg-light text-primary border px-2 py-1"><i class="fas fa-exchange-alt me-1"></i>Converted</span>' : ''}
                                 ${c.priority === 'High' ? '<span class="badge bg-danger">High</span>' : ''}
                             </div>
                             <div class="small text-muted d-flex align-items-center gap-2">
@@ -629,8 +645,11 @@
                                 <li><a class="dropdown-item py-2" href="#" onclick="openProformaRequestModal('${c.id}', '${escHtml(c.title)}', event)"><i class="fas fa-paper-plane me-2 text-primary"></i>Request Proforma</a></li>
                                 <li><a class="dropdown-item py-2" href="#" onclick="downloadFileFromDrive('proforma', '${c.quotation_id}', this, '${c.id}')"><i class="fas fa-file-download me-2 ${c.proforma_uploaded ? 'text-success' : ''}"></i>Download Proforma</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item py-2" href="#" onclick="openInvoiceRequestModal('${c.id}', '${escHtml(c.title)}', event)"><i class="fas fa-paper-plane me-2 text-primary"></i>Request Invoice</a></li>
-                                <li><a class="dropdown-item py-2" href="#" onclick="downloadFileFromDrive('invoice', '${c.quotation_id}', this, '${c.id}')"><i class="fas fa-file-download me-2 ${c.invoice_uploaded ? 'text-success' : ''}"></i>Download Invoice</a></li>
+                                <li><a class="dropdown-item py-2 ${c.proforma_uploaded ? '' : 'disabled text-muted'}" href="#" onclick="${c.proforma_uploaded ? `openInvoiceRequestModal('${c.id}', '${escHtml(c.title)}', event)` : 'void(0)'}"><i class="fas fa-paper-plane me-2 ${c.proforma_uploaded ? 'text-primary' : ''}"></i>Request Invoice</a></li>
+                                <li><a class="dropdown-item py-2 ${c.proforma_uploaded ? '' : 'disabled text-muted'}" href="#" onclick="${c.proforma_uploaded ? `downloadFileFromDrive('invoice', '${c.quotation_id}', this, '${c.id}')` : 'void(0)'}"><i class="fas fa-file-download me-2 ${c.invoice_uploaded ? 'text-success' : ''}"></i>Download Invoice</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item py-2 ${hasInvoice ? '' : 'disabled text-muted'}" href="#" onclick="${hasInvoice ? `openReceiptRequestModal('${c.id}', '${escHtml(c.title)}', event)` : 'void(0)'}"><i class="fas fa-paper-plane me-2 ${hasInvoice ? 'text-primary' : ''}"></i>Request Receipt</a></li>
+                                <li><a class="dropdown-item py-2 ${hasInvoice ? '' : 'disabled text-muted'}" href="#" onclick="${hasInvoice ? `downloadFileFromDrive('receipt', '${c.quotation_id}', this, '${c.id}')` : 'void(0)'}"><i class="fas fa-file-download me-2 ${hasReceipt ? 'text-success' : ''}"></i>Download Receipt</a></li>
                             </ul>
                         </div>
 
@@ -648,7 +667,7 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+                `; }).join('');
 
             // Add Load More button if needed
             if (filteredCases.length > visibleCases.length) {
@@ -687,7 +706,7 @@
         }
 
         window.openCaseDetails = function (id) {
-            const c = allCases.find(x => x.id === id); if (!c) return; editingCaseId = id;
+            const c = allCases.find(x => x.id === id); if (!c) return; editingCaseId = id; editingCaseQuotationId = c.quotation_id || null;
             document.getElementById('offcanvas-case-title').textContent = c.title;
             document.getElementById('edit-case-id').value = c.id;
             document.getElementById('edit-case-title').value = c.title;
@@ -710,23 +729,37 @@
             if (leadId) {
                 getLeadByLeadId(leadId).then(L => {
                     if (L) {
-                        const quoId = L.quotation_id;
+                        const quoId = L.quotation_id || c.quotation_id;
+                        if (quoId) editingCaseQuotationId = quoId;
                         if (quoIdDisplay) quoIdDisplay.textContent = quoId || dash;
                         if (quoId && quoBtn) {
                             quoBtn.style.display = 'block';
-                            quoBtn.onclick = () => checkAndDownloadFile(c.id, 'quotation');
+                            quoBtn.onclick = () => downloadFileFromDrive('quotation', quoId, quoBtn, c.id);
                         } else if (quoBtn) {
                             quoBtn.style.display = 'none';
                         }
                     }
                 });
             } else {
-                if (quoIdDisplay) quoIdDisplay.textContent = dash;
-                if (quoBtn) quoBtn.style.display = 'none';
+                const directQuoId = c.quotation_id;
+                if (quoIdDisplay) quoIdDisplay.textContent = directQuoId || dash;
+                if (directQuoId && quoBtn) {
+                    quoBtn.style.display = 'block';
+                    quoBtn.onclick = () => downloadFileFromDrive('quotation', directQuoId, quoBtn, c.id);
+                } else if (quoBtn) {
+                    quoBtn.style.display = 'none';
+                }
             }
 
+            // Show/hide Drive download buttons for proforma, invoice, receipt
+            const hasQuoId = !!editingCaseQuotationId;
+            ['oc-download-proforma-btn', 'oc-download-invoice-btn', 'oc-download-receipt-btn'].forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) btn.style.display = hasQuoId ? 'block' : 'none';
+            });
+
             switchCaseTab('overview');
-            
+
             // Handle sequential disabling logic for offcanvas
             const invBtn = document.getElementById('offcanvas-invoice-request-btn');
             if (invBtn) {
@@ -960,7 +993,7 @@
             const btn = document.getElementById('save-case-btn'); btn.disabled = true;
             const getVal = (id) => document.getElementById(id)?.value || '';
             try {
-                await updateCaseAdmin(editingCaseId, {
+                await updateCase(editingCaseId, {
                     title: getVal('edit-case-title'),
                     status: getVal('edit-case-status'),
                     priority: getVal('edit-case-priority'),

@@ -353,6 +353,14 @@
                             </div>
                         </div>
                         <div id="invoice-files-list"></div>
+                        <div class="d-flex gap-2 mt-2">
+                            <button class="btn btn-sm btn-outline-success flex-fill" id="oc-download-proforma-btn" style="display:none;" onclick="downloadFileFromDrive('proforma', editingCaseQuotationId, this, editingCaseId)">
+                                <i class="fas fa-file-download me-1"></i> Download Proforma
+                            </button>
+                            <button class="btn btn-sm btn-outline-success flex-fill" id="oc-download-invoice-btn" style="display:none;" onclick="downloadFileFromDrive('invoice', editingCaseQuotationId, this, editingCaseId)">
+                                <i class="fas fa-file-download me-1"></i> Download Tax Invoice
+                            </button>
+                        </div>
                     </div>
 
                     <hr class="my-4">
@@ -381,6 +389,11 @@
                             </div>
                         </div>
                         <div id="receipt-files-list"></div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-success w-100" id="oc-download-receipt-btn" style="display:none;" onclick="downloadFileFromDrive('receipt', editingCaseQuotationId, this, editingCaseId)">
+                                <i class="fas fa-file-download me-1"></i> Download Receipt
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -585,7 +598,7 @@
         let caseInvoiceCounts = {}; // { caseId: count }
         let caseReceiptCounts = {}; // { caseId: count }
         let caseLeadCache = {};     // { caseId: leadData } — cached for WhatsApp
-        let editingCaseId = null;
+        let editingCaseId = null, editingCaseQuotationId = null;
         let quickUploadCaseId = null;
         let invoiceUploadCaseId = null;
         let proformaRequestCaseId = null;
@@ -671,15 +684,15 @@
                 const hasInvoice = c.invoice_uploaded === true || invoiceCount(c.id) > 0;
                 const hasReceipt = c.receipt_uploaded === true || caseReceiptCounts[c.id] > 0;
                 return `
-                <div class="lead-card mb-3 p-3 shadow-sm border-0 bg-white rounded position-relative overflow-hidden" 
-                    onclick="openCaseDetails('${c.id}')" 
+                <div class="lead-card mb-3 p-3 shadow-sm border-0 bg-white rounded position-relative"
+                    onclick="openCaseDetails('${c.id}')"
                     style="cursor: pointer; transition: transform 0.2s; border-left: 4px solid #6366f1 !important;">
                     
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div class="flex-grow-1">
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <h5 class="mb-0 fw-bold text-dark">${c.title}</h5>
-                                ${isConverted(c) ? '<span class="badge bg-light text-indigo border px-2 py-1"><i class="fas fa-exchange-alt me-1"></i>Converted</span>' : ''}
+                                ${isConverted(c) ? '<span class="badge bg-light text-primary border px-2 py-1"><i class="fas fa-exchange-alt me-1"></i>Converted</span>' : ''}
                                 ${c.priority === 'High' ? '<span class="badge bg-danger">High</span>' : ''}
                             </div>
                             <div class="small text-muted d-flex align-items-center gap-2">
@@ -816,6 +829,7 @@
             const c = myCases.find(x => x.id === id);
             if (!c) return;
             editingCaseId = id;
+            editingCaseQuotationId = c.quotation_id || null;
 
             // Header
             document.getElementById('offcanvas-case-title').textContent = c.title;
@@ -859,6 +873,13 @@
                 invBtn.title = c.proforma_uploaded ? 'Request final invoice' : 'Upload Proforma first to enable this';
             }
 
+            // Show/hide Drive download buttons for proforma, invoice, receipt
+            const hasQuoId = !!editingCaseQuotationId;
+            ['oc-download-proforma-btn', 'oc-download-invoice-btn', 'oc-download-receipt-btn'].forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) btn.style.display = hasQuoId ? 'block' : 'none';
+            });
+
             // Open offcanvas immediately — don't block on lead fetch
             // Handle Zoho Quotation display in offcanvas
             const leadId = c.lead_id;
@@ -868,19 +889,26 @@
             if (leadId) {
                 getLeadByLeadId(leadId).then(L => {
                     if (L) {
-                        const quoId = L.quotation_id;
+                        const quoId = L.quotation_id || c.quotation_id;
+                        if (quoId) editingCaseQuotationId = quoId;
                         if (quoIdDisplay) quoIdDisplay.textContent = quoId || dash;
                         if (quoId && quoBtn) {
                             quoBtn.style.display = 'block';
-                            quoBtn.onclick = () => checkAndDownloadFile(c.id, 'quotation');
+                            quoBtn.onclick = () => downloadFileFromDrive('quotation', quoId, quoBtn, c.id);
                         } else if (quoBtn) {
                             quoBtn.style.display = 'none';
                         }
                     }
                 });
             } else {
-                if (quoIdDisplay) quoIdDisplay.textContent = dash;
-                if (quoBtn) quoBtn.style.display = 'none';
+                const directQuoId = c.quotation_id;
+                if (quoIdDisplay) quoIdDisplay.textContent = directQuoId || dash;
+                if (directQuoId && quoBtn) {
+                    quoBtn.style.display = 'block';
+                    quoBtn.onclick = () => downloadFileFromDrive('quotation', directQuoId, quoBtn, c.id);
+                } else if (quoBtn) {
+                    quoBtn.style.display = 'none';
+                }
             }
 
             switchCaseTab('overview');
