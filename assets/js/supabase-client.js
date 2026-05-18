@@ -626,36 +626,38 @@ async function updateLead(leadId, updates, userId) {
         updates.serial_no_2 = serialNo2;
     }
 
+    const mergedUpdates = {
+        name: updates.name !== undefined ? updates.name : currentLead?.name,
+        contact: updates.contact !== undefined ? updates.contact : currentLead?.contact,
+        email: updates.email !== undefined ? updates.email : currentLead?.email,
+        owner: updates.owner !== undefined ? updates.owner : currentLead?.owner,
+        user_id: updates.userId || currentLead?.user_id,
+        status: updates.status !== undefined ? updates.status : currentLead?.status,
+        follow_up_date: updates.followUpDate !== undefined ? (updates.followUpDate || null) : currentLead?.follow_up_date,
+        next_action: updates.nextAction !== undefined ? updates.nextAction : currentLead?.next_action,
+        expected_close: updates.expectedClose !== undefined ? (updates.expectedClose || null) : currentLead?.expected_close,
+        patient_name: updates.patientName !== undefined ? updates.patientName : currentLead?.patient_name,
+        client_relation: updates.clientRelation !== undefined ? updates.clientRelation : currentLead?.client_relation,
+        source_location: updates.sourceLocation !== undefined ? updates.sourceLocation : currentLead?.source_location,
+        destination_location: updates.destinationLocation !== undefined ? updates.destinationLocation : currentLead?.destination_location,
+        lead_source: updates.leadSource !== undefined ? (updates.leadSource || null) : currentLead?.lead_source,
+        field: updates.field !== undefined ? (updates.field || null) : currentLead?.field,
+        serial_no_2: serialNo2, // Ensure it's saved/updated
+        // Enhanced Zoho Fields
+        company: updates.company !== undefined ? updates.company : currentLead?.company,
+        client_name: updates.clientName !== undefined ? updates.clientName : currentLead?.client_name,
+        client_phone: updates.clientPhone !== undefined ? updates.clientPhone : currentLead?.client_phone,
+        client_email: updates.clientEmail !== undefined ? updates.clientEmail : currentLead?.client_email,
+        requested_by: updates.requestedBy !== undefined ? updates.requestedBy : currentLead?.requested_by,
+        requested_to: updates.requestedTo !== undefined ? updates.requestedTo : currentLead?.requested_to,
+        referring_hospital: updates.referringHospital !== undefined ? updates.referringHospital : currentLead?.referring_hospital,
+        receiving_hospital: updates.receivingHospital !== undefined ? updates.receivingHospital : currentLead?.receiving_hospital,
+        quotation_type: updates.quotationType !== undefined ? updates.quotationType : currentLead?.quotation_type
+    };
+
     const { data, error } = await client
         .from('leads')
-        .update({
-            name: updates.name,
-            contact: updates.contact,
-            email: updates.email,
-            owner: updates.owner,
-            user_id: updates.userId || currentLead.user_id,
-            status: updates.status,
-            follow_up_date: updates.followUpDate || null,
-            next_action: updates.nextAction,
-            expected_close: updates.expectedClose || null,
-            patient_name: updates.patientName,
-            client_relation: updates.clientRelation,
-            source_location: updates.sourceLocation,
-            destination_location: updates.destinationLocation,
-            lead_source: updates.leadSource || null,
-            field: updates.field || null,
-            serial_no_2: serialNo2, // Ensure it's saved/updated
-            // Enhanced Zoho Fields
-            company: updates.company,
-            client_name: updates.clientName,
-            client_phone: updates.clientPhone,
-            client_email: updates.clientEmail,
-            requested_by: updates.requestedBy,
-            requested_to: updates.requestedTo,
-            referring_hospital: updates.referringHospital,
-            receiving_hospital: updates.receivingHospital,
-            quotation_type: updates.quotationType
-        })
+        .update(mergedUpdates)
         .eq('id', leadId)
         .select()
         .single();
@@ -665,9 +667,9 @@ async function updateLead(leadId, updates, userId) {
     // Detect changes and log to history
     if (currentLead) {
         let changedFields = [];
-        if (currentLead.status !== updates.status) changedFields.push(`Status changed to ${updates.status}`);
-        if (currentLead.owner !== updates.owner) changedFields.push(`Owner updated`);
-        if (currentLead.next_action !== updates.next_action) changedFields.push(`Next action updated`);
+        if (updates.status !== undefined && currentLead.status !== updates.status) changedFields.push(`Status changed to ${updates.status}`);
+        if (updates.owner !== undefined && currentLead.owner !== updates.owner) changedFields.push(`Owner updated`);
+        if (updates.nextAction !== undefined && currentLead.next_action !== updates.nextAction) changedFields.push(`Next action updated`);
         if (!currentLead.serial_no_2 && serialNo2) changedFields.push(`Serial No. 2 generated: ${serialNo2}`);
 
         if (changedFields.length > 0) {
@@ -700,33 +702,33 @@ async function updateLead(leadId, updates, userId) {
                 body: JSON.stringify({
                     zohoLeadId: currentLead.zoho_lead_id,
                     updates: {
-                        name: updates.name,
-                        email: updates.email,
-                        contact: updates.contact,
-                        status: updates.status,
-                        accountName: updates.accountName,
-                        nextAction: updates.nextAction,
-                        assignedTo: updates.owner,
-                        followUpDate: updates.followUpDate,
-                        expectedClose: updates.expectedClose,
+                        name: mergedUpdates.name,
+                        email: mergedUpdates.email,
+                        contact: mergedUpdates.contact,
+                        status: mergedUpdates.status,
+                        accountName: mergedUpdates.company || mergedUpdates.name || 'Web App',
+                        nextAction: mergedUpdates.next_action || mergedUpdates.nextAction,
+                        assignedTo: mergedUpdates.owner,
+                        followUpDate: mergedUpdates.follow_up_date,
+                        expectedClose: mergedUpdates.expected_close,
                         serialNo2: serialNo2,
                         // Additional fields
-                        patientName: updates.patientName,
-                        clientRelation: updates.clientRelation,
-                        sourceLocation: updates.sourceLocation,
-                        destinationLocation: updates.destinationLocation,
-                        leadSource: updates.leadSource,
-                        field: updates.field,
+                        patientName: mergedUpdates.patient_name,
+                        clientRelation: mergedUpdates.client_relation,
+                        sourceLocation: mergedUpdates.source_location,
+                        destinationLocation: mergedUpdates.destination_location,
+                        leadSource: mergedUpdates.lead_source,
+                        field: mergedUpdates.field,
                         // Enhanced Sync
-                        company: updates.company,
-                        clientName: updates.clientName,
-                        clientPhone: updates.clientPhone,
-                        clientEmail: updates.clientEmail,
-                        requestedBy: updates.requestedBy,
-                        requestedTo: updates.requestedTo,
-                        referringHospital: updates.referringHospital,
-                        receivingHospital: updates.receivingHospital,
-                        quotationType: updates.quotationType
+                        company: mergedUpdates.company,
+                        clientName: mergedUpdates.client_name,
+                        clientPhone: mergedUpdates.client_phone,
+                        clientEmail: mergedUpdates.client_email,
+                        requestedBy: mergedUpdates.requested_by,
+                        requestedTo: mergedUpdates.requested_to,
+                        referringHospital: mergedUpdates.referring_hospital,
+                        receivingHospital: mergedUpdates.receiving_hospital,
+                        quotationType: mergedUpdates.quotation_type
                     }
                 })
             }).catch(err => {

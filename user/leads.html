@@ -825,6 +825,10 @@
                 container.appendChild(loadMoreBtn)
             }
 
+            // Apply UI guards to the new cards
+            applyUIGuards(container)
+        }
+
         async function syncQuotationId(leadId, phone, serialNo2, zohoLeadId) {
             const el = document.getElementById(`quo-id-${leadId}`);
             if (!el) return;
@@ -1224,8 +1228,9 @@
                 // Refresh list
                 await loadLeads();
 
-                // Refresh history tab
-                loadLeadHistory(editingLeadId);
+                // Close offcanvas
+                const oc = bootstrap.Offcanvas.getInstance(document.getElementById('leadDetailsOffcanvas'));
+                if (oc) oc.hide();
 
             } catch (error) {
                 console.error('Error updating lead:', error);
