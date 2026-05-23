@@ -2147,7 +2147,7 @@ async function convertLeadToCase(leadId, userId) {
             // ── Lead fields transferred at conversion ──
             quotation_id:         lead.quotation_id         || null,
             contact:              lead.contact              || null,
-            email:                lead.email                || null,
+            email:                (lead.email && lead.email !== 'N/A' && lead.email.trim() !== '') ? lead.email.trim() : (lead.client_email && lead.client_email !== 'N/A' && lead.client_email.trim() !== '') ? lead.client_email.trim() : null,
             patient_name:         lead.patient_name         || null,
             client_relation:      lead.client_relation      || null,
             source_location:      lead.source_location      || null,

@@ -756,37 +756,50 @@
                 const today = new Date().toISOString().split('T')[0];
                 const isUrgent = lead.follow_up_date && lead.follow_up_date <= today && lead.status !== 'Closed';
                 const isCRM = lead.lead_source && lead.lead_source !== '';
+                const hasPhone = lead.contact && lead.contact !== 'N/A' && lead.contact.trim() !== '';
+                const emailVal = (lead.email && lead.email !== 'N/A' && lead.email.trim() !== '') 
+                    ? lead.email.trim() 
+                    : (lead.client_email && lead.client_email !== 'N/A' && lead.client_email.trim() !== '') 
+                        ? lead.client_email.trim() 
+                        : '';
+                const hasEmail = emailVal !== '';
+                const cleanPhone = hasPhone ? lead.contact.replace(/[^\d+]/g, '') : '';
 
                 return `
                     <div class="lead-card mb-3 p-3 shadow-sm border-0 bg-white rounded position-relative overflow-hidden" 
-                        onclick="openLeadDetails('${lead.id}')" 
+                        onclick="openLeadDetails(event, '${lead.id}')" 
                         style="cursor: pointer; transition: transform 0.2s; border-left: 4px solid #3b82f6 !important;">
                         
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <h5 class="mb-0 fw-bold text-dark">${lead.name}</h5>
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                    <h5 class="mb-0 fw-bold text-dark text-break">${lead.name}</h5>
                                     ${isCRM ? '<span class="badge bg-light text-primary border">CRM</span>' : ''}
                                 </div>
-                                <div class="small text-muted d-flex align-items-center gap-2">
-                                    <i class="fas fa-calendar-alt"></i> Created: ${lead.follow_up_date || 'N/A'}
-                                    ${lead.serial_no_2 ? `&nbsp;•&nbsp; <span class="text-success fw-600">${lead.serial_no_2}</span>` : ''}
+                                <div class="small text-muted d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="d-inline-flex align-items-center gap-1">
+                                        <i class="fas fa-calendar-alt text-muted"></i> Created: ${lead.follow_up_date || 'N/A'}
+                                    </span>
+                                    ${lead.serial_no_2 ? `
+                                        <span class="text-muted d-none d-sm-inline">•</span>
+                                        <span class="text-success fw-600">${lead.serial_no_2}</span>
+                                    ` : ''}
                                 </div>
                             </div>
-                            <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')}">
+                            <span class="lead-status-badge ${lead.status.toLowerCase().replace(' ', '-')} ms-2 flex-shrink-0">
                                 ${lead.status}
                             </span>
                         </div>
 
                         <div class="lead-details mt-2">
                             <div class="row g-2">
-                                <div class="col-6 col-md-4">
-                                    <small class="text-break"><i class="fas fa-phone me-1 text-muted"></i><strong>Phone:</strong> ${lead.contact || 'N/A'}</small>
+                                <div class="col-12 col-md-4">
+                                    <small class="text-break"><i class="fas fa-phone me-1 text-muted"></i><strong>Phone:</strong> ${hasPhone ? lead.contact : 'N/A'}</small>
                                 </div>
-                                <div class="col-6 col-md-4">
-                                    <small class="text-break"><i class="fas fa-envelope me-1 text-muted"></i><strong>Email:</strong> ${lead.email || 'N/A'}</small>
+                                <div class="col-12 col-md-4">
+                                    <small class="text-break"><i class="fas fa-envelope me-1 text-muted"></i><strong>Email:</strong> ${hasEmail ? emailVal : 'N/A'}</small>
                                 </div>
-                                <div class="col-6 col-md-4">
+                                <div class="col-12 col-md-4">
                                     <small class="text-break"><i class="fas fa-fingerprint me-1 text-muted"></i><strong>Quo ID:</strong> 
                                         ${lead.quotation_id
                                             ? `<span class="fw-bold text-primary">${lead.quotation_id}</span>`
@@ -797,17 +810,38 @@
                             </div>
                         </div>
 
-                        <div class="mt-3 d-flex gap-2 flex-wrap align-items-center">
-                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#medicalAssessmentModal" onclick="event.stopPropagation();">
+                        <div class="mt-3 pt-2 border-top d-flex flex-wrap align-items-center gap-2">
+                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#medicalAssessmentModal">
                                 <i class="fas fa-notes-medical me-1"></i> Medical
                             </button>
-                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quotationModal" onclick="event.stopPropagation(); prepareQuotationModal('${lead.id}', '${lead.name}', '${lead.serial_no_2}')">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quotationModal" onclick="prepareQuotationModal('${lead.id}', '${lead.name}', '${lead.serial_no_2}')">
                                 <i class="fas fa-file-invoice-dollar me-1"></i> Quotation
                             </button>
                             
-                            <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); downloadQuotationFromDrive('${lead.quotation_id || ''}', this, '${lead.id}')">
+                            <button class="btn btn-sm btn-success" onclick="downloadQuotationFromDrive('${lead.quotation_id || ''}', this, '${lead.id}')">
                                 <i class="fas fa-file-download me-1"></i> Download
                             </button>
+
+                            <div class="d-flex gap-1 align-items-center ms-auto">
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-success btn-circle-sm ${!hasPhone ? 'disabled' : ''}" 
+                                        onclick="callLead(event, '${lead.id}')"
+                                        title="Call Lead">
+                                    <i class="fas fa-phone"></i>
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-success btn-circle-sm ${!hasPhone ? 'disabled' : ''}" 
+                                        onclick="openWhatsAppModal(event, '${lead.id}')" 
+                                        title="WhatsApp Lead">
+                                    <i class="fab fa-whatsapp"></i>
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-secondary btn-circle-sm d-none ${!hasEmail ? 'disabled' : ''}" 
+                                        onclick="emailLead(event, '${lead.id}')"
+                                        title="Email Lead">
+                                    <i class="fas fa-envelope"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -888,7 +922,7 @@
             urgentContainer.style.display = 'block';
             urgentList.innerHTML = urgentLeads.map(lead => `
                 <div class="col-md-4">
-                    <div class="card border-danger h-100 shadow-sm" onclick="openLeadDetails('${lead.id}')" style="cursor: pointer; border-left: 5px solid #ef4444 !important;">
+                    <div class="card border-danger h-100 shadow-sm" onclick="openLeadDetails(event, '${lead.id}')" style="cursor: pointer; border-left: 5px solid #ef4444 !important;">
                         <div class="card-body p-3">
                             <h6 class="card-title mb-1">${lead.name}</h6>
                             <p class="card-text small text-muted mb-2">
@@ -989,7 +1023,18 @@
         })
 
         // Lead Details Functions
-        async function openLeadDetails(leadId) {
+        async function openLeadDetails(event, leadId) {
+            // Support calling signature where leadId is first parameter (for backward compatibility)
+            if (typeof event === 'string') {
+                leadId = event;
+                event = null;
+            }
+            
+            // If user clicked a button or anchor link inside the card, ignore the card details popup
+            if (event && (event.target.closest('a') || event.target.closest('button'))) {
+                return;
+            }
+
             editingLeadId = leadId;
             const lead = allLeads.find(l => l.id === leadId);
             if (!lead) return;
@@ -1006,9 +1051,14 @@
             }
 
             // Display Info
+            const detailEmail = (lead.email && lead.email !== 'N/A' && lead.email.trim() !== '')
+                ? lead.email.trim()
+                : (lead.client_email && lead.client_email !== 'N/A' && lead.client_email.trim() !== '')
+                    ? lead.client_email.trim()
+                    : '';
             setSafeText('detail-display-name', lead.name);
             setSafeText('detail-display-phone', lead.contact);
-            setSafeText('detail-display-email', lead.email);
+            setSafeText('detail-display-email', detailEmail);
             setSafeText('detail-display-patient', lead.patient_name);
             setSafeText('detail-display-relation', lead.client_relation);
             setSafeText('detail-display-source', lead.source_location);
@@ -1027,7 +1077,7 @@
             setSafeValue('edit-lead-id', lead.id);
             setSafeValue('edit-lead-name', lead.name);
             setSafeValue('edit-lead-contact', lead.contact);
-            setSafeValue('edit-lead-email', lead.email || '');
+            setSafeValue('edit-lead-email', detailEmail);
             setSafeValue('edit-lead-company', lead.company || '');
             setSafeValue('edit-patient-name', lead.patient_name || '');
             setSafeValue('edit-client-relation', lead.client_relation || '');
@@ -1297,10 +1347,15 @@
             }
 
             // Pre-fill the form fields
+            const qEmail = (lead.email && lead.email !== 'N/A' && lead.email.trim() !== '')
+                ? lead.email.trim()
+                : (lead.client_email && lead.client_email !== 'N/A' && lead.client_email.trim() !== '')
+                    ? lead.client_email.trim()
+                    : '';
             document.getElementById('quotation-lead-id').value = lead.id;
             document.getElementById('quotation-client-name').value = lead.name || '';
             document.getElementById('quotation-client-phone').value = lead.contact || '';
-            document.getElementById('quotation-client-email').value = lead.email || '';
+            document.getElementById('quotation-client-email').value = qEmail;
             document.getElementById('quotation-patient-name').value = lead.patient_name || '';
 
             // Show the modal
@@ -1490,11 +1545,344 @@
             }
         }
 
+        // ─────────────────────────────────────────────
+        // QUICK ACTION PHONE CALL & EMAIL HELPERS
+        // ─────────────────────────────────────────────
+        window.callLead = function(event, leadId) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const lead = allLeads.find(l => l.id === leadId);
+            if (!lead || !lead.contact) {
+                showToast('No contact number available for this lead', 'warning');
+                return;
+            }
+            const phone = lead.contact.trim();
+            if (phone === 'N/A' || phone === '') {
+                showToast('No contact number available for this lead', 'warning');
+                return;
+            }
+            
+            const cleanPhone = phone.replace(/[^\d+]/g, '');
+            window.location.href = `tel:${cleanPhone}`;
+        };
+
+        let activeEmailLead = null;
+
+        window.emailLead = function(event, leadId) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const lead = allLeads.find(l => l.id === leadId);
+            if (!lead) return;
+            const email = (lead.email && lead.email !== 'N/A' && lead.email.trim() !== '')
+                ? lead.email.trim()
+                : (lead.client_email && lead.client_email !== 'N/A' && lead.client_email.trim() !== '')
+                    ? lead.client_email.trim()
+                    : '';
+            
+            if (!email) {
+                showToast('No email address available for this lead', 'warning');
+                return;
+            }
+
+            activeEmailLead = lead;
+
+            // Reset modal values
+            const selectEl = document.getElementById('email-template-select');
+            if (selectEl) selectEl.value = 'custom';
+
+            const subjectEl = document.getElementById('email-subject-text');
+            if (subjectEl) subjectEl.value = '';
+
+            const textEl = document.getElementById('email-message-text');
+            if (textEl) textEl.value = '';
+
+            // Update modal title with lead name
+            const label = document.getElementById('emailTemplateModalLabel');
+            if (label) label.innerHTML = `<i class="fas fa-envelope text-primary me-2"></i> Email — ${lead.name}`;
+
+            const modalEl = document.getElementById('emailTemplateModal');
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+        };
+
+        window.applyEmailTemplate = function() {
+            if (!activeEmailLead) return;
+            const templateType = document.getElementById('email-template-select').value;
+            const subjectEl = document.getElementById('email-subject-text');
+            const textEl = document.getElementById('email-message-text');
+            if (!subjectEl || !textEl) return;
+
+            if (templateType === 'custom') {
+                subjectEl.value = '';
+                textEl.value = '';
+                return;
+            }
+
+            const clientName = activeEmailLead.name || 'Client';
+            const patientName = activeEmailLead.patient_name || clientName;
+            const source = activeEmailLead.source_location || 'Source';
+            const destination = activeEmailLead.destination_location || 'Destination';
+            const serialNo = activeEmailLead.serial_no_2 || 'N/A';
+            const quotationId = activeEmailLead.quotation_id || 'Pending';
+            const ownerName = activeEmailLead.owner || session.name || 'our team';
+
+            let subject = '';
+            let body = '';
+
+            if (templateType === 'welcome') {
+                subject = `Medical Transport Request - Air Medical 24x7`;
+                body = `Hello ${clientName},\n\nThis is ${ownerName} from Air Medical 24x7. We received your request regarding medical transport for ${patientName} from ${source} to ${destination}.\n\nHow can we assist you today?\n\nBest regards,\n${ownerName}\nAir Medical 24x7`;
+            } else if (templateType === 'quotation') {
+                subject = `Quotation Prepared - Ref: ${serialNo}`;
+                body = `Dear ${clientName},\n\nThe quotation for the medical transport of ${patientName} (${source} to ${destination}) has been prepared.\n\nYour Reference Serial No is ${serialNo} and Quotation ID is ${quotationId}.\n\nPlease let us know when we can discuss this.\n\nBest regards,\n${ownerName}\nAir Medical 24x7`;
+            } else if (templateType === 'followup') {
+                subject = `Following Up on Transport Request - Ref: ${serialNo}`;
+                body = `Hello ${clientName},\n\nI am following up on our previous conversation regarding the transport for ${patientName}.\n\nPlease let us know if you have any questions or are ready to proceed with the Proforma invoice.\n\nBest regards,\n${ownerName}\nAir Medical 24x7`;
+            } else if (templateType === 'assessment') {
+                subject = `Medical Assessment Required - Ref: ${serialNo}`;
+                body = `Hello ${clientName},\n\nTo finalize flight arrangements for ${patientName}, we require the completed Medical Assessment.\n\nPlease complete it or let us know if you need assistance.\n\nBest regards,\n${ownerName}\nAir Medical 24x7`;
+            }
+
+            subjectEl.value = subject;
+            textEl.value = body;
+        };
+
+        window.sendEmailMessage = function() {
+            if (!activeEmailLead) return;
+
+            const email = (activeEmailLead.email && activeEmailLead.email !== 'N/A' && activeEmailLead.email.trim() !== '')
+                ? activeEmailLead.email.trim()
+                : (activeEmailLead.client_email && activeEmailLead.client_email !== 'N/A' && activeEmailLead.client_email.trim() !== '')
+                    ? activeEmailLead.client_email.trim()
+                    : '';
+
+            if (!email) {
+                showToast('Lead email address is missing.', 'error');
+                return;
+            }
+
+            const subject = document.getElementById('email-subject-text').value.trim();
+            const body = document.getElementById('email-message-text').value.trim();
+
+            // Copy to clipboard fallback (guarantees they can get it if mailto fails)
+            navigator.clipboard.writeText(body).then(() => {
+                showToast('Email body copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Clipboard copy failed:', err);
+            });
+
+            // Construct mailto link
+            let mailtoUrl = `mailto:${email}`;
+            const params = [];
+            if (subject) params.push(`subject=${encodeURIComponent(subject)}`);
+            if (body) params.push(`body=${encodeURIComponent(body)}`);
+            if (params.length > 0) {
+                mailtoUrl += `?${params.join('&')}`;
+            }
+
+            // Launch default email client
+            try {
+                window.location.href = mailtoUrl;
+            } catch (e) {
+                console.error('Mailto failed:', e);
+                window.open(mailtoUrl, '_blank');
+            }
+
+            // Hide modal
+            const modalEl = document.getElementById('emailTemplateModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        };
+
+        // ─────────────────────────────────────────────
+        // WHATSAPP MESSAGING FEATURE
+        // ─────────────────────────────────────────────
+        let activeWALead = null;
+
+        window.openWhatsAppModal = function(event, leadId) {
+            // Support calling signature where leadId is first parameter (for backward compatibility)
+            if (typeof event === 'string') {
+                leadId = event;
+                event = null;
+            }
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const lead = allLeads.find(l => l.id === leadId);
+            if (!lead) return;
+            activeWALead = lead;
+
+            // Reset template selection to custom and clear text
+            const selectEl = document.getElementById('wa-template-select');
+            if (selectEl) selectEl.value = 'custom';
+            
+            const textEl = document.getElementById('wa-message-text');
+            if (textEl) textEl.value = '';
+
+            // Update modal title with lead name
+            const label = document.getElementById('whatsappTemplateModalLabel');
+            if (label) label.innerHTML = `<i class="fab fa-whatsapp text-success me-2"></i> WhatsApp — ${lead.name}`;
+
+            const modalEl = document.getElementById('whatsappTemplateModal');
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+        };
+
+        window.applyWATemplate = function() {
+            if (!activeWALead) return;
+            const templateType = document.getElementById('wa-template-select').value;
+            const textEl = document.getElementById('wa-message-text');
+            if (!textEl) return;
+
+            if (templateType === 'custom') {
+                textEl.value = '';
+                return;
+            }
+
+            const clientName = activeWALead.name || 'Client';
+            const patientName = activeWALead.patient_name || clientName;
+            const source = activeWALead.source_location || 'Source';
+            const destination = activeWALead.destination_location || 'Destination';
+            const serialNo = activeWALead.serial_no_2 || 'N/A';
+            const quotationId = activeWALead.quotation_id || 'Pending';
+            const ownerName = activeWALead.owner || session.name || 'our team';
+
+            let msg = '';
+            if (templateType === 'welcome') {
+                msg = `Hello ${clientName}, this is ${ownerName} from Air Medical 24x7. We received your request regarding medical transport for ${patientName} from ${source} to ${destination}. How can we assist you today?`;
+            } else if (templateType === 'quotation') {
+                msg = `Dear ${clientName}, the quotation for the medical transport of ${patientName} (${source} to ${destination}) has been prepared. Your Reference Serial No is ${serialNo} and Quotation ID is ${quotationId}. Please let us know when we can discuss this.`;
+            } else if (templateType === 'followup') {
+                msg = `Hello ${clientName}, I am following up on our previous conversation regarding the transport for ${patientName}. Please let us know if you have any questions or are ready to proceed with the Proforma invoice.`;
+            } else if (templateType === 'assessment') {
+                msg = `Hello ${clientName}, to finalize flight arrangements for ${patientName}, we require the completed Medical Assessment. Please complete it or let us know if you need assistance.`;
+            }
+
+            textEl.value = msg;
+        };
+
+        window.sendWAMessage = function() {
+            if (!activeWALead || !activeWALead.contact) {
+                showToast('Lead contact number is missing.', 'error');
+                return;
+            }
+
+            const text = document.getElementById('wa-message-text').value.trim();
+            // Sanitize phone number: remove all non-numeric characters
+            let cleanPhone = activeWALead.contact.replace(/\D/g, '');
+            
+            // If it starts with 00, remove it.
+            if (cleanPhone.startsWith('00')) cleanPhone = cleanPhone.substring(2);
+
+            let url = `https://wa.me/${cleanPhone}`;
+            if (text) {
+                url += `?text=${encodeURIComponent(text)}`;
+            }
+
+            window.open(url, '_blank');
+
+            // Hide modal
+            const modalEl = document.getElementById('whatsappTemplateModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        };
+
         // Initialize
         loadLeads()
         setupRealtimeLeads()
     </script>
 
+    <!-- WhatsApp Template Modal -->
+    <div class="modal fade" id="whatsappTemplateModal" tabindex="-1" aria-labelledby="whatsappTemplateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="whatsappTemplateModalLabel">
+                        <i class="fab fa-whatsapp text-success me-2"></i> WhatsApp Messaging
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Select whether you want to send a pre-written template on WhatsApp or write your own message directly.
+                    </p>
+                    
+                    <div class="mb-3">
+                        <label for="wa-template-select" class="form-label small fw-600">Choose Message Template</label>
+                        <select class="form-select" id="wa-template-select" onchange="applyWATemplate()">
+                            <option value="custom">None (Custom Message)</option>
+                            <option value="welcome">Welcome / Introductory Message</option>
+                            <option value="quotation">Quotation Update Notification</option>
+                            <option value="followup">Follow-up Reminder</option>
+                            <option value="assessment">Medical Assessment Request</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="wa-message-text" class="form-label small fw-600">Message Preview</label>
+                        <textarea class="form-control" id="wa-message-text" rows="5" placeholder="Write your message here..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success btn-sm d-flex align-items-center gap-2" onclick="sendWAMessage()">
+                        <i class="fab fa-whatsapp"></i> Go to WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Template Modal -->
+    <div class="modal fade" id="emailTemplateModal" tabindex="-1" aria-labelledby="emailTemplateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="emailTemplateModalLabel">
+                        <i class="fas fa-envelope text-primary me-2"></i> Email Messaging
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Select whether you want to send a pre-written email template or write your own email directly.
+                    </p>
+                    
+                    <div class="mb-3">
+                        <label for="email-template-select" class="form-label small fw-600">Choose Email Template</label>
+                        <select class="form-select" id="email-template-select" onchange="applyEmailTemplate()">
+                            <option value="custom">None (Custom Email)</option>
+                            <option value="welcome">Welcome / Introductory Email</option>
+                            <option value="quotation">Quotation Update Notification</option>
+                            <option value="followup">Follow-up Reminder</option>
+                            <option value="assessment">Medical Assessment Request</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email-subject-text" class="form-label small fw-600">Subject</label>
+                        <input type="text" class="form-control" id="email-subject-text" placeholder="Enter email subject line...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email-message-text" class="form-label small fw-600">Email Body Preview</label>
+                        <textarea class="form-control" id="email-message-text" rows="6" placeholder="Write your email body here..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-2" onclick="sendEmailMessage()">
+                        <i class="fas fa-envelope"></i> Go to Email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
 
