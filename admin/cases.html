@@ -813,7 +813,7 @@
             const container = document.getElementById('case-timeline-container');
             container.innerHTML = '<div class="text-center py-4"><span class="spinner-border spinner-border-sm"></span></div>';
             try {
-                let history = lid ? await getLeadHistory(lid) : [];
+                let history = await getCaseHistory(cid, lid);
                 if (!history.length) { container.innerHTML = '<p class="text-muted text-center py-4">No activity yet</p>'; return; }
                 container.innerHTML = history.map(h => `
                     <div class="timeline-item">
@@ -821,7 +821,10 @@
                         <div class="timeline-content">
                             <div class="timeline-time">${new Date(h.created_at).toLocaleString()}</div>
                             <div class="timeline-title">${h.action}</div>
-                            <div class="timeline-desc text-muted small">${h.details?.summary || ''}</div>
+                            <div class="timeline-desc text-muted small">
+                                ${h.details?.summary || ''}
+                                ${h.details?.file_url ? `<br><a href="${h.details.file_url}" target="_blank" class="btn btn-link btn-xs p-0 text-primary mt-1"><i class="fas fa-file-pdf me-1"></i>View Document</a>` : ''}
+                            </div>
                         </div>
                     </div>
                 `).join('');

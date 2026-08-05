@@ -80,6 +80,35 @@
                 </div>
             </div>
 
+            <div class="content-card mb-4" id="referrals-section">
+                <h5 class="mb-3"><i class="fas fa-handshake-angle me-2"></i>Referral Partners Master Data</h5>
+                <p class="text-muted small">Manage lookup entries for the 7 referral partner categories.</p>
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Referral Category</label>
+                        <select class="form-select" id="ref-table-select" onchange="loadReferralList()">
+                            <option value="hospital_referral">Hospital Referral</option>
+                            <option value="embassy_referral">Embassy Referral</option>
+                            <option value="insurance_referral">Insurance Referral</option>
+                            <option value="corporate_referral">Assistance Company</option>
+                            <option value="vendor_referral">Vendor Referral</option>
+                            <option value="doctor_referral">Doctor Referral</option>
+                            <option value="medical_tourism_partner">Medical Tourism Partner</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8 d-flex align-items-end">
+                        <button class="btn btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#addReferralModal">
+                            <i class="fas fa-plus me-1"></i> Add New Referral Entry
+                        </button>
+                    </div>
+                </div>
+
+                <div id="referrals-list-container">
+                    <div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div></div>
+                </div>
+            </div>
+
             <div class="content-card mb-4">
                 <h5 class="mb-3"><i class="fas fa-user-shield me-2"></i>Account Information</h5>
                 <div id="admin-info">
@@ -344,6 +373,116 @@
                 showToast('Failed to create team', 'error');
             }
         }
+    </script>
+
+    <!-- Add Referral Modal -->
+    <div class="modal fade" id="addReferralModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Referral Entry</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-referral-form">
+                        <div class="mb-3">
+                            <label class="form-label">Contact / Organization Name *</label>
+                            <input type="text" class="form-control" id="ref-name" required placeholder="e.g. Apollo Hospital Delhi">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="ref-email" placeholder="contact@example.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="ref-phone" placeholder="+91...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">WhatsApp Number</label>
+                            <input type="tel" class="form-control" id="ref-whatsapp" placeholder="+91...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alternate Contact Number</label>
+                            <input type="tel" class="form-control" id="ref-alt-phone" placeholder="+91...">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Save Referral Partner</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Referral Master Data JS ---
+        async function loadReferralList() {
+            const table = document.getElementById('ref-table-select').value;
+            const container = document.getElementById('referrals-list-container');
+            try {
+                const list = await getReferralRecords(table);
+                if (!list || list.length === 0) {
+                    container.innerHTML = '<p class="text-muted small py-3">No referral partner entries found in this category.</p>';
+                    return;
+                }
+                container.innerHTML = `
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>WhatsApp</th>
+                                    <th>Alt Phone</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${list.map(r => `
+                                    <tr>
+                                        <td><strong>${r.name}</strong></td>
+                                        <td>${r.email || '—'}</td>
+                                        <td>${r.phone || '—'}</td>
+                                        <td>${r.whatsapp_number || '—'}</td>
+                                        <td>${r.alternate_contact_number || '—'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<p class="text-danger small">Failed to load referral records.</p>';
+            }
+        }
+
+        document.getElementById('add-referral-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const table = document.getElementById('ref-table-select').value;
+            const data = {
+                name: document.getElementById('ref-name').value.trim(),
+                email: document.getElementById('ref-email').value.trim(),
+                phone: document.getElementById('ref-phone').value.trim(),
+                whatsappNumber: document.getElementById('ref-whatsapp').value.trim(),
+                alternateContactNumber: document.getElementById('ref-alt-phone').value.trim()
+            };
+            try {
+                await createReferralRecord(table, data);
+                showToast('Referral entry added!', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('addReferralModal')).hide();
+                document.getElementById('add-referral-form').reset();
+                loadReferralList();
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to save referral entry', 'error');
+            }
+        });
+
+        // Load referral list on page init
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.getElementById('ref-table-select')) {
+                loadReferralList();
+            }
+        });
 
         // Initialize teams
         if (session && session.role === 'super_admin') {

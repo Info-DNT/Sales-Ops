@@ -115,6 +115,6 @@ WHERE email = 'nitin@airmedical24x7.com';
 INSERT INTO user_permissions (user_id, module, enabled, can_view, can_create, can_edit, can_delete)
 SELECT id, m.module, true, true, true, true, false
 FROM users, 
-     (SELECT unnest(ARRAY['leads', 'cases', 'calls', 'meetings', 'expenses', 'attendance', 'work_report']) as module) m
+     (SELECT unnest(ARRAY['leads', 'cases', 'calls', 'meetings', 'expenses', 'vendors', 'attendance', 'work_report']) as module) m
 WHERE role = 'user'
 ON CONFLICT (user_id, module) DO NOTHING;

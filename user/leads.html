@@ -62,11 +62,19 @@
                         <label class="form-label">Filter Status</label>
                         <select class="form-select" id="filter-status">
                             <option value="">All Statuses</option>
-                            <option value="New">New</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Qualified">Qualified</option>
-                            <option value="Closed">Closed</option>
-                            <option value="Not Converted">Not Converted</option>
+                            <option value="New Lead">New Lead</option>
+                            <option value="First Response Pending">First Response Pending</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Medical Report Pending">Medical Report Pending</option>
+                            <option value="Clinical Review Pending">Clinical Review Pending</option>
+                            <option value="Clinical Review Completed">Clinical Review Completed</option>
+                            <option value="Costing Pending">Costing Pending</option>
+                            <option value="Quotation Pending">Quotation Pending</option>
+                            <option value="Quotation Shared">Quotation Shared</option>
+                            <option value="Follow-Up / Negotiation">Follow-Up / Negotiation</option>
+                            <option value="Converted to Deal">Converted to Deal</option>
+                            <option value="Confirmed Case">Confirmed Case</option>
+                            <option value="Lost">Lost</option>
                         </select>
                     </div>
                     <div class="col-lg-3 col-md-6 d-flex align-items-end gap-2">
@@ -147,67 +155,230 @@
                         </div>
 
                         <hr class="my-3">
-                        <h6 class="mb-3">Travel Details</h6>
+                        <h6 class="mb-3 text-primary"><i class="fas fa-id-card me-2"></i>Contact & Additional Information</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="source-location" class="form-label">Source Location</label>
-                                <input type="text" class="form-control" id="source-location"
-                                    placeholder="Enter source location">
+                                <label for="contact-person-name" class="form-label">Contact Person Name</label>
+                                <input type="text" class="form-control" id="contact-person-name" placeholder="Contact person name">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="destination-location" class="form-label">Destination Location</label>
-                                <input type="text" class="form-control" id="destination-location"
-                                    placeholder="Enter destination location">
+                                <label for="whatsapp-number" class="form-label">WhatsApp Number</label>
+                                <input type="tel" class="form-control" id="whatsapp-number" placeholder="e.g. +971501234567">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="alternate-contact-number" class="form-label">Alternate Contact Number</label>
+                                <input type="tel" class="form-control" id="alternate-contact-number" placeholder="Alternate phone">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="lead-quality" class="form-label">Lead Quality</label>
+                                <select class="form-select" id="lead-quality">
+                                    <option value="">Select Quality</option>
+                                    <option value="Hot">Hot</option>
+                                    <option value="Warm">Warm</option>
+                                    <option value="Cold">Cold</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="budget-discussed" class="form-label">Budget Discussed?</label>
+                                <select class="form-select" id="budget-discussed">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
                             </div>
                         </div>
 
                         <hr class="my-3">
-                        <h6 class="mb-3">Hospital Details</h6>
+                        <h6 class="mb-3 text-primary"><i class="fas fa-user-injured me-2"></i>Patient Clinical & Medical Details</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="referring-hospital" class="form-label">Referring Hospital</label>
-                                <input type="text" class="form-control" id="referring-hospital" placeholder="Hospital name">
+                                <label for="patient-name" class="form-label">Patient Name *</label>
+                                <input type="text" class="form-control" id="patient-name" placeholder="Enter patient name" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="receiving-hospital" class="form-label">Receiving Hospital</label>
-                                <input type="text" class="form-control" id="receiving-hospital" placeholder="Hospital name">
+                                <label for="client-relation" class="form-label">Relationship with Patient</label>
+                                <input type="text" class="form-control" id="client-relation" placeholder="e.g. Son, Daughter, Self">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="patient-age" class="form-label">Patient Age</label>
+                                <input type="number" class="form-control" id="patient-age" placeholder="Age in years">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="patient-gender" class="form-label">Gender</label>
+                                <select class="form-select" id="patient-gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="mobility-status" class="form-label">Mobility Status</label>
+                                <select class="form-select" id="mobility-status">
+                                    <option value="">Select Mobility</option>
+                                    <option value="Stretcher-bound">Stretcher-bound</option>
+                                    <option value="Wheelchair">Wheelchair</option>
+                                    <option value="Ambulatory">Ambulatory</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="oxygen-required" class="form-label">Oxygen Required?</label>
+                                <select class="form-select" id="oxygen-required">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="ventilator-required" class="form-label">Ventilator Required?</label>
+                                <select class="form-select" id="ventilator-required">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="medical-report-received" class="form-label">Medical Report Received?</label>
+                                <select class="form-select" id="medical-report-received">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="patient-condition-category" class="form-label">Condition Category</label>
+                                <select class="form-select" id="patient-condition-category">
+                                    <option value="">Select Category</option>
+                                    <option value="Critical Care / ICU">Critical Care / ICU</option>
+                                    <option value="Stable Medical">Stable Medical</option>
+                                    <option value="Trauma / Surgical">Trauma / Surgical</option>
+                                    <option value="Pediatric / Neonatal">Pediatric / Neonatal</option>
+                                    <option value="Medical Tourism">Medical Tourism</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="medical-report-file" class="form-label">Attach Medical Report Document</label>
+                                <input type="file" class="form-control" id="medical-report-file" accept=".pdf,.doc,.docx,.jpg,.png">
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+                        <h6 class="mb-3 text-primary"><i class="fas fa-plane-departure me-2"></i>Transfer Locations & Flight Requirements</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="current-country" class="form-label">Current Country</label>
+                                <input type="text" class="form-control" id="current-country" placeholder="e.g. UAE">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="current-city" class="form-label">Current City</label>
+                                <input type="text" class="form-control" id="current-city" placeholder="e.g. Dubai">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="current-hospital-location" class="form-label">Referring Hospital</label>
+                                <input type="text" class="form-control" id="current-hospital-location" placeholder="e.g. Rashid Hospital">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="destination-country" class="form-label">Destination Country</label>
+                                <input type="text" class="form-control" id="destination-country" placeholder="e.g. India">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="destination-city" class="form-label">Destination City</label>
+                                <input type="text" class="form-control" id="destination-city" placeholder="e.g. Chennai">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="destination-hospital-home" class="form-label">Receiving Hospital</label>
+                                <input type="text" class="form-control" id="destination-hospital-home" placeholder="e.g. Apollo Hospital">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="required-service" class="form-label">Required Service *</label>
+                                <select class="form-select" id="required-service" required>
+                                    <option value="Air Ambulance">Air Ambulance</option>
+                                    <option value="Commercial Escort">Commercial Escort</option>
+                                    <option value="Stretcher on Commercial">Stretcher on Commercial</option>
+                                    <option value="Medical Escort">Medical Escort</option>
+                                    <option value="Ground Ambulance">Ground Ambulance</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="urgency-level" class="form-label">Urgency Level *</label>
+                                <select class="form-select" id="urgency-level" required>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Critical">Critical</option>
+                                    <option value="High">High</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="expected-travel-date" class="form-label">Expected Travel Date</label>
+                                <input type="date" class="form-control" id="expected-travel-date">
                             </div>
                         </div>
 
                         <hr class="my-3">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="lead-status" class="form-label">Lead Status</label>
-                                <select class="form-control" id="lead-status" required>
-                                    <option value="New">New</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Qualified">Qualified</option>
-                                    <option value="Closed">Closed</option>
-                                    <option value="Not Converted">Not Converted</option>
-                                    <option value="Converted">Converted</option>
+                                <label for="lead-status" class="form-label">Lead Status *</label>
+                                <select class="form-select" id="lead-status" required>
+                                    <option value="New Lead">New Lead</option>
+                                    <option value="First Response Pending">First Response Pending</option>
+                                    <option value="Contacted">Contacted</option>
+                                    <option value="Details Requested">Details Requested</option>
+                                    <option value="Medical Report Pending">Medical Report Pending</option>
+                                    <option value="Medical Report Received">Medical Report Received</option>
+                                    <option value="Clinical Review Pending">Clinical Review Pending</option>
+                                    <option value="Clinical Review Completed">Clinical Review Completed</option>
+                                    <option value="Route Feasibility Pending">Route Feasibility Pending</option>
+                                    <option value="Attempted to Contact">Attempted to Contact</option>
+                                    <option value="Costing Pending">Costing Pending</option>
+                                    <option value="Quotation Pending">Quotation Pending</option>
+                                    <option value="Quotation Shared">Quotation Shared</option>
+                                    <option value="Contact in Future">Contact in Future</option>
+                                    <option value="Follow-Up / Negotiation">Follow-Up / Negotiation</option>
+                                    <option value="Converted to Deal">Converted to Deal</option>
+                                    <option value="Confirmed Case">Confirmed Case</option>
+                                    <option value="Lost">Lost</option>
+                                    <option value="Duplicate / Junk">Duplicate / Junk</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="lead-source" class="form-label">Lead Source</label>
-                                <select class="form-control" id="lead-source">
+                                <select class="form-select" id="lead-source" onchange="handleLeadSourceChange(this.value)">
                                     <option value="">Select Source</option>
+                                    <option value="Hospital Referral">Hospital Referral</option>
+                                    <option value="Embassy Referral">Embassy Referral</option>
+                                    <option value="Insurance Referral">Insurance Referral</option>
+                                    <option value="Assistance Company">Assistance Company</option>
+                                    <option value="Vendor Referral">Vendor Referral</option>
+                                    <option value="Doctor Referral">Doctor Referral</option>
+                                    <option value="Medical Tourism Partner">Medical Tourism Partner</option>
                                     <option value="WhatsApp">WhatsApp</option>
-                                    <option value="Hospital">Hospital</option>
+                                    <option value="Website">Website</option>
+                                    <option value="Direct Call">Direct Call</option>
                                     <option value="Reference">Reference</option>
                                     <option value="Social Media">Social Media</option>
-                                    <option value="Consulates">Consulates</option>
-                                    <option value="Embassy">Embassy</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Referral Lookup Container (FEATURE 1A) -->
+                        <div class="row mb-3" id="referral-partner-container" style="display:none;">
+                            <div class="col-md-12">
+                                <label for="referral-partner-select" class="form-label text-primary fw-bold"><i class="fas fa-handshake me-1"></i>Select Referral Partner (Auto-Fill)</label>
+                                <select class="form-select border-primary" id="referral-partner-select" onchange="handleReferralPartnerAutoFill()">
+                                    <option value="">Select Partner...</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-12 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label for="lead-field" class="form-label">Category</label>
                                 <select class="form-control" id="lead-field">
                                     <option value="">Select Field</option>
                                     <option value="Medical Tourism">Medical Tourism</option>
                                     <option value="Medical Evacuation">Medical Evacuation</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lead-vendor-select" class="form-label">Associate Vendor</label>
+                                <select class="form-control" id="lead-vendor-select">
+                                    <option value="">None</option>
                                 </select>
                             </div>
                         </div>
@@ -295,6 +466,10 @@
                                             <div class="fw-600 small" id="detail-display-client-phone">—</div>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="col-12 mt-2 pt-2 border-top">
+                                    <div class="small text-muted">Associated Vendor</div>
+                                    <div class="fw-600" id="detail-display-vendor-name">—</div>
                                 </div>
                             </div>
                         </div>
@@ -479,19 +654,40 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-600">Status</label>
-                                <select class="form-control" id="edit-lead-status">
-                                    <option value="New">New</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Qualified">Qualified</option>
-                                    <option value="Closed">Closed</option>
-                                    <option value="Not Converted">Not Converted</option>
-                                    <option value="Converted">Converted</option>
+                                <label class="form-label small fw-600">Lead Status</label>
+                                <select class="form-select" id="edit-lead-status">
+                                    <option value="New Lead">New Lead</option>
+                                    <option value="First Response Pending">First Response Pending</option>
+                                    <option value="Contacted">Contacted</option>
+                                    <option value="Details Requested">Details Requested</option>
+                                    <option value="Medical Report Pending">Medical Report Pending</option>
+                                    <option value="Medical Report Received">Medical Report Received</option>
+                                    <option value="Clinical Review Pending">Clinical Review Pending</option>
+                                    <option value="Clinical Review Completed">Clinical Review Completed</option>
+                                    <option value="Route Feasibility Pending">Route Feasibility Pending</option>
+                                    <option value="Attempted to Contact">Attempted to Contact</option>
+                                    <option value="Costing Pending">Costing Pending</option>
+                                    <option value="Quotation Pending">Quotation Pending</option>
+                                    <option value="Quotation Shared">Quotation Shared</option>
+                                    <option value="Contact in Future">Contact in Future</option>
+                                    <option value="Follow-Up / Negotiation">Follow-Up / Negotiation</option>
+                                    <option value="Converted to Deal">Converted to Deal</option>
+                                    <option value="Confirmed Case">Confirmed Case</option>
+                                    <option value="Lost">Lost</option>
+                                    <option value="Duplicate / Junk">Duplicate / Junk</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label small fw-600">Owner</label>
                                 <input type="text" class="form-control" id="edit-lead-owner" readonly>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label small fw-600">Associate Vendor</label>
+                                <select class="form-control" id="edit-lead-vendor-select">
+                                    <option value="">None</option>
+                                </select>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -704,7 +900,7 @@
             }
 
             if (filterStatus) {
-                filtered = filtered.filter(lead => lead.status === filterStatus)
+                filtered = filtered.filter(lead => (lead.lead_status || lead.status) === filterStatus)
             }
 
             leads = filtered
@@ -773,6 +969,8 @@
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="flex-grow-1" style="min-width: 0;">
                                 <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                    ${lead.master_reference_id ? `<span class="badge bg-indigo-subtle text-indigo font-monospace fw-bold">${lead.master_reference_id}</span>` : ''}
+                                    ${lead.urgency_level ? `<span class="urgency-badge urgency-${lead.urgency_level.toLowerCase()}">${lead.urgency_level}</span>` : ''}
                                     <h5 class="mb-0 fw-bold text-dark text-break">${lead.name}</h5>
                                     ${isCRM ? '<span class="badge bg-light text-primary border">CRM</span>' : ''}
                                 </div>
@@ -811,6 +1009,9 @@
                         </div>
 
                         <div class="mt-3 pt-2 border-top d-flex flex-wrap align-items-center gap-2">
+                            <button class="btn btn-sm text-white" style="background:#4f46e5;" onclick="triggerSendForMedicalAssessment(event, '${lead.id}')" title="Send for Medical Assessment">
+                                <i class="fas fa-stethoscope me-1"></i> Send for MA
+                            </button>
                             <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#medicalAssessmentModal">
                                 <i class="fas fa-notes-medical me-1"></i> Medical
                             </button>
@@ -995,7 +1196,8 @@
                     nextAction: getVal('next-action'),
                     expectedClose: getVal('expected-close'),
                     referringHospital: getVal('referring-hospital'),
-                    receivingHospital: getVal('receiving-hospital')
+                    receivingHospital: getVal('receiving-hospital'),
+                    vendorId: getVal('lead-vendor-select') || null
                 }
 
                 const result = await createLead(session.userId, lead)
@@ -1072,6 +1274,9 @@
             setSafeText('detail-display-company', lead.company);
             setSafeText('detail-display-ref-hosp', lead.referring_hospital);
             setSafeText('detail-display-rec-hosp', lead.receiving_hospital);
+            
+            const vendorDisplayName = lead.vendors ? `${lead.vendors.name}${lead.vendors.org_name ? ` (${lead.vendors.org_name})` : ''}` : '—';
+            setSafeText('detail-display-vendor-name', vendorDisplayName);
 
             // Form Fields
             setSafeValue('edit-lead-id', lead.id);
@@ -1085,7 +1290,19 @@
             setSafeValue('edit-destination-location', lead.destination_location || '');
             setSafeValue('edit-referring-hospital', lead.referring_hospital || '');
             setSafeValue('edit-receiving-hospital', lead.receiving_hospital || '');
-            setSafeValue('edit-lead-status', lead.status);
+            setSafeValue('edit-lead-status', lead.lead_status || lead.status || 'New Lead');
+
+            // Ensure vendor selection handles inactive or missing option
+            const editSelect = document.getElementById('edit-lead-vendor-select');
+            if (editSelect) {
+                if (lead.vendor_id && !Array.from(editSelect.options).some(opt => opt.value === lead.vendor_id)) {
+                    const vendorName = lead.vendors ? lead.vendors.name : 'Unknown Vendor';
+                    const orgName = lead.vendors && lead.vendors.org_name ? ` (${lead.vendors.org_name})` : '';
+                    const newOpt = new Option(`${vendorName}${orgName} [Inactive]`, lead.vendor_id);
+                    editSelect.add(newOpt);
+                }
+                setSafeValue('edit-lead-vendor-select', lead.vendor_id);
+            }
             setSafeValue('edit-lead-owner', lead.owner || '');
             setSafeValue('edit-lead-next-action', lead.next_action || '');
             setSafeValue('edit-lead-follow-up', lead.follow_up_date || '');
@@ -1269,7 +1486,8 @@
                     clientPhone: getVal('edit-lead-contact'),
                     clientEmail: getVal('edit-lead-email'),
                     referringHospital: getVal('edit-referring-hospital'),
-                    receivingHospital: getVal('edit-receiving-hospital')
+                    receivingHospital: getVal('edit-receiving-hospital'),
+                    vendorId: getVal('edit-lead-vendor-select') || null
                 };
 
                 await updateLead(editingLeadId, updates, session.userId);
@@ -1288,6 +1506,106 @@
             } finally {
                 saveBtn.disabled = false;
                 saveBtn.textContent = 'Save Changes';
+            }
+        });
+    }
+
+    // Add Lead Form Submit Handler
+    const addLeadForm = document.getElementById('add-lead-form');
+    if (addLeadForm) {
+        addLeadForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const addBtn = document.getElementById('add-lead-btn');
+            const spinner = addBtn ? addBtn.querySelector('.spinner-border') : null;
+
+            if (addBtn) addBtn.disabled = true;
+            if (spinner) spinner.classList.remove('d-none');
+
+            try {
+                const getVal = (id) => document.getElementById(id)?.value || '';
+
+                let reportUrl = null;
+                const fileEl = document.getElementById('medical-report-file');
+                if (fileEl && fileEl.files && fileEl.files[0]) {
+                    try {
+                        reportUrl = await uploadMedicalReportFile(fileEl.files[0]);
+                    } catch (fErr) {
+                        console.warn('File upload error during lead creation:', fErr);
+                    }
+                }
+
+                const lead = {
+                    name: getVal('lead-name'),
+                    contact: getVal('lead-contact'),
+                    phone: getVal('lead-contact'),
+                    email: getVal('lead-email'),
+                    company: getVal('lead-company'),
+                    clientName: getVal('lead-name'),
+                    clientPhone: getVal('lead-contact'),
+                    clientEmail: getVal('lead-email'),
+
+                    // Contact & Referral
+                    contactPersonName: getVal('contact-person-name') || getVal('lead-name'),
+                    whatsappNumber: getVal('whatsapp-number'),
+                    alternateContactNumber: getVal('alternate-contact-number'),
+                    leadQuality: getVal('lead-quality'),
+                    budgetDiscussed: getVal('budget-discussed'),
+
+                    // Patient Clinical
+                    patientName: getVal('patient-name'),
+                    relationshipWithPatient: getVal('client-relation'),
+                    clientRelation: getVal('client-relation'),
+                    patientAge: getVal('patient-age'),
+                    gender: getVal('patient-gender'),
+                    mobilityStatus: getVal('mobility-status'),
+                    oxygenRequired: getVal('oxygen-required'),
+                    ventilatorRequired: getVal('ventilator-required'),
+                    medicalReportReceived: getVal('medical-report-received'),
+                    patientConditionCategory: getVal('patient-condition-category'),
+                    medicalReportsUrl: reportUrl,
+
+                    // Transfer Location & Flight
+                    currentCountry: getVal('current-country'),
+                    currentCity: getVal('current-city') || getVal('source-location'),
+                    sourceLocation: getVal('current-city') || getVal('source-location'),
+                    currentHospitalLocation: getVal('current-hospital-location') || getVal('referring-hospital'),
+                    referringHospital: getVal('current-hospital-location') || getVal('referring-hospital'),
+
+                    destinationCountry: getVal('destination-country'),
+                    destinationCity: getVal('destination-city') || getVal('destination-location'),
+                    destinationLocation: getVal('destination-city') || getVal('destination-location'),
+                    destinationHospitalHome: getVal('destination-hospital-home') || getVal('receiving-hospital'),
+                    receivingHospital: getVal('destination-hospital-home') || getVal('receiving-hospital'),
+
+                    requiredService: getVal('required-service') || 'Air Ambulance',
+                    urgencyLevel: getVal('urgency-level') || 'Medium',
+                    expectedTravelDate: getVal('expected-travel-date') || null,
+
+                    owner: session?.userName || session?.userEmail || 'User',
+                    status: getVal('lead-status') || 'New Lead',
+                    leadStatus: getVal('lead-status') || 'New Lead',
+                    leadSource: getVal('lead-source'),
+                    leadField: getVal('lead-field'),
+                    followUpDate: getVal('follow-up-date') || null,
+                    nextAction: getVal('next-action'),
+                    vendorId: getVal('lead-vendor-select') || null
+                };
+
+                const result = await createLead(session.userId, lead);
+                showToast('Lead created successfully!', 'success');
+
+                this.reset();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addLeadModal'));
+                if (modal) modal.hide();
+
+                await loadLeads();
+            } catch (error) {
+                console.error('Error adding lead:', error);
+                showToast('Failed to add lead: ' + (error.message || 'Unknown error'), 'error');
+            } finally {
+                if (addBtn) addBtn.disabled = false;
+                if (spinner) spinner.classList.add('d-none');
             }
         });
     }
@@ -1792,8 +2110,28 @@
             if (modal) modal.hide();
         };
 
+        let activeVendors = [];
+
+        async function loadVendorsDropdown() {
+            try {
+                activeVendors = await getVendors({ status: 'Active' });
+                
+                const addSelect = document.getElementById('lead-vendor-select');
+                const editSelect = document.getElementById('edit-lead-vendor-select');
+                
+                const optionsHtml = '<option value="">None</option>' + 
+                    activeVendors.map(v => `<option value="${v.id}">${v.name}${v.org_name ? ` (${v.org_name})` : ''}</option>`).join('');
+                
+                if (addSelect) addSelect.innerHTML = optionsHtml;
+                if (editSelect) editSelect.innerHTML = optionsHtml;
+            } catch (error) {
+                console.error('Error loading vendors for dropdown:', error);
+            }
+        }
+
         // Initialize
         loadLeads()
+        loadVendorsDropdown()
         setupRealtimeLeads()
     </script>
 
@@ -1883,7 +2221,22 @@
             </div>
         </div>
     </div>
-
+    <script>
+        async function triggerSendForMedicalAssessment(event, leadId) {
+            if (event) event.stopPropagation();
+            if (!confirm('Send this lead for Medical Assessment?')) return;
+            try {
+                showLoading();
+                const ma = await sendLeadForMedicalAssessment(leadId);
+                hideLoading();
+                showToast(`Sent for Medical Assessment successfully! (Ref: ${ma.master_reference_id})`, 'success');
+                if (typeof loadLeads === 'function') loadLeads();
+            } catch (err) {
+                hideLoading();
+                alert(err.message || 'Failed to send for Medical Assessment');
+            }
+        }
+    </script>
 </body>
 
 </html>

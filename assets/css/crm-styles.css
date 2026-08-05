@@ -137,3 +137,37 @@
 .lead-card .btn-circle-sm i {
   margin: 0;
 }
+
+/* Pipeline Badges & Styling */
+.bg-indigo-subtle {
+  background-color: #e0e7ff !important;
+}
+.text-indigo {
+  color: #4338ca !important;
+}
+.border-indigo {
+  border-color: #6366f1 !important;
+}
+.text-slate {
+  color: #334155 !important;
+}
+
+/* Pipeline Status Badges */
+.badge-ma-status {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.urgency-badge {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.urgency-critical { background: #fee2e2; color: #991b1b; }
+.urgency-high     { background: #ffedd5; color: #9a3412; }
+.urgency-medium   { background: #fef3c7; color: #92400e; }
+.urgency-low      { background: #dcfce7; color: #166534; }

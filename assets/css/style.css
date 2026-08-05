@@ -52,6 +52,9 @@ body {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   padding: 2rem 0;
   position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
   height: 100vh;
   overflow-y: auto;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
@@ -2046,7 +2049,20 @@ body {
 /* ── 4. GLASSMORPHISM MOBILE HAMBURGER ────────── */
 @media (max-width: 768px) {
   .mobile-menu-toggle {
-    display: none !important;
+    display: flex !important;
+    position: fixed !important;
+    top: 12px !important;
+    left: 12px !important;
+    z-index: 1050 !important;
+    background: rgba(99, 102, 241, 0.9) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
   }
 }
 

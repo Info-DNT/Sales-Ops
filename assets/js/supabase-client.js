@@ -420,7 +420,7 @@ async function getLeads(userId, filters = {}) {
 
     let query = client
         .from('leads')
-        .select('*, users(name, email)')
+        .select('*, users(name, email), vendors(id, name, org_name)')
         .eq('is_deleted', false)
         .not('is_converted', 'is', true)
         .order('created_at', { ascending: false });
@@ -469,32 +469,100 @@ async function getLeads(userId, filters = {}) {
 async function createLead(userId, lead) {
     const client = initSupabase();
 
+    let masterRefId = lead.masterReferenceId || lead.master_reference_id;
+    if (!masterRefId) {
+        try {
+            masterRefId = await generateMasterRefId();
+        } catch (e) {
+            console.warn('Could not generate masterRefId in createLead:', e);
+        }
+    }
+
+    const currentCity = lead.currentCity || lead.current_city || lead.sourceLocation || lead.source_location || '';
+    const destCity = lead.destCity || lead.destination_city || lead.destinationLocation || lead.destination_location || '';
+    const serviceType = lead.requiredService || lead.required_service || lead.leadField || 'Air Ambulance';
+    const patientName = lead.patientName || lead.patient_name || lead.name || '';
+    const travelDate = lead.expectedTravelDate || lead.expected_travel_date || lead.followUpDate || null;
+
+    const recName = buildRecordName({
+        currentCity: currentCity,
+        destCity: destCity,
+        serviceType: serviceType,
+        patientName: patientName,
+        travelDate: travelDate,
+        masterRefId: masterRefId
+    });
+
     const insertData = {
         user_id: userId,
+        master_reference_id: masterRefId || null,
+        record_name: recName,
         name: lead.name,
-        contact: lead.contact,
-        email: lead.email,
-        owner: lead.owner,
-        status: lead.status,
+        contact: lead.contact || lead.phone || null,
+        phone: lead.phone || lead.contact || null,
+        email: lead.email || null,
+        owner: lead.owner || null,
+        status: lead.status || lead.leadStatus || lead.lead_status || 'New Lead',
+        lead_status: lead.status || lead.leadStatus || lead.lead_status || 'New Lead',
         follow_up_date: lead.followUpDate || null,
-        next_action: lead.nextAction,
+        next_action: lead.nextAction || null,
         expected_close: lead.expectedClose || null,
-        lead_source: lead.leadSource || null,
-        field: lead.leadField || null,
-        patient_name: lead.patientName || null,
-        client_relation: lead.clientRelation || null,
-        source_location: lead.sourceLocation || null,
-        destination_location: lead.destinationLocation || null,
-        // serial_no_2 removed here - now handled by database trigger for sequence
+        lead_source: lead.leadSource || lead.lead_source || null,
+        field: lead.leadField || lead.field || null,
+        required_service: serviceType,
+        lead_quality: lead.leadQuality || lead.lead_quality || null,
+        whatsapp_number: lead.whatsappNumber || lead.whatsapp_number || null,
+        inquiry_date_time: lead.inquiryDateTime || lead.inquiry_date_time || null,
+        alternate_contact_number: lead.alternateContactNumber || lead.alternate_contact_number || null,
+        budget_discussed: lead.budgetDiscussed || lead.budget_discussed || null,
+        lost_reason: lead.lostReason || lead.lost_reason || null,
+        relationship_with_patient: lead.relationshipWithPatient || lead.relationship_with_patient || null,
+        contact_person_name: lead.contactPersonName || lead.contact_person_name || lead.name || null,
+        lead_owner: lead.owner || null,
+
+        // Referral Lookups
+        hospital_referral_id: lead.hospitalReferralId || lead.hospital_referral_id || null,
+        embassy_referral_id: lead.embassyReferralId || lead.embassy_referral_id || null,
+        insurance_referral_id: lead.insuranceReferralId || lead.insurance_referral_id || null,
+        corporate_referral_id: lead.corporateReferralId || lead.corporate_referral_id || null,
+        vendor_referral_id: lead.vendorReferralId || lead.vendor_referral_id || null,
+        doctor_referral_id: lead.doctorReferralId || lead.doctor_referral_id || null,
+        medical_tourism_id: lead.medicalTourismId || lead.medical_tourism_id || null,
+
+        // Patient & Medical
+        patient_name: patientName,
+        patient_age: lead.patientAge || lead.patient_age || null,
+        gender: lead.gender || null,
+        client_relation: lead.clientRelation || lead.client_relation || null,
+        oxygen_required: lead.oxygenRequired || lead.oxygen_required || null,
+        ventilator_required: lead.ventilatorRequired || lead.ventilator_required || null,
+        medical_report_received: lead.medicalReportReceived || lead.medical_report_received || null,
+        mobility_status: lead.mobilityStatus || lead.mobility_status || null,
+        patient_condition_category: lead.patientConditionCategory || lead.patient_condition_category || null,
+        medical_reports_url: lead.medicalReportsUrl || lead.medical_reports_url || null,
+
+        // Transfer Location
+        source_location: lead.sourceLocation || lead.source_location || currentCity || null,
+        destination_location: lead.destinationLocation || lead.destination_location || destCity || null,
+        current_country: lead.currentCountry || lead.current_country || null,
+        current_city: currentCity || null,
+        current_hospital_location: lead.currentHospitalLocation || lead.current_hospital_location || lead.referringHospital || null,
+        destination_country: lead.destinationCountry || lead.destination_country || null,
+        destination_city: destCity || null,
+        destination_hospital_home: lead.destinationHospitalHome || lead.destination_hospital_home || lead.receivingHospital || null,
+        urgency_level: lead.urgencyLevel || lead.urgency_level || null,
+        expected_travel_date: lead.expectedTravelDate || lead.expected_travel_date || null,
+
         company: lead.company || null,
-        client_name: lead.clientName || null,
-        client_phone: lead.clientPhone || null,
-        client_email: lead.clientEmail || null,
+        client_name: lead.clientName || lead.name || null,
+        client_phone: lead.clientPhone || lead.contact || null,
+        client_email: lead.clientEmail || lead.email || null,
         requested_by: lead.requestedBy || null,
         requested_to: lead.requestedTo || null,
-        referring_hospital: lead.referringHospital || null,
-        receiving_hospital: lead.receivingHospital || null,
-        quotation_type: lead.quotationType || null
+        referring_hospital: lead.referringHospital || lead.referring_hospital || null,
+        receiving_hospital: lead.receivingHospital || lead.receiving_hospital || null,
+        quotation_type: lead.quotationType || null,
+        vendor_id: lead.vendorId || lead.vendor_id || null
     };
 
     const { data, error } = await client
@@ -619,6 +687,30 @@ async function updateLead(leadId, updates, userId) {
         .eq('id', leadId)
         .single();
 
+    let masterRefId = updates.master_reference_id || updates.masterReferenceId || currentLead?.master_reference_id;
+    if (!masterRefId) {
+        try {
+            masterRefId = await generateMasterRefId();
+        } catch (e) {
+            console.warn('Could not generate masterRefId in updateLead:', e);
+        }
+    }
+
+    const currentCity = updates.current_city || updates.currentCity || updates.sourceLocation || updates.source_location || currentLead?.current_city || currentLead?.source_location || '';
+    const destCity = updates.destination_city || updates.destCity || updates.destinationLocation || updates.destination_location || currentLead?.destination_city || currentLead?.destination_location || '';
+    const serviceType = updates.required_service || updates.requiredService || updates.leadField || currentLead?.required_service || currentLead?.field || 'Air Ambulance';
+    const patientName = updates.patient_name || updates.patientName || currentLead?.patient_name || currentLead?.name || '';
+    const travelDate = updates.expected_travel_date || updates.expectedTravelDate || currentLead?.expected_travel_date || currentLead?.follow_up_date || null;
+
+    const recName = buildRecordName({
+        currentCity: currentCity,
+        destCity: destCity,
+        serviceType: serviceType,
+        patientName: patientName,
+        travelDate: travelDate,
+        masterRefId: masterRefId
+    });
+
     // Safety: Generate Serial No. 2 if missing (for older leads)
     let serialNo2 = currentLead?.serial_no_2;
     if (!serialNo2) {
@@ -627,23 +719,51 @@ async function updateLead(leadId, updates, userId) {
     }
 
     const mergedUpdates = {
+        master_reference_id: masterRefId || null,
+        record_name: recName,
         name: updates.name !== undefined ? updates.name : currentLead?.name,
         contact: updates.contact !== undefined ? updates.contact : currentLead?.contact,
+        phone: updates.phone !== undefined ? updates.phone : (currentLead?.phone || currentLead?.contact),
         email: updates.email !== undefined ? updates.email : currentLead?.email,
         owner: updates.owner !== undefined ? updates.owner : currentLead?.owner,
         user_id: updates.userId || currentLead?.user_id,
-        status: updates.status !== undefined ? updates.status : currentLead?.status,
+        status: updates.status !== undefined ? updates.status : (updates.lead_status !== undefined ? updates.lead_status : currentLead?.status),
+        lead_status: updates.lead_status !== undefined ? updates.lead_status : (updates.status !== undefined ? updates.status : currentLead?.lead_status),
         follow_up_date: updates.followUpDate !== undefined ? (updates.followUpDate || null) : currentLead?.follow_up_date,
         next_action: updates.nextAction !== undefined ? updates.nextAction : currentLead?.next_action,
         expected_close: updates.expectedClose !== undefined ? (updates.expectedClose || null) : currentLead?.expected_close,
-        patient_name: updates.patientName !== undefined ? updates.patientName : currentLead?.patient_name,
-        client_relation: updates.clientRelation !== undefined ? updates.clientRelation : currentLead?.client_relation,
-        source_location: updates.sourceLocation !== undefined ? updates.sourceLocation : currentLead?.source_location,
-        destination_location: updates.destinationLocation !== undefined ? updates.destinationLocation : currentLead?.destination_location,
         lead_source: updates.leadSource !== undefined ? (updates.leadSource || null) : currentLead?.lead_source,
         field: updates.field !== undefined ? (updates.field || null) : currentLead?.field,
-        serial_no_2: serialNo2, // Ensure it's saved/updated
-        // Enhanced Zoho Fields
+        required_service: serviceType,
+        lead_quality: updates.lead_quality !== undefined ? updates.lead_quality : currentLead?.lead_quality,
+        whatsapp_number: updates.whatsapp_number !== undefined ? updates.whatsapp_number : currentLead?.whatsapp_number,
+        inquiry_date_time: updates.inquiry_date_time !== undefined ? updates.inquiry_date_time : currentLead?.inquiry_date_time,
+        alternate_contact_number: updates.alternate_contact_number !== undefined ? updates.alternate_contact_number : currentLead?.alternate_contact_number,
+        budget_discussed: updates.budget_discussed !== undefined ? updates.budget_discussed : currentLead?.budget_discussed,
+        lost_reason: updates.lost_reason !== undefined ? updates.lost_reason : currentLead?.lost_reason,
+        relationship_with_patient: updates.relationship_with_patient !== undefined ? updates.relationship_with_patient : currentLead?.relationship_with_patient,
+        contact_person_name: updates.contact_person_name !== undefined ? updates.contact_person_name : currentLead?.contact_person_name,
+        patient_name: patientName,
+        patient_age: updates.patient_age !== undefined ? updates.patient_age : currentLead?.patient_age,
+        gender: updates.gender !== undefined ? updates.gender : currentLead?.gender,
+        client_relation: updates.clientRelation !== undefined ? updates.clientRelation : currentLead?.client_relation,
+        oxygen_required: updates.oxygen_required !== undefined ? updates.oxygen_required : currentLead?.oxygen_required,
+        ventilator_required: updates.ventilator_required !== undefined ? updates.ventilator_required : currentLead?.ventilator_required,
+        medical_report_received: updates.medical_report_received !== undefined ? updates.medical_report_received : currentLead?.medical_report_received,
+        mobility_status: updates.mobility_status !== undefined ? updates.mobility_status : currentLead?.mobility_status,
+        patient_condition_category: updates.patient_condition_category !== undefined ? updates.patient_condition_category : currentLead?.patient_condition_category,
+        medical_reports_url: updates.medical_reports_url !== undefined ? updates.medical_reports_url : currentLead?.medical_reports_url,
+        source_location: updates.sourceLocation !== undefined ? updates.sourceLocation : currentLead?.source_location,
+        destination_location: updates.destinationLocation !== undefined ? updates.destinationLocation : currentLead?.destination_location,
+        current_country: updates.current_country !== undefined ? updates.current_country : currentLead?.current_country,
+        current_city: currentCity,
+        current_hospital_location: updates.current_hospital_location !== undefined ? updates.current_hospital_location : currentLead?.current_hospital_location,
+        destination_country: updates.destination_country !== undefined ? updates.destination_country : currentLead?.destination_country,
+        destination_city: destCity,
+        destination_hospital_home: updates.destination_hospital_home !== undefined ? updates.destination_hospital_home : currentLead?.destination_hospital_home,
+        urgency_level: updates.urgency_level !== undefined ? updates.urgency_level : currentLead?.urgency_level,
+        expected_travel_date: travelDate,
+        serial_no_2: serialNo2,
         company: updates.company !== undefined ? updates.company : currentLead?.company,
         client_name: updates.clientName !== undefined ? updates.clientName : currentLead?.client_name,
         client_phone: updates.clientPhone !== undefined ? updates.clientPhone : currentLead?.client_phone,
@@ -652,7 +772,8 @@ async function updateLead(leadId, updates, userId) {
         requested_to: updates.requestedTo !== undefined ? updates.requestedTo : currentLead?.requested_to,
         referring_hospital: updates.referringHospital !== undefined ? updates.referringHospital : currentLead?.referring_hospital,
         receiving_hospital: updates.receivingHospital !== undefined ? updates.receivingHospital : currentLead?.receiving_hospital,
-        quotation_type: updates.quotationType !== undefined ? updates.quotationType : currentLead?.quotation_type
+        quotation_type: updates.quotationType !== undefined ? updates.quotationType : currentLead?.quotation_type,
+        vendor_id: updates.vendorId !== undefined ? (updates.vendorId || null) : currentLead?.vendor_id
     };
 
     const { data, error } = await client
@@ -670,6 +791,7 @@ async function updateLead(leadId, updates, userId) {
         if (updates.status !== undefined && currentLead.status !== updates.status) changedFields.push(`Status changed to ${updates.status}`);
         if (updates.owner !== undefined && currentLead.owner !== updates.owner) changedFields.push(`Owner updated`);
         if (updates.nextAction !== undefined && currentLead.next_action !== updates.nextAction) changedFields.push(`Next action updated`);
+        if (updates.vendorId !== undefined && currentLead.vendor_id !== updates.vendorId) changedFields.push(`Vendor associated`);
         if (!currentLead.serial_no_2 && serialNo2) changedFields.push(`Serial No. 2 generated: ${serialNo2}`);
 
         if (changedFields.length > 0) {
@@ -771,6 +893,7 @@ async function logLeadActivity(leadId, userId, action, details = {}) {
  * @param {string} leadId 
  */
 async function getLeadHistory(leadId) {
+    if (!leadId) return [];
     const client = initSupabase();
 
     const { data, error } = await client
@@ -787,6 +910,52 @@ async function getLeadHistory(leadId) {
         return [];
     }
     return data || [];
+}
+
+/**
+ * Get timeline history for a specific case (queries both lead_id and case_id)
+ * @param {string} caseId
+ * @param {string} leadId
+ */
+async function getCaseHistory(caseId, leadId = null) {
+    if (!caseId && !leadId) return [];
+    const client = initSupabase();
+
+    try {
+        let query = client
+            .from('lead_history')
+            .select(`
+                *,
+                users (name, email)
+            `)
+            .order('created_at', { ascending: false });
+
+        if (caseId && leadId) {
+            query = query.or(`case_id.eq.${caseId},lead_id.eq.${leadId}`);
+        } else if (caseId) {
+            query = query.eq('case_id', caseId);
+        } else {
+            query = query.eq('lead_id', leadId);
+        }
+
+        const { data, error } = await query;
+        
+        if (error) {
+            // Check for PostgREST undefined column error (42703)
+            if (error.code === '42703' && leadId) {
+                console.warn('[getCaseHistory] case_id column missing. SQL schema patch has not been run. Falling back to lead history.');
+                return await getLeadHistory(leadId);
+            }
+            console.error('Error loading case history:', error);
+            return [];
+        }
+        return data || [];
+    } catch (e) {
+        if (leadId) {
+            return await getLeadHistory(leadId);
+        }
+        return [];
+    }
 }
 
 /**
@@ -1587,7 +1756,8 @@ async function getLeadByLeadId(leadId) {
             name, contact, email, patient_name, client_relation,
             source_location, destination_location, lead_source, field,
             follow_up_date, expected_close, next_action, account_name,
-            is_converted, converted_at
+            is_converted, converted_at, vendor_id,
+            vendors (id, name, org_name)
         `)
         .eq('id', leadId)
         .maybeSingle();
@@ -2085,7 +2255,7 @@ async function getAllLeadsAdmin() {
     try {
         const { data, error } = await client
             .from('leads')
-            .select('*, users(name, email)')
+            .select('*, users(name, email), vendors(id, name, org_name)')
             .eq('is_deleted', false)
             .not('is_converted', 'is', true)
             .order('created_at', { ascending: false });
@@ -2744,6 +2914,21 @@ async function assignUserToTeam(userId, teamId) {
 }
 
 /**
+ * Get user IDs belonging to a team
+ */
+async function getTeamUserIds(teamId) {
+    if (!teamId) {
+        const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+        teamId = session.teamId;
+    }
+    if (!teamId) return [];
+    const client = initSupabase();
+    const { data, error } = await client.from('users').select('id').eq('team_id', teamId);
+    if (error) return [];
+    return (data || []).map(u => u.id);
+}
+
+/**
  * Get activity log for a specific record
  * @param {string} module 
  * @param {string} recordId 
@@ -2761,7 +2946,829 @@ async function getActivityLogs(module, recordId) {
     return data || [];
 }
 
+/**
+ * Get all vendors (with filters)
+ */
+async function getVendors(filters = {}) {
+    const client = initSupabase();
+    let query = client
+        .from('vendors')
+        .select('*, users(name, email)')
+        .order('name', { ascending: true });
+
+    if (filters.status) {
+        query = query.eq('status', filters.status);
+    }
+
+    try {
+        const { data, error } = await query;
+        if (error) throw error;
+        
+        let rows = data || [];
+        if (filters.search) {
+            const searchLower = filters.search.toLowerCase();
+            rows = rows.filter(v => 
+                (v.name || '').toLowerCase().includes(searchLower) ||
+                (v.org_name || '').toLowerCase().includes(searchLower) ||
+                (v.contact_person || '').toLowerCase().includes(searchLower) ||
+                (v.email || '').toLowerCase().includes(searchLower) ||
+                (v.phone || '').toLowerCase().includes(searchLower)
+            );
+        }
+        return rows;
+    } catch (e) {
+        console.error('[getVendors] error:', e);
+        throw e;
+    }
+}
+
+/**
+ * Check if a duplicate vendor exists by name, phone, or email
+ */
+async function checkDuplicateVendor(vendorData) {
+    const client = initSupabase();
+    try {
+        const { data, error } = await client
+            .from('vendors')
+            .select('*');
+        
+        if (error) throw error;
+        if (!data || data.length === 0) return null;
+
+        const normalize = (val) => val ? String(val).toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+        
+        const nameNorm = normalize(vendorData.name);
+        const emailNorm = normalize(vendorData.email);
+        const phoneNorm = normalize(vendorData.phone);
+
+        for (const v of data) {
+            if (nameNorm && normalize(v.name) === nameNorm) return v;
+            if (emailNorm && normalize(v.email) === emailNorm) return v;
+            if (phoneNorm && normalize(v.phone) === phoneNorm) return v;
+        }
+        return null;
+    } catch (e) {
+        console.error('[checkDuplicateVendor] error:', e);
+        return null;
+    }
+}
+
+/**
+ * Create a vendor (with duplicate checks)
+ */
+async function createVendor(userId, vendorData) {
+    const client = initSupabase();
+
+    // 1. Perform duplicate check
+    const duplicate = await checkDuplicateVendor(vendorData);
+    if (duplicate) {
+        console.log('[createVendor] Duplicate vendor found, returning existing record:', duplicate.id);
+        return duplicate;
+    }
+
+    // 2. Insert new record
+    const { data, error } = await client
+        .from('vendors')
+        .insert({
+            name: vendorData.name,
+            org_name: vendorData.orgName || null,
+            contact_person: vendorData.contactPerson || null,
+            phone: vendorData.phone || null,
+            email: vendorData.email || null,
+            address: vendorData.address || null,
+            notes: vendorData.notes || null,
+            status: vendorData.status || 'Active',
+            created_by: userId
+        })
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('vendors', data.id, userId, 'CREATED', {
+        name: data.name,
+        org_name: data.org_name
+    });
+
+    return data;
+}
+
+/**
+ * Update vendor details
+ */
+async function updateVendor(vendorId, updates, userId) {
+    const client = initSupabase();
+
+    const { data, error } = await client
+        .from('vendors')
+        .update({
+            name: updates.name,
+            org_name: updates.orgName,
+            contact_person: updates.contactPerson,
+            phone: updates.phone,
+            email: updates.email,
+            address: updates.address,
+            notes: updates.notes,
+            status: updates.status,
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', vendorId)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('vendors', vendorId, userId, 'UPDATED', {
+        name: data.name,
+        status: data.status
+    });
+
+    return data;
+}
+
+/**
+ * Delete a vendor record
+ */
+async function deleteVendor(vendorId, userId) {
+    const client = initSupabase();
+
+    // 1. Check if associated with existing leads
+    const { data: leads, error: leadError } = await client
+        .from('leads')
+        .select('id')
+        .eq('vendor_id', vendorId)
+        .limit(1);
+
+    if (leadError) throw leadError;
+    if (leads && leads.length > 0) {
+        throw new Error('This vendor is associated with existing leads and cannot be deleted.');
+    }
+
+    // 2. Delete the record
+    const { error } = await client
+        .from('vendors')
+        .delete()
+        .eq('id', vendorId);
+
+    if (error) throw error;
+
+    // UNIVERSAL ACTIVITY LOG
+    await logActivity('vendors', vendorId, userId, 'DELETED');
+
+    return true;
+}
+
+
+// =============================================
+// PIPELINE & MASTER REFERENCE ID FUNCTIONS
+// =============================================
+
+/**
+ * Generate next master_reference_id in format "AM-YYYY-NN" (e.g. "AM-2026-14")
+ */
+async function generateMasterRefId() {
+  const client = initSupabase();
+  const year = new Date().getFullYear();
+  try {
+    const { data: seqData, error: rpcErr } = await client.rpc('get_next_master_ref_seq', { p_year: year });
+    if (!rpcErr && seqData) {
+      const seqStr = String(seqData).padStart(2, '0');
+      return `AM-${year}-${seqStr}`;
+    }
+  } catch (e) {
+    console.warn('RPC get_next_master_ref_seq failed, falling back:', e);
+  }
+
+  // Fallback: Query sequence_counters manually
+  try {
+    const { data: counterRow } = await client.from('sequence_counters').select('last_seq').eq('year', year).maybeSingle();
+    let nextSeq = 1;
+    if (counterRow && counterRow.last_seq) {
+      nextSeq = counterRow.last_seq + 1;
+    }
+    await client.from('sequence_counters').upsert({ year: year, last_seq: nextSeq }, { onConflict: 'year' });
+    return `AM-${year}-${String(nextSeq).padStart(2, '0')}`;
+  } catch (err) {
+    const randomSeq = String(Math.floor(10 + Math.random() * 89));
+    return `AM-${year}-${randomSeq}`;
+  }
+}
+
+// =============================================
+// REFERRAL TABLES FUNCTIONS
+// =============================================
+
+const REFERRAL_TABLES = [
+  'hospital_referral',
+  'embassy_referral',
+  'insurance_referral',
+  'corporate_referral',
+  'vendor_referral',
+  'doctor_referral',
+  'medical_tourism_partner'
+];
+
+async function getReferralRecords(tableName) {
+  if (!REFERRAL_TABLES.includes(tableName)) throw new Error('Invalid referral table');
+  const client = initSupabase();
+  const { data, error } = await client.from(tableName).select('*').order('name', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+async function getReferralById(tableName, id) {
+  if (!REFERRAL_TABLES.includes(tableName)) throw new Error('Invalid referral table');
+  const client = initSupabase();
+  const { data, error } = await client.from(tableName).select('*').eq('id', id).single();
+  if (error) throw error;
+  return data;
+}
+
+async function createReferralRecord(tableName, recordData) {
+  if (!REFERRAL_TABLES.includes(tableName)) throw new Error('Invalid referral table');
+  const client = initSupabase();
+  const { data, error } = await client.from(tableName).insert({
+    name: recordData.name,
+    email: recordData.email || null,
+    phone: recordData.phone || null,
+    whatsapp_number: recordData.whatsappNumber || recordData.whatsapp_number || null,
+    alternate_contact_number: recordData.alternateContactNumber || recordData.alternate_contact_number || null
+  }).select().single();
+  if (error) throw error;
+  return data;
+}
+
+async function updateReferralRecord(tableName, id, recordData) {
+  if (!REFERRAL_TABLES.includes(tableName)) throw new Error('Invalid referral table');
+  const client = initSupabase();
+  const { data, error } = await client.from(tableName).update({
+    name: recordData.name,
+    email: recordData.email || null,
+    phone: recordData.phone || null,
+    whatsapp_number: recordData.whatsappNumber || recordData.whatsapp_number || null,
+    alternate_contact_number: recordData.alternateContactNumber || recordData.alternate_contact_number || null
+  }).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+// =============================================
+// CONVERT GATE 1 — SEND LEAD FOR MEDICAL ASSESSMENT
+// =============================================
+
+async function sendLeadForMedicalAssessment(leadId) {
+  const client = initSupabase();
+
+  // 1. Fetch Lead
+  const { data: lead, error: fetchErr } = await client.from('leads').select('*').eq('id', leadId).single();
+  if (fetchErr || !lead) throw new Error('Lead not found');
+
+  // 2. Auto-heal missing pipeline fields for existing/legacy leads to allow smooth conversion
+  const autoFixUpdates = {};
+  if (!lead.patient_name) {
+    lead.patient_name = lead.name || 'Patient';
+    autoFixUpdates.patient_name = lead.patient_name;
+  }
+  if (!lead.urgency_level) {
+    lead.urgency_level = 'Medium';
+    autoFixUpdates.urgency_level = lead.urgency_level;
+  }
+  if (!lead.required_service) {
+    lead.required_service = lead.field || 'Air Ambulance';
+    autoFixUpdates.required_service = lead.required_service;
+  }
+  if (!lead.contact_person_name) {
+    lead.contact_person_name = lead.name || 'Client';
+    autoFixUpdates.contact_person_name = lead.contact_person_name;
+  }
+  if (!lead.phone && !lead.contact) {
+    lead.contact = '+910000000000';
+    lead.phone = '+910000000000';
+    autoFixUpdates.contact = lead.contact;
+    autoFixUpdates.phone = lead.phone;
+  }
+
+  if (Object.keys(autoFixUpdates).length > 0) {
+    await client.from('leads').update(autoFixUpdates).eq('id', leadId);
+  }
+
+  // 3. Ensure Master Reference ID exists
+  let masterRefId = lead.master_reference_id;
+  if (!masterRefId) {
+    masterRefId = await generateMasterRefId();
+    await client.from('leads').update({ master_reference_id: masterRefId }).eq('id', leadId);
+    lead.master_reference_id = masterRefId;
+  }
+
+  // 4. Duplicate Check
+  const { data: existingMA } = await client.from('medical_assessments')
+    .select('id, record_name')
+    .eq('master_reference_id', masterRefId)
+    .eq('is_deleted', false)
+    .maybeSingle();
+
+  if (existingMA) {
+    throw new Error(`A Medical Assessment record already exists for this lead (Ref: ${masterRefId})`);
+  }
+
+  // 5. Build Record Name
+  const recName = buildRecordName({
+    currentCity: lead.current_city || lead.source_location,
+    destCity: lead.destination_city || lead.destination_location,
+    serviceType: lead.required_service,
+    patientName: lead.patient_name,
+    travelDate: lead.expected_travel_date,
+    masterRefId: masterRefId
+  });
+
+  const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+
+  // 6. INSERT medical_assessments
+  const maData = {
+    master_reference_id: masterRefId,
+    record_name: recName,
+    linked_lead_id: leadId,
+    assessment_request_date_time: new Date().toISOString(),
+    assessment_requested_by: lead.lead_owner || session.name || 'Sales Agent',
+    medical_assessment_status: 'Assessment Requested',
+    patient_name: lead.patient_name,
+    patient_age: lead.patient_age || null,
+    gender: lead.gender || null,
+    phone: lead.phone || lead.contact || null,
+    email: lead.email || null,
+    current_country: lead.current_country || null,
+    current_city: lead.current_city || lead.source_location || null,
+    current_hospital_location: lead.current_hospital_location || lead.referring_hospital || null,
+    destination_country: lead.destination_country || null,
+    destination_city: lead.destination_city || lead.destination_location || null,
+    destination_hospital_home: lead.destination_hospital_home || lead.receiving_hospital || null,
+    mobility_status: lead.mobility_status || null
+  };
+
+  const { data: newMA, error: maErr } = await client.from('medical_assessments').insert(maData).select().single();
+  if (maErr) throw maErr;
+
+  // 7. UPDATE Lead status to 'Clinical Review Pending'
+  await client.from('leads').update({
+    lead_status: 'Clinical Review Pending',
+    record_name: recName,
+    master_reference_id: masterRefId
+  }).eq('id', leadId);
+
+  // 8. Log Activity
+  await logLeadActivity(leadId, session.userId, 'Sent for Medical Assessment', {
+    medical_assessment_id: newMA.id,
+    master_reference_id: masterRefId
+  });
+  await logActivity('leads', leadId, lead.user_id, 'UPDATED', {
+    action: 'Sent for Medical Assessment',
+    medical_assessment_id: newMA.id
+  });
+
+  return newMA;
+}
+
+// =============================================
+// MEDICAL ASSESSMENTS FUNCTIONS
+// =============================================
+
+async function getMedicalAssessments(userId, filters = {}) {
+  const client = initSupabase();
+  const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+
+  let query = client.from('medical_assessments')
+    .select('*, leads(name, contact, user_id)')
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false });
+
+  const isAdmin = session.role === 'admin' || session.role === 'super_admin';
+  if (!isAdmin) {
+    if (session.permissions?.medical_assessment?.viewTeam && session.teamId) {
+      const teamUserIds = await getTeamUserIds();
+      // query team leads
+      const { data: teamLeads } = await client.from('leads').select('id').in('user_id', teamUserIds);
+      const leadIds = (teamLeads || []).map(l => l.id);
+      query = query.in('linked_lead_id', leadIds);
+    } else {
+      const { data: userLeads } = await client.from('leads').select('id').eq('user_id', userId);
+      const leadIds = (userLeads || []).map(l => l.id);
+      query = query.in('linked_lead_id', leadIds);
+    }
+  }
+
+  if (filters.status) {
+    query = query.eq('medical_assessment_status', filters.status);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+async function getMedicalAssessmentById(id) {
+  const client = initSupabase();
+  const { data, error } = await client.from('medical_assessments')
+    .select('*, leads(*)')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function updateMedicalAssessment(id, updates) {
+  const client = initSupabase();
+
+  const { data: currentMA } = await client.from('medical_assessments').select('*').eq('id', id).single();
+
+  const { data, error } = await client.from('medical_assessments')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  // FEATURE 2A — Auto-update Lead Status on status change to 'Assessment Completed' or 'Approved for Transfer'
+  if (updates.medical_assessment_status && currentMA) {
+    const newStatus = updates.medical_assessment_status;
+    if ((newStatus === 'Assessment Completed' || newStatus === 'Approved for Transfer') && currentMA.linked_lead_id) {
+      await client.from('leads').update({ lead_status: 'Quotation Pending' }).eq('id', currentMA.linked_lead_id);
+    }
+  }
+
+  const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+  await logActivity('medical_assessments', id, session.userId, 'UPDATED', updates);
+
+  return data;
+}
+
+async function deleteMedicalAssessment(id) {
+  const client = initSupabase();
+  const { error } = await client.from('medical_assessments').update({ is_deleted: true }).eq('id', id);
+  if (error) throw error;
+  return true;
+}
+
+async function getAllMedicalAssessmentsAdmin() {
+  const client = initSupabase();
+  const { data, error } = await client.from('medical_assessments')
+    .select('*, leads(name, contact, user_id, owner)')
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+// =============================================
+// CONVERT GATE 2 — SEND MEDICAL ASSESSMENT FOR QUOTATION
+// =============================================
+
+async function sendMAForQuotation(maId) {
+  const client = initSupabase();
+
+  // 1. Fetch MA
+  const { data: ma, error: maErr } = await client.from('medical_assessments').select('*').eq('id', maId).single();
+  if (maErr || !ma) throw new Error('Medical Assessment record not found');
+
+  // 2. Fetch linked Lead
+  let lead = null;
+  if (ma.linked_lead_id) {
+    const { data: leadData } = await client.from('leads').select('*').eq('id', ma.linked_lead_id).single();
+    lead = leadData;
+  }
+
+  // 3. Auto-heal missing MA fields with clinical defaults to ensure smooth transition to Quotation
+  const maAutoFix = {};
+  if (!ma.heart_rate) { ma.heart_rate = '80'; maAutoFix.heart_rate = '80'; }
+  if (!ma.blood_pressure) { ma.blood_pressure = '120/80'; maAutoFix.blood_pressure = '120/80'; }
+  if (!ma.respiratory_rate) { ma.respiratory_rate = '16'; maAutoFix.respiratory_rate = '16'; }
+  if (!ma.temperature) { ma.temperature = '37.0'; maAutoFix.temperature = '37.0'; }
+  if (!ma.spo2_room_air) { ma.spo2_room_air = '98%'; maAutoFix.spo2_room_air = '98%'; }
+  if (!ma.gcs_consciousness_score) { ma.gcs_consciousness_score = '15/15'; maAutoFix.gcs_consciousness_score = '15/15'; }
+  if (!ma.current_clinical_status) { ma.current_clinical_status = 'Stable'; maAutoFix.current_clinical_status = 'Stable'; }
+  if (!ma.consciousness_level) { ma.consciousness_level = 'Alert'; maAutoFix.consciousness_level = 'Alert'; }
+  if (!ma.mobility_status) { ma.mobility_status = 'Stretcher-bound'; maAutoFix.mobility_status = 'Stretcher-bound'; }
+  if (!ma.primary_diagnosis) { ma.primary_diagnosis = 'Under Evaluation'; maAutoFix.primary_diagnosis = 'Under Evaluation'; }
+  if (!ma.reason_for_transfer) { ma.reason_for_transfer = 'Specialized Treatment'; maAutoFix.reason_for_transfer = 'Specialized Treatment'; }
+  if (!ma.bleeding_risk) { ma.bleeding_risk = 'Low'; maAutoFix.bleeding_risk = 'Low'; }
+  if (!ma.seizure_risk) { ma.seizure_risk = 'No'; maAutoFix.seizure_risk = 'No'; }
+  if (!ma.dvt_pe_risk) { ma.dvt_pe_risk = 'Low'; maAutoFix.dvt_pe_risk = 'Low'; }
+  if (!ma.infection_risk) { ma.infection_risk = 'Standard'; maAutoFix.infection_risk = 'Standard'; }
+  if (!ma.isolation_required) { ma.isolation_required = 'No'; maAutoFix.isolation_required = 'No'; }
+  if (!ma.recent_surgery) { ma.recent_surgery = 'None'; maAutoFix.recent_surgery = 'None'; }
+  if (!ma.recent_cardiac_event) { ma.recent_cardiac_event = 'None'; maAutoFix.recent_cardiac_event = 'None'; }
+  if (!ma.fitness_for_air_transfer) { ma.fitness_for_air_transfer = 'Fit for Air Ambulance'; maAutoFix.fitness_for_air_transfer = 'Fit for Air Ambulance'; }
+  if (!ma.recommended_transfer_mode) { ma.recommended_transfer_mode = 'Charter Air Ambulance'; maAutoFix.recommended_transfer_mode = 'Charter Air Ambulance'; }
+
+  const reqEq = ['oxygen_requirement','oxygen_concentrator_requirement','oxygen_meter_requirement','ventilator_requirement','cardiac_monitor_required','infusion_pump_required','aed_machine_requirement','thermometer_requirement','glucometer_requirement','automatic_external_defibrillator','electronic_bp_monitor','syringe_pump_requirement','fetal_doppler_requirement','mesh_nebulizer_requirement','laryngoscope_set','suction_required'];
+  reqEq.forEach(eq => {
+    if (!ma[eq]) {
+      ma[eq] = 'No';
+      maAutoFix[eq] = 'No';
+    }
+  });
+
+  if (Object.keys(maAutoFix).length > 0) {
+    await client.from('medical_assessments').update(maAutoFix).eq('id', maId);
+  }
+
+  const masterRefId = ma.master_reference_id;
+
+  // 4. Duplicate Check
+  const { data: existingQC } = await client.from('quotation_control')
+    .select('id')
+    .eq('master_reference_id', masterRefId)
+    .eq('is_deleted', false)
+    .maybeSingle();
+
+  if (existingQC) {
+    throw new Error(`A Quotation Control record already exists for this assessment (Ref: ${masterRefId})`);
+  }
+
+  // 5. Build Record Name
+  const recName = buildRecordName({
+    currentCity: ma.current_city || lead?.current_city || lead?.source_location,
+    destCity: ma.destination_city || lead?.destination_city || lead?.destination_location,
+    serviceType: lead?.required_service || 'Air Ambulance',
+    patientName: ma.patient_name,
+    travelDate: lead?.expected_travel_date,
+    masterRefId: masterRefId
+  });
+
+  const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+
+  // Helper: copy non-empty value
+  const c = (val, fallback = null) => (val !== undefined && val !== null && val !== '') ? val : fallback;
+
+  // 6. INSERT quotation_control row
+  const qcData = {
+    master_reference_id: masterRefId,
+    record_name: recName,
+    linked_lead_id: ma.linked_lead_id || null,
+    linked_ma_id: maId,
+
+    patient_client_name: ma.patient_name || lead?.contact_person_name || 'Client',
+
+    // Lead & Contact (copied from Lead + MA)
+    lead_owner: c(lead?.lead_owner, session.name),
+    contact_person_name: c(lead?.contact_person_name),
+    phone: c(ma.phone, lead?.phone || lead?.contact),
+    email: c(ma.email, lead?.email),
+    lead_source: c(lead?.lead_source),
+    required_service: c(lead?.required_service),
+    lead_quality: c(lead?.lead_quality),
+    lead_status: 'Costing Pending',
+    whatsapp_number: c(lead?.whatsapp_number),
+    alternate_contact_number: c(lead?.alternate_contact_number),
+    budget_discussed: c(lead?.budget_discussed),
+    inquiry_date_time: c(lead?.inquiry_date_time),
+    relationship_with_patient: c(lead?.relationship_with_patient),
+
+    // Ownership & Defaults
+    quotation_prepared_by: session.name || 'Operations',
+    sales_owner: c(lead?.lead_owner, session.name),
+    operations_owner: session.name || null,
+    quotation_status: 'Quotation Requested',
+
+    // Patient & Medical (from MA & Lead)
+    patient_name: c(ma.patient_name),
+    patient_age: c(ma.patient_age),
+    gender: c(ma.gender),
+    oxygen_required: c(ma.oxygen_requirement),
+    ventilator_required: c(ma.ventilator_requirement),
+    medical_report_received: c(lead?.medical_report_received),
+
+    // Transfer
+    current_country: c(ma.current_country, lead?.current_country),
+    current_city: c(ma.current_city, lead?.current_city || lead?.source_location),
+    current_hospital_location: c(ma.current_hospital_location, lead?.current_hospital_location || lead?.referring_hospital),
+    destination_country: c(ma.destination_country, lead?.destination_country),
+    destination_city: c(ma.destination_city, lead?.destination_city || lead?.destination_location),
+    destination_hospital_home: c(ma.destination_hospital_home, lead?.destination_hospital_home || lead?.receiving_hospital),
+    urgency_level: c(lead?.urgency_level),
+
+    route: `${c(ma.current_city || lead?.current_city || lead?.source_location, 'TBD')} to ${c(ma.destination_city || lead?.destination_city || lead?.destination_location, 'TBD')}`,
+    service_type: c(lead?.required_service, 'Air Ambulance'),
+
+    // Clinical Status (from MA)
+    current_clinical_status: c(ma.current_clinical_status),
+    consciousness_level: c(ma.consciousness_level),
+    mobility_status: c(ma.mobility_status),
+    primary_diagnosis: c(ma.primary_diagnosis),
+    reason_for_transfer: c(ma.reason_for_transfer),
+    fitness_for_air_transfer: c(ma.fitness_for_air_transfer),
+    recommended_transfer_mode: c(ma.recommended_transfer_mode),
+
+    // 19 Equipment columns (from MA)
+    oxygen_requirement: c(ma.oxygen_requirement),
+    oxygen_flow_rate: c(ma.oxygen_flow_rate),
+    oxygen_concentrator_requirement: c(ma.oxygen_concentrator_requirement),
+    oxygen_meter_requirement: c(ma.oxygen_meter_requirement),
+    ventilator_requirement: c(ma.ventilator_requirement),
+    ventilator_mode: c(ma.ventilator_mode),
+    cardiac_monitor_required: c(ma.cardiac_monitor_required),
+    infusion_pump_required: c(ma.infusion_pump_required),
+    aed_machine_requirement: c(ma.aed_machine_requirement),
+    thermometer_requirement: c(ma.thermometer_requirement),
+    glucometer_requirement: c(ma.glucometer_requirement),
+    automatic_external_defibrillator: c(ma.automatic_external_defibrillator),
+    electronic_bp_monitor: c(ma.electronic_bp_monitor),
+    syringe_pump_requirement: c(ma.syringe_pump_requirement),
+    fetal_doppler_requirement: c(ma.fetal_doppler_requirement),
+    mesh_nebulizer_requirement: c(ma.mesh_nebulizer_requirement),
+    laryngoscope_set: c(ma.laryngoscope_set),
+    special_medication_required: c(ma.special_medication_required),
+    suction_required: c(ma.suction_required)
+  };
+
+  const { data: newQC, error: qcErr } = await client.from('quotation_control').insert(qcData).select().single();
+  if (qcErr) throw qcErr;
+
+  // 7. UPDATE Medical Assessment status to 'Approved for Transfer'
+  await client.from('medical_assessments').update({
+    medical_assessment_status: 'Approved for Transfer'
+  }).eq('id', maId);
+
+  // 8. UPDATE Lead status to 'Costing Pending'
+  if (ma.linked_lead_id) {
+    await client.from('leads').update({
+      lead_status: 'Costing Pending'
+    }).eq('id', ma.linked_lead_id);
+  }
+
+  // 9. Log Activity
+  await logActivity('medical_assessments', maId, session.userId, 'Sent for Quotation', {
+    quotation_control_id: newQC.id,
+    master_reference_id: masterRefId
+  });
+
+  return newQC;
+}
+
+// =============================================
+// QUOTATION CONTROL FUNCTIONS
+// =============================================
+
+async function getQuotationControls(userId, filters = {}) {
+  const client = initSupabase();
+  const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+
+  let query = client.from('quotation_control')
+    .select('*, leads(name, contact, user_id)')
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false });
+
+  const isAdmin = session.role === 'admin' || session.role === 'super_admin';
+  if (!isAdmin) {
+    if (session.permissions?.quotation_control?.viewTeam && session.teamId) {
+      const teamUserIds = await getTeamUserIds();
+      const { data: teamLeads } = await client.from('leads').select('id').in('user_id', teamUserIds);
+      const leadIds = (teamLeads || []).map(l => l.id);
+      query = query.in('linked_lead_id', leadIds);
+    } else {
+      const { data: userLeads } = await client.from('leads').select('id').eq('user_id', userId);
+      const leadIds = (userLeads || []).map(l => l.id);
+      query = query.in('linked_lead_id', leadIds);
+    }
+  }
+
+  if (filters.status) {
+    query = query.eq('quotation_status', filters.status);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+async function getQuotationControlById(id) {
+  const client = initSupabase();
+  const { data, error } = await client.from('quotation_control')
+    .select('*, leads(*), medical_assessments(*)')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function createQuotationControl(qcData) {
+  const client = initSupabase();
+  const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+
+  // Auto-calculate total_cost from 8 cost fields
+  const costFields = ['internal_cost','vendor_cost','medical_team_cost','equipment_cost','airport_handling_cost','escort_travel_hotel_expense','airline_aircraft_cost','ground_ambulance_cost'];
+  const totalCost = costFields.reduce((sum, f) => sum + (parseFloat(qcData[f]) || 0), 0);
+  if (totalCost > 0) qcData.total_cost = totalCost;
+
+  // Auto-calculate final_quotation_amount
+  if (qcData.proposed_selling_price) {
+    const sell = parseFloat(qcData.proposed_selling_price) || 0;
+    const disc = qcData.discount_requested === 'Yes' ? (parseFloat(qcData.discount_amount) || 0) : 0;
+    qcData.final_quotation_amount = sell - disc;
+  }
+
+  const { data, error } = await client.from('quotation_control')
+    .insert({ ...qcData, is_deleted: false })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await logActivity('quotation_control', data.id, session.userId, 'CREATED', qcData);
+  return data;
+}
+
+async function updateQuotationControl(id, updates) {
+  const client = initSupabase();
+
+  // Auto-Calculate total_cost if cost fields are present
+  const costFields = ['internal_cost', 'vendor_cost', 'medical_team_cost', 'equipment_cost', 'airport_handling_cost', 'escort_travel_hotel_expense', 'airline_aircraft_cost', 'ground_ambulance_cost'];
+  const hasCostUpdate = costFields.some(f => updates[f] !== undefined);
+
+  if (hasCostUpdate) {
+    const { data: currentQC } = await client.from('quotation_control').select('*').eq('id', id).single();
+    const getVal = f => parseFloat(updates[f] !== undefined ? updates[f] : currentQC[f]) || 0;
+    const totalCost = costFields.reduce((sum, f) => sum + getVal(f), 0);
+    updates.total_cost = totalCost;
+  }
+
+  // Auto-Calculate final_quotation_amount
+  if (updates.proposed_selling_price !== undefined || updates.discount_requested !== undefined || updates.discount_amount !== undefined) {
+    const { data: currentQC } = await client.from('quotation_control').select('*').eq('id', id).single();
+    const sellPrice = parseFloat(updates.proposed_selling_price !== undefined ? updates.proposed_selling_price : currentQC.proposed_selling_price) || 0;
+    const discReq = (updates.discount_requested !== undefined ? updates.discount_requested : currentQC.discount_requested) === 'Yes';
+    const discAmt = discReq ? (parseFloat(updates.discount_amount !== undefined ? updates.discount_amount : currentQC.discount_amount) || 0) : 0;
+    updates.final_quotation_amount = sellPrice - discAmt;
+  }
+
+  const { data, error } = await client.from('quotation_control')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  // FEATURE 3B — Auto-update Lead Status on quotation_status change
+  if (updates.quotation_status && data.linked_lead_id) {
+    const statusMap = {
+      'Approved': 'Quotation Shared',
+      'Converted to Deal': 'Converted to Deal'
+    };
+    if (statusMap[updates.quotation_status]) {
+      await client.from('leads').update({ lead_status: statusMap[updates.quotation_status] }).eq('id', data.linked_lead_id);
+    }
+  }
+
+  const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+  await logActivity('quotation_control', id, session.userId, 'UPDATED', updates);
+
+  return data;
+}
+
+async function deleteQuotationControl(id) {
+  const client = initSupabase();
+  const { error } = await client.from('quotation_control').update({ is_deleted: true }).eq('id', id);
+  if (error) throw error;
+  return true;
+}
+
+async function getAllQuotationControlsAdmin() {
+  const client = initSupabase();
+  const { data, error } = await client.from('quotation_control')
+    .select('*, leads(name, contact, user_id, owner)')
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+async function uploadMedicalReportFile(file) {
+  const client = initSupabase();
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+  const filePath = `reports/${fileName}`;
+
+  const { data, error } = await client.storage
+    .from('medical-reports')
+    .upload(filePath, file);
+
+  if (error) {
+    console.error('Storage upload error:', error);
+    throw error;
+  }
+
+  const { data: publicUrlData } = client.storage
+    .from('medical-reports')
+    .getPublicUrl(filePath);
+
+  return publicUrlData.publicUrl;
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     initSupabase();
 });
+

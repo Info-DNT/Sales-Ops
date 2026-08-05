@@ -42,7 +42,7 @@ CREATE POLICY "admin_update_users" ON public.users
 DO $$
 DECLARE
     t_name TEXT;
-    t_list TEXT[] := ARRAY['users', 'user_details', 'leads', 'cases', 'calls', 'meetings', 'attendance', 'expenses', 'quotations', 'work_reports', 'case_files', 'case_invoices', 'case_receipts', 'lead_history'];
+    t_list TEXT[] := ARRAY['users', 'user_details', 'leads', 'cases', 'calls', 'meetings', 'attendance', 'expenses', 'vendors', 'quotations', 'work_reports', 'case_files', 'case_invoices', 'case_receipts', 'lead_history'];
 BEGIN
     FOREACH t_name IN ARRAY t_list
     LOOP

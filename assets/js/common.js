@@ -118,10 +118,13 @@ function generateUserNav(currentPage) {
       module: 'leads',
       hasDropdown: true,
       dropdownItems: [
+        { page: 'medical-assessment', icon: 'fa-stethoscope', label: 'Medical Assessment', module: 'medical_assessment' },
+        { page: 'quotation-control', icon: 'fa-file-invoice-dollar', label: 'Quotation Control', module: 'quotation_control' },
         { page: 'cases', icon: 'fa-briefcase', label: 'Cases', module: 'cases' },
         { page: 'calls', icon: 'fa-phone', label: 'Calls', module: 'calls' },
         { page: 'meetings', icon: 'fa-video', label: 'Meetings', module: 'meetings' },
-        { page: 'expenses', icon: 'fa-receipt', label: 'Expenses', module: 'expenses' }
+        { page: 'expenses', icon: 'fa-receipt', label: 'Expenses', module: 'expenses' },
+        { page: 'vendors', icon: 'fa-handshake', label: 'Vendors', module: 'vendors' }
       ]
     },
     { page: 'manual', icon: 'fa-book-open', label: 'User Manual' },
@@ -165,7 +168,7 @@ function generateUserNav(currentPage) {
         ${filteredItems.map(item => {
     const hideClass = item.page === 'quotations' ? 'd-none-quotation' : '';
     if (item.hasDropdown) {
-      const isLeadsActive = currentPage === 'leads' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings' || currentPage === 'expenses';
+      const isLeadsActive = currentPage === 'leads' || currentPage === 'medical-assessment' || currentPage === 'quotation-control' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings' || currentPage === 'expenses' || currentPage === 'vendors';
       return `
               <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''} ${hideClass}">
                 <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">
@@ -217,10 +220,13 @@ function generateAdminNav(currentPage) {
       label: 'Leads',
       hasDropdown: true,
       dropdownItems: [
+        { page: 'medical-assessment', icon: 'fa-stethoscope', label: 'Medical Assessment' },
+        { page: 'quotation-control', icon: 'fa-file-invoice-dollar', label: 'Quotation Control' },
         { page: 'cases', icon: 'fa-briefcase', label: 'Cases' },
         { page: 'calls', icon: 'fa-phone', label: 'Calls' },
         { page: 'meetings', icon: 'fa-video', label: 'Meetings' },
-        { page: 'expenses', icon: 'fa-receipt', label: 'Expenses' }
+        { page: 'expenses', icon: 'fa-receipt', label: 'Expenses' },
+        { page: 'vendors', icon: 'fa-handshake', label: 'Vendors' }
       ]
     },
     { page: 'quotations', icon: 'fa-file-invoice-dollar', label: 'Quotations' },
@@ -259,7 +265,7 @@ function generateAdminNav(currentPage) {
         ${navItems.map(item => {
     const hideClass = item.page === 'quotations' ? 'd-none-quotation' : '';
     if (item.hasDropdown) {
-      const isLeadsActive = currentPage === 'leads' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings' || currentPage === 'expenses';
+      const isLeadsActive = currentPage === 'leads' || currentPage === 'medical-assessment' || currentPage === 'quotation-control' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings' || currentPage === 'expenses' || currentPage === 'vendors';
       return `
               <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''} ${hideClass}">
                 <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">
@@ -551,11 +557,11 @@ function exportToCSV(data, fileName, headers) {
  * @param {string} currentPage - e.g. 'dashboard', 'leads', 'cases'
  */
 function generateBottomNav(currentPage) {
-  const leadsPages = ['leads', 'cases', 'calls', 'meetings', 'expenses']
+  const leadsPages = ['leads', 'medical-assessment', 'quotation-control', 'cases', 'calls', 'meetings', 'expenses', 'vendors']
   const isLeadsGroup = leadsPages.includes(currentPage)
 
   // Check if user has access to any module in the Leads group
-  const hasAnyLeadsAccess = canPerform('leads', 'view') || canPerform('cases', 'view') || canPerform('calls', 'view') || canPerform('meetings', 'view') || canPerform('expenses', 'view')
+  const hasAnyLeadsAccess = canPerform('leads', 'view') || canPerform('medical_assessment', 'view') || canPerform('quotation_control', 'view') || canPerform('cases', 'view') || canPerform('calls', 'view') || canPerform('meetings', 'view') || canPerform('expenses', 'view') || canPerform('vendors', 'view')
 
   const html = `
     <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile navigation">
@@ -591,7 +597,7 @@ function generateBottomNav(currentPage) {
  * @param {string} currentPage - e.g. 'dashboard', 'leads', 'users', 'reports'
  */
 function generateAdminBottomNav(currentPage) {
-  const leadsPages = ['leads', 'cases', 'calls', 'meetings', 'expenses']
+  const leadsPages = ['leads', 'medical-assessment', 'quotation-control', 'cases', 'calls', 'meetings', 'expenses', 'vendors']
   const isLeadsGroup = leadsPages.includes(currentPage)
 
   const html = `
@@ -632,11 +638,14 @@ function generateLeadsSubTabs(currentSubPage, basePath) {
 
   // Define all tabs with their module identifiers for permission checks
   const allTabs = [
-    { id: 'leads',    icon: 'fa-list',     label: 'All Leads', module: 'leads'    },
-    { id: 'cases',    icon: 'fa-briefcase',label: 'Cases',     module: 'cases'    },
-    { id: 'calls',    icon: 'fa-phone',    label: 'Calls',     module: 'calls'    },
-    { id: 'meetings', icon: 'fa-video',    label: 'Meetings',  module: 'meetings' },
-    { id: 'expenses', icon: 'fa-receipt',  label: 'Expenses',  module: 'expenses' }
+    { id: 'leads',              icon: 'fa-list',                label: 'All Leads',   module: 'leads'              },
+    { id: 'medical-assessment', icon: 'fa-stethoscope',         label: 'Medical',     module: 'medical_assessment' },
+    { id: 'quotation-control',  icon: 'fa-file-invoice-dollar', label: 'Quotation',   module: 'quotation_control'  },
+    { id: 'cases',              icon: 'fa-briefcase',           label: 'Cases',       module: 'cases'              },
+    { id: 'calls',              icon: 'fa-phone',               label: 'Calls',       module: 'calls'              },
+    { id: 'meetings',           icon: 'fa-video',               label: 'Meetings',    module: 'meetings'           },
+    { id: 'expenses',           icon: 'fa-receipt',             label: 'Expenses',    module: 'expenses'           },
+    { id: 'vendors',            icon: 'fa-handshake',           label: 'Vendors',     module: 'vendors'            }
   ]
 
   // Filter tabs based on user permissions (admins/super_admins always pass)
@@ -813,4 +822,130 @@ async function showHistoryModal(module, recordId, title = 'Record History') {
     console.error('Error fetching history:', error);
     document.getElementById('history-timeline-content').innerHTML = `<div class="alert alert-danger m-3">Failed to load history.</div>`;
   }
+}
+
+// =============================================
+// PIPELINE RECORD NAME & INITIALS HELPERS
+// =============================================
+
+/**
+ * Get uppercase initials from a patient name.
+ * e.g. "Rajesh Kumar" -> "R.K.", "Maria" -> "M.", "" -> "N.A."
+ */
+function getPatientInitials(name) {
+  if (!name || typeof name !== 'string' || !name.trim()) return 'N.A.';
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return 'N.A.';
+  if (words.length === 1) return `${words[0][0].toUpperCase()}.`;
+  return `${words[0][0].toUpperCase()}.${words[1][0].toUpperCase()}.`;
+}
+
+/**
+ * Build standard record_name format:
+ * "{Route} – {Service Type} – {Patient Initials} – {Date} – {Sequence}"
+ * Example: "Dubai to Chennai – Air Ambulance – R.K. – 24 Jun 2026 – 14"
+ */
+function buildRecordName({ currentCity, destCity, serviceType, patientName, travelDate, masterRefId }) {
+  const fromCity = (currentCity && currentCity.trim()) ? currentCity.trim() : 'TBD';
+  const toCity = (destCity && destCity.trim()) ? destCity.trim() : 'TBD';
+  const route = `${fromCity} to ${toCity}`;
+
+  const service = (serviceType && serviceType.trim()) ? serviceType.trim() : 'Service TBD';
+  const initials = getPatientInitials(patientName);
+
+  let formattedDate = 'TBD';
+  if (travelDate) {
+    const d = new Date(travelDate);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = months[d.getMonth()];
+      const year = d.getFullYear();
+      formattedDate = `${day} ${month} ${year}`;
+    }
+  }
+
+  let seq = '00';
+  if (masterRefId && typeof masterRefId === 'string') {
+    const parts = masterRefId.split('-');
+    if (parts.length >= 3) {
+      seq = parts[parts.length - 1];
+    }
+  }
+
+  return `${route} – ${service} – ${initials} – ${formattedDate} – ${seq}`;
+}
+
+/**
+ * Handle lead_source onChange event to dynamically show referral lookup dropdown
+ */
+async function handleLeadSourceChange(sourceVal, containerId = 'referral-partner-container', selectId = 'referral-partner-select') {
+  const container = document.getElementById(containerId);
+  const select = document.getElementById(selectId);
+  if (!container || !select) return;
+
+  const sourceTableMap = {
+    'Hospital Referral': 'hospital_referral',
+    'Embassy Referral': 'embassy_referral',
+    'Insurance Referral': 'insurance_referral',
+    'Assistance Company': 'corporate_referral',
+    'Vendor Referral': 'vendor_referral',
+    'Doctor Referral': 'doctor_referral',
+    'Medical Tourism Partner': 'medical_tourism_partner'
+  };
+
+  const targetTable = sourceTableMap[sourceVal];
+  if (!targetTable) {
+    container.style.display = 'none';
+    select.innerHTML = '<option value="">Select Partner...</option>';
+    return;
+  }
+
+  container.style.display = 'block';
+  select.innerHTML = '<option value="">Loading partners...</option>';
+
+  try {
+    const list = await getReferralRecords(targetTable);
+    if (!list || list.length === 0) {
+      select.innerHTML = '<option value="">No partners found in category</option>';
+      return;
+    }
+    select.innerHTML = '<option value="">Select Partner...</option>' +
+      list.map(r => `<option value="${r.id}" data-name="${r.name || ''}" data-email="${r.email || ''}" data-phone="${r.phone || ''}" data-wa="${r.whatsapp_number || ''}" data-alt="${r.alternate_contact_number || ''}">${r.name}</option>`).join('');
+    select.dataset.targetTable = targetTable;
+  } catch (err) {
+    console.error('Error fetching referral records:', err);
+    select.innerHTML = '<option value="">Error loading partners</option>';
+  }
+}
+
+/**
+ * Handle auto-fill when a referral partner is selected from dropdown
+ */
+function handleReferralPartnerAutoFill(selectId = 'referral-partner-select', fieldPrefix = 'lead-') {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  const opt = select.options[select.selectedIndex];
+  if (!opt || !opt.value) return;
+
+  const name = opt.dataset.name;
+  const email = opt.dataset.email;
+  const phone = opt.dataset.phone;
+  const wa = opt.dataset.wa;
+  const alt = opt.dataset.alt;
+
+  function setIfVal(fieldId, val) {
+    const el = document.getElementById(fieldId);
+    if (el && val && val.trim() !== '') {
+      el.value = val.trim();
+    }
+  }
+
+  setIfVal(`${fieldPrefix}name`, name);
+  setIfVal('contact-person-name', name);
+  setIfVal(`${fieldPrefix}contact`, phone);
+  setIfVal(`${fieldPrefix}phone`, phone);
+  setIfVal(`${fieldPrefix}email`, email);
+  setIfVal('whatsapp-number', wa);
+  setIfVal('alternate-contact-number', alt);
 }

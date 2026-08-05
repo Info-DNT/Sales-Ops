@@ -41,7 +41,7 @@ CREATE POLICY "super_admin_manage_permissions" ON user_permissions
 DO $$
 DECLARE
     table_name TEXT;
-    tables TEXT[] := ARRAY['users', 'user_details', 'leads', 'cases', 'calls', 'meetings', 'attendance', 'expenses', 'quotations', 'work_reports', 'case_files', 'case_invoices', 'case_receipts', 'lead_history'];
+    tables TEXT[] := ARRAY['users', 'user_details', 'leads', 'cases', 'calls', 'meetings', 'attendance', 'expenses', 'vendors', 'quotations', 'work_reports', 'case_files', 'case_invoices', 'case_receipts', 'lead_history'];
 BEGIN
     FOREACH table_name IN ARRAY tables
     LOOP

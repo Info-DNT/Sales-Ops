@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Assessment - Sales Ops</title>
+    <link rel="icon" href="../assets/logo.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/crm-styles.css">
+</head>
+<body>
+    <div id="app">
+        <div class="main-content">
+            <div class="page-header flex-wrap gap-3">
+                <div>
+                    <h2 class="mb-0">Medical Assessments</h2>
+                    <p class="text-muted small mb-0">Clinical evaluation & fitness for transfer pipeline</p>
+                </div>
+            </div>
+
+            <!-- Urgent Tasks Panel Placeholder / Search -->
+            <div class="content-card mb-3">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" class="form-control border-start-0" id="search-ma-query" placeholder="Search patient name, Ref ID, diagnosis..." oninput="filterMA()">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" id="filter-ma-status" onchange="filterMA()">
+                            <option value="">All Statuses</option>
+                            <option value="Assessment Requested">Assessment Requested</option>
+                            <option value="Under Medical Review">Under Medical Review</option>
+                            <option value="Approved for Transfer">Approved for Transfer</option>
+                            <option value="Not Fit Currently">Not Fit Currently</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div id="ma-list-container">
+                    <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Assessment Modal -->
+    <div class="modal fade" id="editMAModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-stethoscope me-2 text-primary"></i>Medical Assessment Evaluation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-ma-form">
+                        <input type="hidden" id="ma-id">
+
+                        <h6 class="border-bottom pb-2 mb-3 text-primary"><i class="fas fa-info-circle me-2"></i>Assessment Status & Assignment</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-600">Assessment Status *</label>
+                                <select class="form-select" id="ma-status" required>
+                                    <option value="Assessment Requested">Assessment Requested</option>
+                                    <option value="Assigned to Medical Team">Assigned to Medical Team</option>
+                                    <option value="Documents Pending">Documents Pending</option>
+                                    <option value="Under Medical Review">Under Medical Review</option>
+                                    <option value="Clarification Required">Clarification Required</option>
+                                    <option value="Assessment Completed">Assessment Completed</option>
+                                    <option value="Approved for Transfer">Approved for Transfer</option>
+                                    <option value="Approved with Conditions">Approved with Conditions</option>
+                                    <option value="Not Fit Currently">Not Fit Currently</option>
+                                    <option value="Reassessment Required">Reassessment Required</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Assigned Medical Doctor/Team</label>
+                                <input type="text" class="form-control" id="ma-assigned-to" placeholder="Doctor name or team">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Fitness for Air Transfer *</label>
+                                <select class="form-select" id="ma-fitness" required>
+                                    <option value="">Select Fitness</option>
+                                    <option value="Fit for Air Ambulance">Fit for Air Ambulance</option>
+                                    <option value="Fit for Commercial Stretcher">Fit for Commercial Stretcher</option>
+                                    <option value="Fit for Medical Escort">Fit for Medical Escort</option>
+                                    <option value="Fit with Medical Conditions">Fit with Medical Conditions</option>
+                                    <option value="Not Fit for Air Transfer">Not Fit for Air Transfer</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h6 class="border-bottom pb-2 mb-3 text-primary"><i class="fas fa-heartbeat me-2"></i>Patient Vitals (Mandatory for Quotation Gate)</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-2"><label class="form-label">Heart Rate (bpm) *</label><input type="text" class="form-control" id="ma-hr" placeholder="e.g. 84"></div>
+                            <div class="col-md-2"><label class="form-label">Blood Pressure *</label><input type="text" class="form-control" id="ma-bp" placeholder="e.g. 120/80"></div>
+                            <div class="col-md-2"><label class="form-label">Respiratory Rate *</label><input type="text" class="form-control" id="ma-rr" placeholder="e.g. 18"></div>
+                            <div class="col-md-2"><label class="form-label">Temperature (°C) *</label><input type="text" class="form-control" id="ma-temp" placeholder="e.g. 37.1"></div>
+                            <div class="col-md-2"><label class="form-label">SpO2 Room Air *</label><input type="text" class="form-control" id="ma-spo2" placeholder="e.g. 98%"></div>
+                            <div class="col-md-2"><label class="form-label">GCS Score *</label><input type="text" class="form-control" id="ma-gcs" placeholder="e.g. 15/15"></div>
+                        </div>
+
+                        <h6 class="border-bottom pb-2 mb-3 text-primary"><i class="fas fa-notes-medical me-2"></i>Clinical Status & Diagnosis</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4"><label class="form-label">Current Clinical Status *</label><input type="text" class="form-control" id="ma-clinical-status"></div>
+                            <div class="col-md-4"><label class="form-label">Consciousness Level *</label><input type="text" class="form-control" id="ma-consciousness"></div>
+                            <div class="col-md-4"><label class="form-label">Mobility Status *</label><input type="text" class="form-control" id="ma-mobility"></div>
+                            <div class="col-md-6"><label class="form-label">Primary Diagnosis *</label><textarea class="form-control" id="ma-diagnosis" rows="2"></textarea></div>
+                            <div class="col-md-6"><label class="form-label">Reason for Transfer *</label><textarea class="form-control" id="ma-reason" rows="2"></textarea></div>
+                        </div>
+
+                        <h6 class="border-bottom pb-2 mb-3 text-primary"><i class="fas fa-exclamation-triangle me-2"></i>Risk Assessment</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3"><label class="form-label">Bleeding Risk *</label><select class="form-select" id="ma-bleeding"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Seizure Risk *</label><select class="form-select" id="ma-seizure"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">DVT/PE Risk *</label><select class="form-select" id="ma-dvt"><option value="Low">Low</option><option value="High">High</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Infection Risk *</label><select class="form-select" id="ma-infection"><option value="Standard">Standard</option><option value="High">High</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Isolation Required *</label><select class="form-select" id="ma-isolation"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Recent Surgery *</label><input type="text" class="form-control" id="ma-surgery"></div>
+                            <div class="col-md-3"><label class="form-label">Recent Cardiac Event *</label><input type="text" class="form-control" id="ma-cardiac"></div>
+                            <div class="col-md-3"><label class="form-label">Recommended Mode *</label><input type="text" class="form-control" id="ma-mode"></div>
+                        </div>
+
+                        <h6 class="border-bottom pb-2 mb-3 text-primary"><i class="fas fa-toolbox me-2"></i>Equipment Requirements (19)</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3"><label class="form-label">Oxygen Req. *</label><select class="form-select" id="eq-oxygen"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Oxygen Flow Rate</label><input type="text" class="form-control" id="eq-oxygen-flow"></div>
+                            <div class="col-md-3"><label class="form-label">Oxygen Concentrator *</label><select class="form-select" id="eq-oxygen-conc"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Oxygen Meter *</label><select class="form-select" id="eq-oxygen-meter"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Ventilator Req. *</label><select class="form-select" id="eq-ventilator"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Ventilator Mode</label><input type="text" class="form-control" id="eq-ventilator-mode"></div>
+                            <div class="col-md-3"><label class="form-label">Cardiac Monitor *</label><select class="form-select" id="eq-cardiac"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Infusion Pump *</label><select class="form-select" id="eq-infusion"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">AED Machine *</label><select class="form-select" id="eq-aed"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Thermometer *</label><select class="form-select" id="eq-thermometer"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Glucometer *</label><select class="form-select" id="eq-glucometer"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Auto Defibrillator *</label><select class="form-select" id="eq-defib"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Electronic BP Monitor *</label><select class="form-select" id="eq-bp-mon"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Syringe Pump *</label><select class="form-select" id="eq-syringe"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Fetal Doppler *</label><select class="form-select" id="eq-doppler"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Mesh Nebulizer *</label><select class="form-select" id="eq-nebulizer"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Laryngoscope Set *</label><select class="form-select" id="eq-laryngoscope"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+                            <div class="col-md-3"><label class="form-label">Suction Required *</label><select class="form-select" id="eq-suction"><option value="Yes">Yes</option><option value="No">No</option></select></div>
+                            <div class="col-md-6"><label class="form-label">Special Medications</label><input type="text" class="form-control" id="eq-meds"></div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="save-ma-btn">Save Evaluation</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        let myMAs = [];
+        let session = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!initAuthCheck('user')) return;
+            session = getCurrentSession();
+            insertNav('user', 'medical-assessment');
+            await loadMAs();
+            generateBottomNav('medical-assessment');
+            generateLeadsSubTabs('medical-assessment', '../user/');
+        });
+
+        async function loadMAs() {
+            try {
+                myMAs = await getMedicalAssessments(session.userId);
+                renderMAs(myMAs);
+            } catch (err) {
+                console.error('Error loading MAs:', err);
+                showToast('Failed to load Medical Assessments', 'error');
+            }
+        }
+
+        function filterMA() {
+            const query = (document.getElementById('search-ma-query').value || '').toLowerCase();
+            const status = document.getElementById('filter-ma-status').value;
+
+            const filtered = myMAs.filter(m => {
+                const matchQuery = !query ||
+                    (m.patient_name || '').toLowerCase().includes(query) ||
+                    (m.master_reference_id || '').toLowerCase().includes(query) ||
+                    (m.record_name || '').toLowerCase().includes(query);
+                const matchStatus = !status || m.medical_assessment_status === status;
+                return matchQuery && matchStatus;
+            });
+            renderMAs(filtered);
+        }
+
+        function renderMAs(list) {
+            const container = document.getElementById('ma-list-container');
+            if (!list || list.length === 0) {
+                container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fas fa-stethoscope fa-3x mb-3 opacity-50"></i><p>No Medical Assessment records found.</p></div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(m => {
+                const statusBadgeClass = {
+                    'Assessment Requested': 'bg-warning text-dark',
+                    'Under Medical Review': 'bg-info text-white',
+                    'Approved for Transfer': 'bg-success text-white'
+                }[m.medical_assessment_status] || 'bg-secondary text-white';
+
+                return `
+                <div class="content-card mb-3 border-start border-4 border-primary">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <span class="badge bg-indigo-subtle text-indigo me-2 font-monospace fw-bold">${m.master_reference_id || 'AM-REF-N/A'}</span>
+                            <span class="badge ${statusBadgeClass}">${m.medical_assessment_status}</span>
+                            <h5 class="mt-2 mb-1">${m.record_name || m.patient_name || 'Medical Assessment'}</h5>
+                        </div>
+                        <div class="d-flex gap-2">
+                            ${canPerform('medical_assessment', 'edit') ? `
+                            <button class="btn btn-sm btn-outline-primary" onclick="openEditMAModal('${m.id}')">
+                                <i class="fas fa-edit me-1"></i> Edit Evaluation
+                            </button>` : ''}
+                            ${canPerform('quotation_control', 'create') ? `
+                            <button class="btn btn-sm btn-success" onclick="triggerSendForQuotation('${m.id}')">
+                                <i class="fas fa-paper-plane me-1"></i> Send for Quotation
+                            </button>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-4"><small class="text-muted d-block">Patient</small><strong>${m.patient_name || '—'} (${m.gender || 'N/A'}, ${m.patient_age || 'N/A'}y)</strong></div>
+                        <div class="col-md-4"><small class="text-muted d-block">Route</small><span>${m.current_city || 'TBD'} to ${m.destination_city || 'TBD'}</span></div>
+                        <div class="col-md-4"><small class="text-muted d-block">Assigned Doctor</small><span>${m.assessment_assigned_to || 'Unassigned'}</span></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function openEditMAModal(id) {
+            try {
+                const ma = await getMedicalAssessmentById(id);
+                document.getElementById('ma-id').value = ma.id;
+                document.getElementById('ma-status').value = ma.medical_assessment_status || 'Assessment Requested';
+                document.getElementById('ma-assigned-to').value = ma.assessment_assigned_to || '';
+                document.getElementById('ma-fitness').value = ma.fitness_for_air_transfer || '';
+
+                document.getElementById('ma-hr').value = ma.heart_rate || '';
+                document.getElementById('ma-bp').value = ma.blood_pressure || '';
+                document.getElementById('ma-rr').value = ma.respiratory_rate || '';
+                document.getElementById('ma-temp').value = ma.temperature || '';
+                document.getElementById('ma-spo2').value = ma.spo2_room_air || '';
+                document.getElementById('ma-gcs').value = ma.gcs_consciousness_score || '';
+
+                document.getElementById('ma-clinical-status').value = ma.current_clinical_status || '';
+                document.getElementById('ma-consciousness').value = ma.consciousness_level || '';
+                document.getElementById('ma-mobility').value = ma.mobility_status || '';
+                document.getElementById('ma-diagnosis').value = ma.primary_diagnosis || '';
+                document.getElementById('ma-reason').value = ma.reason_for_transfer || '';
+
+                document.getElementById('ma-bleeding').value = ma.bleeding_risk || 'Low';
+                document.getElementById('ma-seizure').value = ma.seizure_risk || 'No';
+                document.getElementById('ma-dvt').value = ma.dvt_pe_risk || 'Low';
+                document.getElementById('ma-infection').value = ma.infection_risk || 'Standard';
+                document.getElementById('ma-isolation').value = ma.isolation_required || 'No';
+                document.getElementById('ma-surgery').value = ma.recent_surgery || '';
+                document.getElementById('ma-cardiac').value = ma.recent_cardiac_event || '';
+                document.getElementById('ma-mode').value = ma.recommended_transfer_mode || '';
+
+                document.getElementById('eq-oxygen').value = ma.oxygen_requirement || 'No';
+                document.getElementById('eq-oxygen-flow').value = ma.oxygen_flow_rate || '';
+                document.getElementById('eq-oxygen-conc').value = ma.oxygen_concentrator_requirement || 'No';
+                document.getElementById('eq-oxygen-meter').value = ma.oxygen_meter_requirement || 'No';
+                document.getElementById('eq-ventilator').value = ma.ventilator_requirement || 'No';
+                document.getElementById('eq-ventilator-mode').value = ma.ventilator_mode || '';
+                document.getElementById('eq-cardiac').value = ma.cardiac_monitor_required || 'No';
+                document.getElementById('eq-infusion').value = ma.infusion_pump_required || 'No';
+                document.getElementById('eq-aed').value = ma.aed_machine_requirement || 'No';
+                document.getElementById('eq-thermometer').value = ma.thermometer_requirement || 'Yes';
+                document.getElementById('eq-glucometer').value = ma.glucometer_requirement || 'Yes';
+                document.getElementById('eq-defib').value = ma.automatic_external_defibrillator || 'No';
+                document.getElementById('eq-bp-mon').value = ma.electronic_bp_monitor || 'Yes';
+                document.getElementById('eq-syringe').value = ma.syringe_pump_requirement || 'No';
+                document.getElementById('eq-doppler').value = ma.fetal_doppler_requirement || 'No';
+                document.getElementById('eq-nebulizer').value = ma.mesh_nebulizer_requirement || 'No';
+                document.getElementById('eq-laryngoscope').value = ma.laryngoscope_set || 'Yes';
+                document.getElementById('eq-suction').value = ma.suction_required || 'Yes';
+                document.getElementById('eq-meds').value = ma.special_medication_required || '';
+
+                const modal = new bootstrap.Modal(document.getElementById('editMAModal'));
+                modal.show();
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to load assessment details', 'error');
+            }
+        }
+
+        document.getElementById('edit-ma-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('ma-id').value;
+            const updates = {
+                medical_assessment_status: document.getElementById('ma-status').value,
+                assessment_assigned_to: document.getElementById('ma-assigned-to').value,
+                fitness_for_air_transfer: document.getElementById('ma-fitness').value,
+                heart_rate: document.getElementById('ma-hr').value,
+                blood_pressure: document.getElementById('ma-bp').value,
+                respiratory_rate: document.getElementById('ma-rr').value,
+                temperature: document.getElementById('ma-temp').value,
+                spo2_room_air: document.getElementById('ma-spo2').value,
+                gcs_consciousness_score: document.getElementById('ma-gcs').value,
+                current_clinical_status: document.getElementById('ma-clinical-status').value,
+                consciousness_level: document.getElementById('ma-consciousness').value,
+                mobility_status: document.getElementById('ma-mobility').value,
+                primary_diagnosis: document.getElementById('ma-diagnosis').value,
+                reason_for_transfer: document.getElementById('ma-reason').value,
+                bleeding_risk: document.getElementById('ma-bleeding').value,
+                seizure_risk: document.getElementById('ma-seizure').value,
+                dvt_pe_risk: document.getElementById('ma-dvt').value,
+                infection_risk: document.getElementById('ma-infection').value,
+                isolation_required: document.getElementById('ma-isolation').value,
+                recent_surgery: document.getElementById('ma-surgery').value,
+                recent_cardiac_event: document.getElementById('ma-cardiac').value,
+                recommended_transfer_mode: document.getElementById('ma-mode').value,
+                oxygen_requirement: document.getElementById('eq-oxygen').value,
+                oxygen_flow_rate: document.getElementById('eq-oxygen-flow').value,
+                oxygen_concentrator_requirement: document.getElementById('eq-oxygen-conc').value,
+                oxygen_meter_requirement: document.getElementById('eq-oxygen-meter').value,
+                ventilator_requirement: document.getElementById('eq-ventilator').value,
+                ventilator_mode: document.getElementById('eq-ventilator-mode').value,
+                cardiac_monitor_required: document.getElementById('eq-cardiac').value,
+                infusion_pump_required: document.getElementById('eq-infusion').value,
+                aed_machine_requirement: document.getElementById('eq-aed').value,
+                thermometer_requirement: document.getElementById('eq-thermometer').value,
+                glucometer_requirement: document.getElementById('eq-glucometer').value,
+                automatic_external_defibrillator: document.getElementById('eq-defib').value,
+                electronic_bp_monitor: document.getElementById('eq-bp-mon').value,
+                syringe_pump_requirement: document.getElementById('eq-syringe').value,
+                fetal_doppler_requirement: document.getElementById('eq-doppler').value,
+                mesh_nebulizer_requirement: document.getElementById('eq-nebulizer').value,
+                laryngoscope_set: document.getElementById('eq-laryngoscope').value,
+                suction_required: document.getElementById('eq-suction').value,
+                special_medication_required: document.getElementById('eq-meds').value
+            };
+
+            try {
+                await updateMedicalAssessment(id, updates);
+                showToast('Evaluation updated successfully!', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('editMAModal')).hide();
+                await loadMAs();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'Failed to update evaluation', 'error');
+            }
+        });
+
+        async function triggerSendForQuotation(maId) {
+            if (!confirm('Are you sure you want to validate this Medical Assessment and send for Quotation?')) return;
+            try {
+                showLoading();
+                const qc = await sendMAForQuotation(maId);
+                hideLoading();
+                showToast(`Quotation Control created successfully! (Ref: ${qc.master_reference_id})`, 'success');
+                await loadMAs();
+            } catch (err) {
+                hideLoading();
+                alert(err.message || 'Failed to send for Quotation');
+            }
+        }
+    </script>
+</body>
+</html>

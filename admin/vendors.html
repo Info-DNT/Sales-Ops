@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Vendors - Admin</title>
+    <link rel="icon" href="../assets/logo.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/crm-styles.css">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Sidebar will be inserted here -->
+
+        <div class="main-content">
+            <div class="page-header flex-wrap gap-3">
+                <div>
+                    <h2 class="mb-0">All Vendors</h2>
+                    <p class="text-muted small mb-0">System-wide vendor management and lead source analytics</p>
+                </div>
+                <div class="d-flex flex-wrap gap-2 w-100-mobile align-items-center">
+                    <button class="btn btn-outline-primary" onclick="exportVendorsCSV()">
+                        <i class="fas fa-file-export me-1"></i> Export CSV
+                    </button>
+                    <button class="btn btn-primary w-100-mobile" data-bs-toggle="modal" data-bs-target="#addVendorModal" data-module="vendors" data-action="create">
+                        <i class="fas fa-plus"></i> Add Vendor
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="dashboard-grid-horizontal mb-4">
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background:rgba(99,102,241,0.1);color:#6366f1;">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <div class="stat-label">Total Vendors</div>
+                    <div class="stat-value" id="stats-total">0</div>
+                </div>
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-label">Active</div>
+                    <div class="stat-value" id="stats-active">0</div>
+                </div>
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-label">Inactive</div>
+                    <div class="stat-value" id="stats-inactive">0</div>
+                </div>
+            </div>
+
+            <!-- Search/Filter -->
+            <div class="content-card mb-3">
+                <div class="row g-3">
+                    <div class="col-lg-5 col-md-6">
+                        <label class="form-label">Search Vendors</label>
+                        <input type="text" class="form-control" id="search-query" placeholder="Name, clinic, contact, email...">
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Filter Status</label>
+                        <select class="form-select" id="filter-status">
+                            <option value="">All Statuses</option>
+                            <option value="Active" selected>Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-4 col-md-12 d-flex align-items-end gap-2">
+                        <button class="btn btn-secondary flex-grow-1" onclick="searchVendors()">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearSearch()">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div id="vendors-list" class="leads-container">
+                    <div class="text-center py-4">
+                        <span class="spinner-border spinner-border-sm me-2"></span> Loading vendors...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Vendor Modal -->
+    <div class="modal fade" id="addVendorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="vendorModalTitle">Add Vendor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="vendor-form">
+                        <input type="hidden" id="vendor-id">
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="vendor-name" class="form-label">Vendor Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="vendor-name" placeholder="Enter vendor name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="vendor-org" class="form-label">Organization/Hospital/Clinic</label>
+                                <input type="text" class="form-control" id="vendor-org" placeholder="Enter organization name">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="vendor-contact-person" class="form-label">Contact Person</label>
+                                <input type="text" class="form-control" id="vendor-contact-person" placeholder="Enter contact name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="vendor-status" class="form-label">Status</label>
+                                <select class="form-select" id="vendor-status">
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="vendor-phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="vendor-phone" placeholder="Enter contact number">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="vendor-email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="vendor-email" placeholder="Enter email address">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="vendor-address" class="form-label">Address</label>
+                            <textarea class="form-control" id="vendor-address" rows="2" placeholder="Enter physical address"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="vendor-notes" class="form-label">Notes / Description</label>
+                            <textarea class="form-control" id="vendor-notes" rows="3" placeholder="Enter notes or remarks"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" id="save-vendor-btn">
+                            <i class="fas fa-save"></i> Save Vendor
+                            <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        // Check authentication
+        if (!initAuthCheck('admin')) {
+            window.location.href = '../index.html'
+        }
+
+        // Insert navigation
+        insertNav('admin', 'vendors')
+        generateAdminBottomNav('vendors')
+        generateLeadsSubTabs('vendors')
+
+        // State variables
+        const session = getCurrentSession()
+        let vendors = []
+        let allVendors = []
+        let editingVendorId = null
+
+        // Load all vendors
+        async function loadVendors() {
+            try {
+                const searchVal = document.getElementById('search-query').value
+                const statusVal = document.getElementById('filter-status').value
+                
+                allVendors = await getVendors({ search: searchVal, status: statusVal })
+                vendors = allVendors
+                displayVendors()
+                updateStats()
+            } catch (error) {
+                console.error('Error loading vendors:', error)
+                showToast('Failed to load vendors', 'error')
+            }
+        }
+
+        // Update analytical widgets
+        function updateStats() {
+            const total = allVendors.length
+            const active = allVendors.filter(v => v.status === 'Active').length
+            const inactive = allVendors.filter(v => v.status === 'Inactive').length
+
+            document.getElementById('stats-total').textContent = total
+            document.getElementById('stats-active').textContent = active
+            document.getElementById('stats-inactive').textContent = inactive
+        }
+
+        // Search & Filter Trigger
+        function searchVendors() {
+            loadVendors()
+        }
+
+        // Clear Search Form
+        function clearSearch() {
+            document.getElementById('search-query').value = ''
+            document.getElementById('filter-status').value = 'Active'
+            loadVendors()
+        }
+
+        // Display list in DOM
+        function displayVendors() {
+            const listContainer = document.getElementById('vendors-list')
+
+            if (!vendors || vendors.length === 0) {
+                listContainer.innerHTML = '<p class="text-muted text-center py-4">No vendors found matching criteria.</p>'
+                return
+            }
+
+            listContainer.innerHTML = vendors.map(v => {
+                const statusClass = v.status === 'Active' ? 'bg-success' : 'bg-secondary';
+                return `
+                    <div class="lead-card mb-3 p-3 shadow-sm border-0 bg-white rounded position-relative overflow-hidden" 
+                        style="border-left: 4px solid #6366f1 !important;">
+                        
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <h5 class="mb-0 fw-bold text-dark">${v.name}</h5>
+                                    <span class="badge ${statusClass} text-white">${v.status}</span>
+                                </div>
+                                ${v.org_name ? `
+                                    <div class="small text-muted mb-1">
+                                        <i class="fas fa-building me-1"></i> <strong>Organization:</strong> ${v.org_name}
+                                    </div>
+                                ` : ''}
+                                ${v.contact_person ? `
+                                    <div class="small text-muted mb-1">
+                                        <i class="fas fa-user-circle me-1"></i> <strong>Contact Person:</strong> ${v.contact_person}
+                                    </div>
+                                ` : ''}
+                                <div class="small text-muted mb-1">
+                                    <i class="fas fa-user me-1"></i> <strong>Registered By:</strong> ${v.users?.name || v.users?.email || 'System'}
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end">
+                                <small class="text-muted">Registered: ${new Date(v.created_at).toLocaleDateString()}</small>
+                            </div>
+                        </div>
+
+                        <div class="lead-details mt-3">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Phone</small>
+                                    <span class="fw-600">${v.phone || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Email</small>
+                                    <span>${v.email || 'N/A'}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Address</small>
+                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" title="${v.address || ''}">${v.address || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        ${v.notes ? `
+                            <div class="mt-2 p-2 bg-light rounded small">
+                                <strong>Notes:</strong> ${v.notes}
+                            </div>
+                        ` : ''}
+
+                        <div class="lead-actions mt-3 d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="showHistoryModal('vendors', '${v.id}', '${v.name}')">
+                                <i class="fas fa-history me-1"></i> History
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editVendor('${v.id}')">
+                                <i class="fas fa-edit me-1"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger ms-auto" onclick="deleteVendorRecord('${v.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('')
+        }
+
+        // Form Submit handler
+        const vendorForm = document.getElementById('vendor-form')
+        if (vendorForm) {
+            vendorForm.addEventListener('submit', async function (e) {
+                e.preventDefault()
+
+                const saveBtn = document.getElementById('save-vendor-btn')
+                const spinner = saveBtn.querySelector('.spinner-border')
+
+                saveBtn.disabled = true
+                spinner.classList.remove('d-none')
+
+                const getVal = (id) => document.getElementById(id).value.trim();
+
+                const vendorData = {
+                    name: getVal('vendor-name'),
+                    orgName: getVal('vendor-org'),
+                    contactPerson: getVal('vendor-contact-person'),
+                    phone: getVal('vendor-phone'),
+                    email: getVal('vendor-email'),
+                    address: getVal('vendor-address'),
+                    notes: getVal('vendor-notes'),
+                    status: getVal('vendor-status')
+                }
+
+                try {
+                    // Check duplicate first (for create only)
+                    if (!editingVendorId) {
+                        const duplicate = await checkDuplicateVendor(vendorData)
+                        if (duplicate) {
+                            showToast(`Vendor already exists: "${duplicate.name}"`, 'error')
+                            saveBtn.disabled = false
+                            spinner.classList.add('d-none')
+                            return
+                        }
+                    }
+
+                    if (editingVendorId) {
+                        await updateVendor(editingVendorId, vendorData, session.userId)
+                        showToast('Vendor updated successfully!', 'success')
+                    } else {
+                        await createVendor(session.userId, vendorData)
+                        showToast('Vendor registered successfully!', 'success')
+                    }
+
+                    // Reset state & close Modal
+                    this.reset()
+                    editingVendorId = null
+                    document.getElementById('vendorModalTitle').textContent = 'Add Vendor'
+                    bootstrap.Modal.getInstance(document.getElementById('addVendorModal')).hide()
+
+                    await loadVendors()
+                } catch (error) {
+                    console.error('Error saving vendor:', error)
+                    showToast('Error saving vendor details', 'error')
+                } finally {
+                    saveBtn.disabled = false
+                    spinner.classList.add('d-none')
+                }
+            })
+        }
+
+        // Open Edit Modal
+        window.editVendor = function (id) {
+            const v = allVendors.find(x => x.id === id)
+            if (!v) return
+
+            editingVendorId = id
+            document.getElementById('vendorModalTitle').textContent = 'Edit Vendor'
+            document.getElementById('vendor-name').value = v.name || ''
+            document.getElementById('vendor-org').value = v.org_name || ''
+            document.getElementById('vendor-contact-person').value = v.contact_person || ''
+            document.getElementById('vendor-phone').value = v.phone || ''
+            document.getElementById('vendor-email').value = v.email || ''
+            document.getElementById('vendor-address').value = v.address || ''
+            document.getElementById('vendor-notes').value = v.notes || ''
+            document.getElementById('vendor-status').value = v.status || 'Active'
+
+            new bootstrap.Modal(document.getElementById('addVendorModal')).show()
+        }
+
+        // Delete Vendor
+        window.deleteVendorRecord = async function (id) {
+            if (!confirm('Are you sure you want to delete this vendor? This action is permanent.')) return
+
+            try {
+                await deleteVendor(id, session.userId)
+                showToast('Vendor deleted successfully', 'success')
+                await loadVendors()
+            } catch (error) {
+                console.error(error)
+                showToast(error.message || 'Failed to delete vendor', 'error')
+            }
+        }
+
+        // Export CSV Function
+        window.exportVendorsCSV = function () {
+            if (!allVendors || allVendors.length === 0) {
+                showToast('No vendors to export', 'error')
+                return
+            }
+
+            const exportData = allVendors.map(v => ({
+                id: v.id,
+                name: v.name,
+                organization: v.org_name || '',
+                contact_person: v.contact_person || '',
+                phone: v.phone || '',
+                email: v.email || '',
+                address: v.address || '',
+                notes: v.notes || '',
+                status: v.status,
+                created_at: v.created_at
+            }))
+
+            exportToCSV(exportData, 'All_Vendors_List', [
+                'Name', 'Organization', 'Contact Person', 'Phone', 'Email', 'Address', 'Notes', 'Status', 'Created At'
+            ])
+        }
+
+        // Reset form on modal dismiss
+        document.getElementById('addVendorModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('vendor-form').reset()
+            editingVendorId = null
+            document.getElementById('vendorModalTitle').textContent = 'Add Vendor'
+        })
+
+        // Initial Load
+        loadVendors()
+    </script>
+</body>
+
+</html>

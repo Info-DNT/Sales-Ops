@@ -991,10 +991,7 @@
             const container = document.getElementById('case-timeline-container');
             container.innerHTML = '<p class="text-muted text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading...</p>';
             try {
-                let history = [];
-                if (leadId) {
-                    history = await getLeadHistory(leadId);
-                }
+                let history = await getCaseHistory(caseId, leadId);
                 if (!history || history.length === 0) {
                     container.innerHTML = '<p class="text-muted text-center py-4">No activity history yet.</p>';
                     return;
@@ -1007,8 +1004,11 @@
                         <div class="timeline-content">
                             <div class="timeline-time">${new Date(item.created_at).toLocaleString()}</div>
                             <div class="timeline-title">${item.action}</div>
-                            <div class="timeline-desc">${item.details?.summary || item.details?.status || (item.details?.changes ? item.details.changes.join(', ') : '') || ''}</div>
-                            <div class="small text-muted mt-1">by ${item.users?.name || item.users?.email || 'System'}</div>
+                            <div class="timeline-desc">
+                                ${item.details?.summary || item.details?.status || (item.details?.changes ? item.details.changes.join(', ') : '') || ''}
+                                ${item.details?.file_url ? `<br><a href="${item.details.file_url}" target="_blank" class="btn btn-link btn-xs p-0 text-primary mt-1"><i class="fas fa-file-pdf me-1"></i>View Document</a>` : ''}
+                            </div>
+                            <div class="small text-muted mt-1">by ${item.details?.performed_by || item.users?.name || item.users?.email || 'System'}</div>
                         </div>
                     </div>
                 `).join('');

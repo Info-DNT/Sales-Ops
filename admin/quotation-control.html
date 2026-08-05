@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotation Control - Admin</title>
+    <link rel="icon" href="../assets/logo.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/crm-styles.css">
+    <style>
+        .cost-calc-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; }
+        .cost-display { font-size: 1.5rem; font-weight: 800; color: #4f46e5; }
+        .final-display { font-size: 1.75rem; font-weight: 800; color: #10b981; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="main-content">
+            <div class="page-header flex-wrap gap-3">
+                <div>
+                    <h2 class="mb-0">Quotation Control</h2>
+                    <p class="text-muted small mb-0">Costing breakdown, pricing & approval workflow</p>
+                </div>
+                <div class="d-flex flex-wrap gap-2 w-100-mobile align-items-center">
+                    <button class="btn btn-outline-primary" onclick="exportQCCSV()">
+                        <i class="fas fa-file-export me-1"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="dashboard-grid-horizontal mb-4">
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background:rgba(99,102,241,0.1);color:#6366f1;">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div class="stat-label">Total Quotations</div>
+                    <div class="stat-value" id="stats-qc-total">0</div>
+                </div>
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-label">Costing Pending</div>
+                    <div class="stat-value" id="stats-qc-pending">0</div>
+                </div>
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <div class="stat-label">Approved</div>
+                    <div class="stat-value" id="stats-qc-approved">0</div>
+                </div>
+                <div class="stat-card-modern">
+                    <div class="stat-icon" style="background:rgba(14,165,233,0.1);color:#0ea5e9;">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <div class="stat-label">Converted Deals</div>
+                    <div class="stat-value" id="stats-qc-converted">0</div>
+                </div>
+            </div>
+
+            <!-- Search/Filter -->
+            <div class="content-card mb-3">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" class="form-control border-start-0" id="search-qc-query" placeholder="Search patient, Ref ID, route..." oninput="filterQC()">
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <select class="form-select" id="filter-qc-status" onchange="filterQC()">
+                            <option value="">All Quotation Statuses</option>
+                            <option value="Quotation Requested">Quotation Requested</option>
+                            <option value="Costing Pending">Costing Pending</option>
+                            <option value="Costing Received">Costing Received</option>
+                            <option value="Internal Review Pending">Internal Review Pending</option>
+                            <option value="Management Approval Pending">Management Approval Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Revision Required">Revision Required</option>
+                            <option value="Revised Quotation Prepared">Revised Quotation Prepared</option>
+                            <option value="Shared with Client">Shared with Client</option>
+                            <option value="Client Negotiation">Client Negotiation</option>
+                            <option value="Accepted by Client">Accepted by Client</option>
+                            <option value="Rejected by Client">Rejected by Client</option>
+                            <option value="Converted to Deal">Converted to Deal</option>
+                            <option value="Closed / Cancelled">Closed / Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div id="qc-list-container">
+                    <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Quotation Modal -->
+    <div class="modal fade" id="editQCModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Quotation Control & Costing Worksheet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-qc-form">
+                        <input type="hidden" id="qc-id">
+
+                        <h6 class="border-bottom pb-2 mb-3 text-primary"><i class="fas fa-user-shield me-2"></i>Quotation Status & Ownership</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-600">Quotation Status *</label>
+                                <select class="form-select" id="qc-status" required>
+                                    <option value="Quotation Requested">Quotation Requested</option>
+                                    <option value="Costing Pending">Costing Pending</option>
+                                    <option value="Costing Received">Costing Received</option>
+                                    <option value="Internal Review Pending">Internal Review Pending</option>
+                                    <option value="Management Approval Pending">Management Approval Pending</option>
+                                    <option value="Approved">Approved</option>
+                                    <option value="Revision Required">Revision Required</option>
+                                    <option value="Revised Quotation Prepared">Revised Quotation Prepared</option>
+                                    <option value="Shared with Client">Shared with Client</option>
+                                    <option value="Client Negotiation">Client Negotiation</option>
+                                    <option value="Accepted by Client">Accepted by Client</option>
+                                    <option value="Rejected by Client">Rejected by Client</option>
+                                    <option value="Converted to Deal">Converted to Deal</option>
+                                    <option value="Closed / Cancelled">Closed / Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Quotation Prepared By</label>
+                                <input type="text" class="form-control" id="qc-prepared-by">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Currency</label>
+                                <select class="form-select" id="qc-currency" onchange="recalcQC()">
+                                    <option value="INR">INR (₹)</option>
+                                    <option value="AED">AED (AED)</option>
+                                    <option value="USD">USD ($)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="cost-calc-card mb-4">
+                            <h6 class="text-primary mb-3"><i class="fas fa-calculator me-2"></i>Cost Breakdown (8 Inputs — Auto-Calculated)</h6>
+                            <div class="row g-3">
+                                <div class="col-md-3"><label class="form-label">Internal Cost</label><input type="number" step="any" class="form-control calc-cost" id="c-internal" value="0" oninput="recalcQC()"></div>
+                                <div class="col-md-3"><label class="form-label">Vendor Cost</label><input type="number" step="any" class="form-control calc-cost" id="c-vendor" value="0" oninput="recalcQC()"></div>
+                                <div class="col-md-3"><label class="form-label">Medical Team Cost</label><input type="number" step="any" class="form-control calc-cost" id="c-med-team" value="0" oninput="recalcQC()"></div>
+                                <div class="col-md-3"><label class="form-label">Equipment Cost</label><input type="number" step="any" class="form-control calc-cost" id="c-equipment" value="0" oninput="recalcQC()"></div>
+                                <div class="col-md-3"><label class="form-label">Airport Handling Cost</label><input type="number" step="any" class="form-control calc-cost" id="c-airport" value="0" oninput="recalcQC()"></div>
+                                <div class="col-md-3"><label class="form-label">Escort Travel/Hotel Expense</label><input type="number" step="any" class="form-control calc-cost" id="c-escort" value="0" oninput="recalcQC()"></div>
+                                <div class="col-md-3"><label class="form-label">Airline / Aircraft Cost</label><input type="number" step="any" class="form-control calc-cost" id="c-airline" value="0" oninput="recalcQC()"></div>
+                                <div class="col-md-3"><label class="form-label">Ground Ambulance Cost</label><input type="number" step="any" class="form-control calc-cost" id="c-ambulance" value="0" oninput="recalcQC()"></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                <span class="fw-bold text-muted">TOTAL COST:</span>
+                                <div class="cost-display"><span class="curr-symbol">₹</span> <span id="display-total-cost">0.00</span></div>
+                            </div>
+                        </div>
+
+                        <div class="cost-calc-card mb-4" style="background:#f0fdf4;border-color:#bbf7d0;">
+                            <h6 class="text-success mb-3"><i class="fas fa-tags me-2"></i>Pricing & Quotation Amount</h6>
+                            <div class="row g-3">
+                                <div class="col-md-3"><label class="form-label">Proposed Selling Price *</label><input type="number" step="any" class="form-control" id="p-selling" placeholder="0.00" oninput="recalcQC()"></div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Discount Requested?</label>
+                                    <select class="form-select" id="p-disc-req" onchange="toggleDiscountField(); recalcQC();">
+                                        <option value="No">No</option>
+                                        <option value="Yes">Yes</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3" id="disc-amount-col" style="display:none;"><label class="form-label">Discount Amount</label><input type="number" step="any" class="form-control" id="p-disc-amt" value="0" oninput="recalcQC()"></div>
+                                <div class="col-md-3"><label class="form-label">Expected Margin</label><input type="number" step="any" class="form-control" id="p-margin" placeholder="0.00"></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-success-subtle">
+                                <span class="fw-bold text-dark">FINAL QUOTATION AMOUNT:</span>
+                                <div class="final-display"><span class="curr-symbol">₹</span> <span id="display-final-amount">0.00</span></div>
+                            </div>
+                        </div>
+
+                        <h6 class="border-bottom pb-2 mb-3 text-primary"><i class="fas fa-handshake me-2"></i>Client Terms & Follow-up</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4"><label class="form-label">Quotation Validity</label><input type="text" class="form-control" id="qc-validity" placeholder="e.g. 7 Days"></div>
+                            <div class="col-md-4"><label class="form-label">Payment Terms</label><input type="text" class="form-control" id="qc-terms" placeholder="e.g. 100% Advance"></div>
+                            <div class="col-md-4"><label class="form-label">Client Response</label><input type="text" class="form-control" id="qc-response" placeholder="Client feedback / objections"></div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="save-qc-btn">Save Quotation Control</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script>
+        let allQCs = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!initAuthCheck('admin')) return;
+            insertNav('admin', 'quotation-control');
+            await loadQCs();
+            generateAdminBottomNav('quotation-control');
+            generateLeadsSubTabs('quotation-control');
+        });
+
+        async function loadQCs() {
+            try {
+                allQCs = await getAllQuotationControlsAdmin();
+                renderQCs(allQCs);
+                updateStats();
+            } catch (err) {
+                console.error('Error loading QCs:', err);
+                showToast('Failed to load Quotation Control records', 'error');
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('stats-qc-total').textContent = allQCs.length;
+            document.getElementById('stats-qc-pending').textContent = allQCs.filter(q => q.quotation_status === 'Costing Pending' || q.quotation_status === 'Quotation Requested').length;
+            document.getElementById('stats-qc-approved').textContent = allQCs.filter(q => q.quotation_status === 'Approved' || q.quotation_status === 'Shared with Client').length;
+            document.getElementById('stats-qc-converted').textContent = allQCs.filter(q => q.quotation_status === 'Converted to Deal' || q.quotation_status === 'Accepted by Client').length;
+        }
+
+        function filterQC() {
+            const query = (document.getElementById('search-qc-query').value || '').toLowerCase();
+            const status = document.getElementById('filter-qc-status').value;
+
+            const filtered = allQCs.filter(q => {
+                const matchQuery = !query ||
+                    (q.patient_name || '').toLowerCase().includes(query) ||
+                    (q.patient_client_name || '').toLowerCase().includes(query) ||
+                    (q.master_reference_id || '').toLowerCase().includes(query) ||
+                    (q.record_name || '').toLowerCase().includes(query) ||
+                    (q.route || '').toLowerCase().includes(query);
+                const matchStatus = !status || q.quotation_status === status;
+                return matchQuery && matchStatus;
+            });
+            renderQCs(filtered);
+        }
+
+        function renderQCs(list) {
+            const container = document.getElementById('qc-list-container');
+            if (!list || list.length === 0) {
+                container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fas fa-file-invoice-dollar fa-3x mb-3 opacity-50"></i><p>No Quotation Control records found.</p></div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(q => {
+                const statusClass = {
+                    'Approved': 'bg-success text-white',
+                    'Shared with Client': 'bg-info text-white',
+                    'Converted to Deal': 'bg-success text-white',
+                    'Costing Pending': 'bg-warning text-dark'
+                }[q.quotation_status] || 'bg-secondary text-white';
+
+                const curr = q.currency || 'INR';
+                const finalAmt = (q.final_quotation_amount !== undefined && q.final_quotation_amount !== null) ? Number(q.final_quotation_amount).toLocaleString('en-IN', {minimumFractionDigits:2}) : '0.00';
+                const totalCost = (q.total_cost !== undefined && q.total_cost !== null) ? Number(q.total_cost).toLocaleString('en-IN', {minimumFractionDigits:2}) : '0.00';
+
+                return `
+                <div class="content-card mb-3 border-start border-4 ${q.quotation_status === 'Approved' ? 'border-success' : 'border-indigo'}">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <span class="badge bg-indigo-subtle text-indigo me-2 font-monospace fw-bold">${q.master_reference_id || 'AM-REF-N/A'}</span>
+                            <span class="badge ${statusClass}">${q.quotation_status}</span>
+                            <h5 class="mt-2 mb-1">${q.record_name || q.patient_client_name || 'Quotation Record'}</h5>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="openEditQCModal('${q.id}')">
+                                <i class="fas fa-calculator me-1"></i> Costing & Pricing
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-3"><small class="text-muted d-block">Client / Patient</small><strong>${q.patient_client_name || q.patient_name || '—'}</strong></div>
+                        <div class="col-md-3"><small class="text-muted d-block">Route & Service</small><span>${q.route || 'TBD'} (${q.service_type || 'Air Ambulance'})</span></div>
+                        <div class="col-md-3"><small class="text-muted d-block">Total Cost</small><span class="fw-bold text-slate">${curr} ${totalCost}</span></div>
+                        <div class="col-md-3"><small class="text-muted d-block">Final Quote Amount</small><span class="fw-bold text-success fs-6">${curr} ${finalAmt}</span></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleDiscountField() {
+            const req = document.getElementById('p-disc-req').value;
+            document.getElementById('disc-amount-col').style.display = (req === 'Yes') ? 'block' : 'none';
+        }
+
+        function recalcQC() {
+            const currency = document.getElementById('qc-currency').value || 'INR';
+            const symbols = { INR: '₹', AED: 'AED', USD: '$', GBP: '£' };
+            document.querySelectorAll('.curr-symbol').forEach(el => el.textContent = symbols[currency] || currency);
+
+            const getCost = id => parseFloat(document.getElementById(id).value) || 0;
+            const totalCost = getCost('c-internal') + getCost('c-vendor') + getCost('c-med-team') + getCost('c-equipment') + getCost('c-airport') + getCost('c-escort') + getCost('c-airline') + getCost('c-ambulance');
+            document.getElementById('display-total-cost').textContent = totalCost.toFixed(2);
+
+            const sellPrice = parseFloat(document.getElementById('p-selling').value) || 0;
+            const discReq = document.getElementById('p-disc-req').value === 'Yes';
+            const discAmt = discReq ? (parseFloat(document.getElementById('p-disc-amt').value) || 0) : 0;
+            const finalAmt = sellPrice - discAmt;
+
+            document.getElementById('display-final-amount').textContent = finalAmt.toFixed(2);
+        }
+
+        async function openEditQCModal(id) {
+            try {
+                const q = await getQuotationControlById(id);
+                document.getElementById('qc-id').value = q.id;
+                document.getElementById('qc-status').value = q.quotation_status || 'Quotation Requested';
+                document.getElementById('qc-prepared-by').value = q.quotation_prepared_by || '';
+                document.getElementById('qc-currency').value = q.currency || 'INR';
+
+                document.getElementById('c-internal').value = q.internal_cost || 0;
+                document.getElementById('c-vendor').value = q.vendor_cost || 0;
+                document.getElementById('c-med-team').value = q.medical_team_cost || 0;
+                document.getElementById('c-equipment').value = q.equipment_cost || 0;
+                document.getElementById('c-airport').value = q.airport_handling_cost || 0;
+                document.getElementById('c-escort').value = q.escort_travel_hotel_expense || 0;
+                document.getElementById('c-airline').value = q.airline_aircraft_cost || 0;
+                document.getElementById('c-ambulance').value = q.ground_ambulance_cost || 0;
+
+                document.getElementById('p-selling').value = q.proposed_selling_price || '';
+                document.getElementById('p-disc-req').value = q.discount_requested || 'No';
+                document.getElementById('p-disc-amt').value = q.discount_amount || 0;
+                document.getElementById('p-margin').value = q.expected_margin || '';
+
+                document.getElementById('qc-validity').value = q.quotation_validity || '';
+                document.getElementById('qc-terms').value = q.payment_terms || '';
+                document.getElementById('qc-response').value = q.client_response || '';
+
+                toggleDiscountField();
+                recalcQC();
+
+                const modal = new bootstrap.Modal(document.getElementById('editQCModal'));
+                modal.show();
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to load quotation control details', 'error');
+            }
+        }
+
+        document.getElementById('edit-qc-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('qc-id').value;
+            const updates = {
+                quotation_status: document.getElementById('qc-status').value,
+                quotation_prepared_by: document.getElementById('qc-prepared-by').value,
+                currency: document.getElementById('qc-currency').value,
+                internal_cost: parseFloat(document.getElementById('c-internal').value) || 0,
+                vendor_cost: parseFloat(document.getElementById('c-vendor').value) || 0,
+                medical_team_cost: parseFloat(document.getElementById('c-med-team').value) || 0,
+                equipment_cost: parseFloat(document.getElementById('c-equipment').value) || 0,
+                airport_handling_cost: parseFloat(document.getElementById('c-airport').value) || 0,
+                escort_travel_hotel_expense: parseFloat(document.getElementById('c-escort').value) || 0,
+                airline_aircraft_cost: parseFloat(document.getElementById('c-airline').value) || 0,
+                ground_ambulance_cost: parseFloat(document.getElementById('c-ambulance').value) || 0,
+                proposed_selling_price: parseFloat(document.getElementById('p-selling').value) || 0,
+                discount_requested: document.getElementById('p-disc-req').value,
+                discount_amount: parseFloat(document.getElementById('p-disc-amt').value) || 0,
+                expected_margin: parseFloat(document.getElementById('p-margin').value) || 0,
+                quotation_validity: document.getElementById('qc-validity').value,
+                payment_terms: document.getElementById('qc-terms').value,
+                client_response: document.getElementById('qc-response').value
+            };
+
+            try {
+                await updateQuotationControl(id, updates);
+                showToast('Quotation Control updated successfully!', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('editQCModal')).hide();
+                await loadQCs();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'Failed to update quotation control', 'error');
+            }
+        });
+
+        function exportQCCSV() {
+            if (!allQCs.length) return showToast('No data to export', 'error');
+            exportToCSV(allQCs, 'quotation_control');
+        }
+    </script>
+</body>
+</html>
