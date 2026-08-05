@@ -363,7 +363,7 @@ async function getAllWorkReports(userId) {
 
     const { data, error } = await client
         .from('work_reports')
-        .select('*, users(name, email)')
+        .select('*')
         .in('user_id', userIds)
         .order('report_date', { ascending: false });
 
@@ -427,7 +427,7 @@ async function getLeads(userId, filters = {}) {
 
     let query = client
         .from('leads')
-        .select('*, users(name, email), vendors(id, name, org_name)')
+        .select('*')
         .eq('is_deleted', false)
         .not('is_converted', 'is', true)
         .order('created_at', { ascending: false });
@@ -489,7 +489,7 @@ async function getLeads(userId, filters = {}) {
             console.log('[getLeads] Strict filter returned 0 leads, fetching active fallback leads...');
             const { data: fbData } = await client
                 .from('leads')
-                .select('*, users(name, email), vendors(id, name, org_name)')
+                .select('*')
                 .eq('is_deleted', false)
                 .not('is_converted', 'is', true)
                 .order('created_at', { ascending: false });
@@ -1411,7 +1411,7 @@ async function getCalls(userId, filters = {}) {
     const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
     let query = client
         .from('calls')
-        .select('*, users(name, email)')
+        .select('*')
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
@@ -1565,7 +1565,7 @@ async function getMeetings(userId, filters = {}) {
     const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
     let query = client
         .from('meetings')
-        .select('*, users(name, email)')
+        .select('*')
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
@@ -1711,7 +1711,7 @@ async function getAllCasesAdmin() {
 
     const { data, error } = await client
         .from('cases')
-        .select('*, users (name, email)')
+        .select('*')
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
@@ -1734,8 +1734,7 @@ async function deleteCase(caseId) {
 }
 
 /**
- * Get cases for a specific user
- * @param {string} userId 
+ * Get cases for a user
  */
 async function getCasesForUser(userId) {
     const client = initSupabase();
@@ -1755,10 +1754,9 @@ async function getCasesForUser(userId) {
         userIds = await getTeamUserIds();
     }
 
-    // Primary query: try with lead join
     const { data, error } = await client
         .from('cases')
-        .select('*, leads(name, contact), users(name, email)')
+        .select('*')
         .in('user_id', userIds)
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
@@ -3382,7 +3380,7 @@ async function getMedicalAssessments(userId, filters = {}) {
   const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
 
   let query = client.from('medical_assessments')
-    .select('*, leads(name, contact, user_id)')
+    .select('*')
     .eq('is_deleted', false)
     .order('created_at', { ascending: false });
 
@@ -3418,7 +3416,7 @@ async function getMedicalAssessments(userId, filters = {}) {
   if (error) throw error;
   if (!isAdmin && (!data || data.length === 0)) {
     const { data: fbMAs } = await client.from('medical_assessments')
-      .select('*, leads(name, contact, user_id)')
+      .select('*')
       .eq('is_deleted', false)
       .order('created_at', { ascending: false });
     return fbMAs || [];
@@ -3675,7 +3673,7 @@ async function getQuotationControls(userId, filters = {}) {
   const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
 
   let query = client.from('quotation_control')
-    .select('*, leads(name, contact, user_id)')
+    .select('*')
     .eq('is_deleted', false)
     .order('created_at', { ascending: false });
 
@@ -3711,7 +3709,7 @@ async function getQuotationControls(userId, filters = {}) {
   if (error) throw error;
   if (!isAdmin && (!data || data.length === 0)) {
     const { data: fbQCs } = await client.from('quotation_control')
-      .select('*, leads(name, contact, user_id)')
+      .select('*')
       .eq('is_deleted', false)
       .order('created_at', { ascending: false });
     return fbQCs || [];
