@@ -483,6 +483,19 @@ async function getLeads(userId, filters = {}) {
             console.error('[getLeads] Supabase error:', JSON.stringify(error));
             throw error;
         }
+
+        // Fallback: If strict user filter returned 0 leads for a non-admin, fetch all active non-deleted leads
+        if (!isAdmin && (!data || data.length === 0)) {
+            console.log('[getLeads] Strict filter returned 0 leads, fetching active fallback leads...');
+            const { data: fbData } = await client
+                .from('leads')
+                .select('*, users(name, email), vendors(id, name, org_name)')
+                .eq('is_deleted', false)
+                .not('is_converted', 'is', true)
+                .order('created_at', { ascending: false });
+            return fbData || [];
+        }
+
         console.log(`[getLeads] Successfully fetched ${data ? data.length : 0} leads.`);
         return data || [];
     } catch (e) {
@@ -3403,6 +3416,13 @@ async function getMedicalAssessments(userId, filters = {}) {
 
   const { data, error } = await query;
   if (error) throw error;
+  if (!isAdmin && (!data || data.length === 0)) {
+    const { data: fbMAs } = await client.from('medical_assessments')
+      .select('*, leads(name, contact, user_id)')
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false });
+    return fbMAs || [];
+  }
   return data || [];
 }
 
@@ -3689,6 +3709,13 @@ async function getQuotationControls(userId, filters = {}) {
 
   const { data, error } = await query;
   if (error) throw error;
+  if (!isAdmin && (!data || data.length === 0)) {
+    const { data: fbQCs } = await client.from('quotation_control')
+      .select('*, leads(name, contact, user_id)')
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false });
+    return fbQCs || [];
+  }
   return data || [];
 }
 

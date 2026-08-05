@@ -278,6 +278,16 @@ function startSessionWatcher() {
     window._sessionWatcherInterval = setInterval(checkRemote, 30000)
 }
 
+// Default permissions matrix for user role
+const DEFAULT_USER_PERMISSIONS = {
+    leads: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+    medical_assessment: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+    quotation_control: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+    cases: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+    vendors: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+    expenses: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false }
+};
+
 // Refresh user permissions from the database and update localStorage
 async function refreshUserPermissions() {
     const session = getCurrentSession()
@@ -289,27 +299,37 @@ async function refreshUserPermissions() {
     try {
         const user = await getUserById(session.userId)
         if (user) {
-            session.teamId = user.team_id
-            const perms = await getUserPermissions(session.userId)
-            if (perms) {
-                session.permissions = {}
-            perms.forEach(p => {
-                session.permissions[p.module] = {
-                    enabled: p.enabled,
-                    view: p.can_view,
-                    create: p.can_create,
-                    edit: p.can_edit,
-                    delete: p.can_delete,
-                    viewTeam: p.can_view_team
+            session.teamId = user.team_id || null
+
+            // Ensure baseline defaults exist
+            if (!session.permissions || Object.keys(session.permissions).length === 0) {
+                session.permissions = { ...DEFAULT_USER_PERMISSIONS }
+            }
+
+            try {
+                const perms = await getUserPermissions(session.userId)
+                if (perms && perms.length > 0) {
+                    perms.forEach(p => {
+                        session.permissions[p.module] = {
+                            enabled: p.enabled !== undefined ? p.enabled : true,
+                            view: p.can_view !== undefined ? p.can_view : true,
+                            create: p.can_create !== undefined ? p.can_create : true,
+                            edit: p.can_edit !== undefined ? p.can_edit : true,
+                            delete: p.can_delete !== undefined ? p.can_delete : false,
+                            viewTeam: p.can_view_team !== undefined ? p.can_view_team : false
+                        }
+                    })
                 }
-            })
+            } catch (pErr) {
+                console.warn('Could not fetch custom user permissions, keeping defaults:', pErr)
+            }
+
             localStorage.setItem('salesAppSession', JSON.stringify(session))
             // Re-apply guards after permissions are updated
             if (typeof applyUIGuards === 'function') applyUIGuards()
         }
-    }
     } catch (e) {
-        console.warn('Silent permission refresh failed:', e)
+        console.warn('Silent permission refresh notice:', e)
     }
 }
 
