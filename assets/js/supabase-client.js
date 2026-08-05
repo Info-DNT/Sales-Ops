@@ -96,32 +96,39 @@ async function loginWithSupabase(email, password) {
         permissions: null
     };
 
-    // For user role: fetch their custom permissions
+    // Default permissions for user role
+    const defaultUserPermissions = {
+        leads: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+        medical_assessment: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+        quotation_control: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+        cases: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+        vendors: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+        expenses: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false }
+    };
+
+    // For user role: fetch their custom permissions safely
     if (userData.role === 'user') {
+        session.permissions = { ...defaultUserPermissions };
         try {
-            const { data: perms } = await client
+            const { data: perms, error: permErr } = await client
                 .from('user_permissions')
-                .select('module, enabled, can_view, can_create, can_edit, can_delete, can_view_team')
+                .select('*')
                 .eq('user_id', userData.id);
 
-            if (perms) {
-                session.permissions = {};
+            if (!permErr && perms && perms.length > 0) {
                 perms.forEach(p => {
                     session.permissions[p.module] = {
-                        enabled: p.enabled,
-                        view: p.can_view,
-                        create: p.can_create,
-                        edit: p.can_edit,
-                        delete: p.can_delete,
-                        viewTeam: p.can_view_team
+                        enabled: p.enabled !== undefined ? p.enabled : true,
+                        view: p.can_view !== undefined ? p.can_view : true,
+                        create: p.can_create !== undefined ? p.can_create : true,
+                        edit: p.can_edit !== undefined ? p.can_edit : true,
+                        delete: p.can_delete !== undefined ? p.can_delete : false,
+                        viewTeam: p.can_view_team !== undefined ? p.can_view_team : false
                     };
                 });
-            } else {
-                session.permissions = {};
             }
         } catch (e) {
-            console.warn('Error fetching user permissions:', e);
-            session.permissions = {};
+            console.warn('Error fetching user permissions, using defaults:', e);
         }
     }
 
@@ -430,10 +437,33 @@ async function getLeads(userId, filters = {}) {
     if (isAdmin) {
         // Admins see everything
     } else if (session.permissions?.leads?.viewTeam && session.teamId) {
-        const teamIds = await getTeamUserIds();
-        query = query.in('user_id', teamIds);
+        try {
+            const teamIds = await getTeamUserIds();
+            if (teamIds && teamIds.length > 0) {
+                query = query.in('user_id', teamIds);
+            } else {
+                const userIdent = session.name || session.email || '';
+                if (userIdent) {
+                    query = query.or(`user_id.eq.${userId},owner.ilike.%${userIdent}%`);
+                } else {
+                    query = query.eq('user_id', userId);
+                }
+            }
+        } catch (tErr) {
+            const userIdent = session.name || session.email || '';
+            if (userIdent) {
+                query = query.or(`user_id.eq.${userId},owner.ilike.%${userIdent}%`);
+            } else {
+                query = query.eq('user_id', userId);
+            }
+        }
     } else {
-        query = query.eq('user_id', userId);
+        const userIdent = session.name || session.email || '';
+        if (userIdent) {
+            query = query.or(`user_id.eq.${userId},owner.ilike.%${userIdent}%`);
+        } else {
+            query = query.eq('user_id', userId);
+        }
     }
 
     // Apply date filter if provided
@@ -3346,15 +3376,24 @@ async function getMedicalAssessments(userId, filters = {}) {
   const isAdmin = session.role === 'admin' || session.role === 'super_admin';
   if (!isAdmin) {
     if (session.permissions?.medical_assessment?.viewTeam && session.teamId) {
-      const teamUserIds = await getTeamUserIds();
-      // query team leads
-      const { data: teamLeads } = await client.from('leads').select('id').in('user_id', teamUserIds);
-      const leadIds = (teamLeads || []).map(l => l.id);
-      query = query.in('linked_lead_id', leadIds);
+      try {
+        const teamUserIds = await getTeamUserIds();
+        const { data: teamLeads } = await client.from('leads').select('id').in('user_id', teamUserIds);
+        const leadIds = (teamLeads || []).map(l => l.id);
+        if (leadIds.length > 0) {
+          query = query.in('linked_lead_id', leadIds);
+        }
+      } catch (tErr) {}
     } else {
-      const { data: userLeads } = await client.from('leads').select('id').eq('user_id', userId);
+      const userIdent = session.name || session.email || '';
+      const leadQuery = userIdent
+        ? client.from('leads').select('id').or(`user_id.eq.${userId},owner.ilike.%${userIdent}%`)
+        : client.from('leads').select('id').eq('user_id', userId);
+      const { data: userLeads } = await leadQuery;
       const leadIds = (userLeads || []).map(l => l.id);
-      query = query.in('linked_lead_id', leadIds);
+      if (leadIds.length > 0) {
+        query = query.in('linked_lead_id', leadIds);
+      }
     }
   }
 
@@ -3623,14 +3662,24 @@ async function getQuotationControls(userId, filters = {}) {
   const isAdmin = session.role === 'admin' || session.role === 'super_admin';
   if (!isAdmin) {
     if (session.permissions?.quotation_control?.viewTeam && session.teamId) {
-      const teamUserIds = await getTeamUserIds();
-      const { data: teamLeads } = await client.from('leads').select('id').in('user_id', teamUserIds);
-      const leadIds = (teamLeads || []).map(l => l.id);
-      query = query.in('linked_lead_id', leadIds);
+      try {
+        const teamUserIds = await getTeamUserIds();
+        const { data: teamLeads } = await client.from('leads').select('id').in('user_id', teamUserIds);
+        const leadIds = (teamLeads || []).map(l => l.id);
+        if (leadIds.length > 0) {
+          query = query.in('linked_lead_id', leadIds);
+        }
+      } catch (tErr) {}
     } else {
-      const { data: userLeads } = await client.from('leads').select('id').eq('user_id', userId);
+      const userIdent = session.name || session.email || '';
+      const leadQuery = userIdent
+        ? client.from('leads').select('id').or(`user_id.eq.${userId},owner.ilike.%${userIdent}%`)
+        : client.from('leads').select('id').eq('user_id', userId);
+      const { data: userLeads } = await leadQuery;
       const leadIds = (userLeads || []).map(l => l.id);
-      query = query.in('linked_lead_id', leadIds);
+      if (leadIds.length > 0) {
+        query = query.in('linked_lead_id', leadIds);
+      }
     }
   }
 
