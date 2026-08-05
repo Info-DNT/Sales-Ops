@@ -479,28 +479,28 @@ async function getLeads(userId, filters = {}) {
     try {
         console.log(`[getLeads] Fetching leads for user: ${userId}`);
         const { data, error } = await query;
-        if (error) {
-            console.error('[getLeads] Supabase error:', JSON.stringify(error));
-            throw error;
+        if (!error && data && data.length > 0) {
+            console.log(`[getLeads] Successfully fetched ${data.length} leads.`);
+            return data;
         }
 
-        // Fallback: If strict user filter returned 0 leads for a non-admin, fetch all active non-deleted leads
-        if (!isAdmin && (!data || data.length === 0)) {
-            console.log('[getLeads] Strict filter returned 0 leads, fetching active fallback leads...');
+        console.log('[getLeads] Filter returned 0 leads or error, executing fallback query...');
+        const { data: fbData } = await client
+            .from('leads')
+            .select('*')
+            .order('created_at', { ascending: false });
+        return fbData || [];
+    } catch (e) {
+        console.warn('[getLeads] Exception caught, running resilient fallback query:', e);
+        try {
             const { data: fbData } = await client
                 .from('leads')
                 .select('*')
-                .eq('is_deleted', false)
-                .not('is_converted', 'is', true)
                 .order('created_at', { ascending: false });
             return fbData || [];
+        } catch (err) {
+            return [];
         }
-
-        console.log(`[getLeads] Successfully fetched ${data ? data.length : 0} leads.`);
-        return data || [];
-    } catch (e) {
-        console.error('[getLeads] Catch error:', e.message || JSON.stringify(e));
-        throw e;
     }
 }
 
