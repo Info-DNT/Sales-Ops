@@ -44,7 +44,7 @@ async function loginWithSupabase(email, password) {
         .from('users')
         .select('*')
         .eq('id', authData.user.id)
-        .single();
+        .maybeSingle();
 
     if (userError) {
         // If user doesn't exist in users table, create them
@@ -1266,16 +1266,20 @@ async function getAllUsers() {
  * @param {string} userId 
  */
 async function getUserById(userId) {
+    if (!userId) return null;
     const client = initSupabase();
 
-    const { data, error } = await client
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
+    try {
+        const { data, error } = await client
+            .from('users')
+            .select('*')
+            .eq('id', userId);
 
-    if (error) throw error;
-    return data;
+        if (error || !data || data.length === 0) return null;
+        return data[0];
+    } catch (e) {
+        return null;
+    }
 }
 
 /**

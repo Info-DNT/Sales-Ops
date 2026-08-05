@@ -297,39 +297,39 @@ async function refreshUserPermissions() {
     if (session.role === 'admin' || session.role === 'super_admin') return
 
     try {
-        const user = await getUserById(session.userId)
-        if (user) {
-            session.teamId = user.team_id || null
-
-            // Ensure baseline defaults exist
-            if (!session.permissions || Object.keys(session.permissions).length === 0) {
-                session.permissions = { ...DEFAULT_USER_PERMISSIONS }
-            }
-
-            try {
-                const perms = await getUserPermissions(session.userId)
-                if (perms && perms.length > 0) {
-                    perms.forEach(p => {
-                        session.permissions[p.module] = {
-                            enabled: p.enabled !== undefined ? p.enabled : true,
-                            view: p.can_view !== undefined ? p.can_view : true,
-                            create: p.can_create !== undefined ? p.can_create : true,
-                            edit: p.can_edit !== undefined ? p.can_edit : true,
-                            delete: p.can_delete !== undefined ? p.can_delete : false,
-                            viewTeam: p.can_view_team !== undefined ? p.can_view_team : false
-                        }
-                    })
-                }
-            } catch (pErr) {
-                console.warn('Could not fetch custom user permissions, keeping defaults:', pErr)
-            }
-
-            localStorage.setItem('salesAppSession', JSON.stringify(session))
-            // Re-apply guards after permissions are updated
-            if (typeof applyUIGuards === 'function') applyUIGuards()
+        // Ensure baseline defaults exist for user role
+        if (!session.permissions || Object.keys(session.permissions).length === 0) {
+            session.permissions = { ...DEFAULT_USER_PERMISSIONS }
         }
+
+        const user = await getUserById(session.userId)
+        if (user && user.team_id) {
+            session.teamId = user.team_id
+        }
+
+        try {
+            const perms = await getUserPermissions(session.userId)
+            if (perms && perms.length > 0) {
+                perms.forEach(p => {
+                    session.permissions[p.module] = {
+                        enabled: p.enabled !== undefined ? p.enabled : true,
+                        view: p.can_view !== undefined ? p.can_view : true,
+                        create: p.can_create !== undefined ? p.can_create : true,
+                        edit: p.can_edit !== undefined ? p.can_edit : true,
+                        delete: p.can_delete !== undefined ? p.can_delete : false,
+                        viewTeam: p.can_view_team !== undefined ? p.can_view_team : false
+                    }
+                })
+            }
+        } catch (pErr) {
+            // Keep baseline permissions intact
+        }
+
+        localStorage.setItem('salesAppSession', JSON.stringify(session))
+        // Re-apply guards after permissions are updated
+        if (typeof applyUIGuards === 'function') applyUIGuards()
     } catch (e) {
-        console.warn('Silent permission refresh notice:', e)
+        // Silently preserve session state
     }
 }
 
