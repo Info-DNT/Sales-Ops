@@ -1,8 +1,31 @@
 -- ===================================================================
--- FULL PERMISSIVE RLS FIX FOR SALES OPS PIPELINE (SAFE EXECUTION)
--- Run this script in the Supabase SQL Editor.
--- It safely checks if each table exists before enabling RLS & applying policies.
+-- ⛔ DO NOT RUN THIS SCRIPT — RETAINED FOR REFERENCE ONLY ⛔
 -- ===================================================================
+-- This script grants `FOR ALL USING (true) WITH CHECK (true)` on every
+-- business table. Postgres OR's permissive RLS policies together, so these
+-- policies override every stricter policy on the same table and leave the
+-- data fully readable AND writable by anyone holding the public anon key —
+-- which is embedded in assets/js/supabase-client.js and therefore visible to
+-- any visitor. Running it removes the application's only real access control.
+--
+-- If you are here because something is returning "permission denied" or
+-- "Error loading …", the fix is a correct per-role policy, NOT this script:
+--     backend/final-rls-fix.sql        — core tables (leads, cases, calls, …)
+--     backend/pipeline-schema.sql      — medical_assessments, quotation_control
+--
+-- To undo the damage if this was previously run:
+--     backend/SECURITY-revoke-permissive-rls.sql
+--
+-- The guard below aborts the script if it is executed.
+-- ===================================================================
+
+DO $$
+BEGIN
+    RAISE EXCEPTION
+        'Refusing to run fix-all-rls-permissive.sql: it disables row-level security on every table. Use backend/final-rls-fix.sql instead, or backend/SECURITY-revoke-permissive-rls.sql to revoke policies this script previously created.';
+END $$;
+
+-- ─── Original script below (unreachable — the guard above aborts first) ───
 
 DO $$
 DECLARE

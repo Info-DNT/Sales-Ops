@@ -17,9 +17,16 @@ exports.handler = async function (event) {
         return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
     }
 
-    // Handshake token check (matches expected webhook secret)
+    // Handshake token check (matches expected webhook secret).
+    // Fails closed: an unset WEBHOOK_SECRET rejects every request rather
+    // than falling back to a value that is committed to source control.
     const secret = event.headers['x-webhook-secret'] || event.headers['X-Webhook-Secret'];
-    const expectedSecret = process.env.WEBHOOK_SECRET || 'SALES_OPS_2026_SECURE';
+    const expectedSecret = process.env.WEBHOOK_SECRET;
+
+    if (!expectedSecret) {
+        console.error('WEBHOOK_SECRET is not set — rejecting request');
+        return { statusCode: 500, headers, body: JSON.stringify({ error: 'Service configuration error' }) };
+    }
 
     if (secret !== expectedSecret) {
         return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };

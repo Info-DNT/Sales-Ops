@@ -26,30 +26,36 @@ exports.handler = async function (event) {
     }
 
     const whapiToken = process.env.WHAPI_API_TOKEN;
-    const adminPhone = "918130035039"; // Updated admin number
-    const appsScriptUrl = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbzp45h1TXpF-yX3QYarHnHgxCx25-nHOUxrrxkRqyM4hlS2xUaFjVVQ7e97hZQVdIko/exec';
-    const apiToken = 'SALES_OPS_2026_SECURE';
+    const adminPhone = process.env.WHAPI_ADMIN_PHONE;
+    const appsScriptUrl = process.env.APPS_SCRIPT_URL;
+    const apiToken = process.env.APPS_SCRIPT_TOKEN;
 
-    if (!whapiToken) {
-        console.error('Missing WHAPI_API_TOKEN env variable');
+    if (!whapiToken || !adminPhone) {
+        console.error('Missing WHAPI_API_TOKEN or WHAPI_ADMIN_PHONE env variable');
         return { statusCode: 500, body: JSON.stringify({ error: 'WhatsApp service not configured.' }) };
     }
 
     // ── 1. Log to Google Sheet (Primary Backup) ──────────────────────
-    try {
-        const sheetParams = new URLSearchParams({
-            action: 'saveSignup',
-            token: apiToken,
-            name: name,
-            phone: phone,
-            email: email,
-            designation: designation || '—'
-        });
-        
-        await fetch(`${appsScriptUrl}?${sheetParams.toString()}`);
-        console.log('✅ Signup logged to Google Sheet');
-    } catch (sheetErr) {
-        console.error('⚠️ Sheet logging failed (continuing to WhatsApp):', sheetErr);
+    // Skipped entirely unless both the endpoint and its token are configured,
+    // so a missing token is never sent as a committed default.
+    if (appsScriptUrl && apiToken) {
+        try {
+            const sheetParams = new URLSearchParams({
+                action: 'saveSignup',
+                token: apiToken,
+                name: name,
+                phone: phone,
+                email: email,
+                designation: designation || '—'
+            });
+
+            await fetch(`${appsScriptUrl}?${sheetParams.toString()}`);
+            console.log('✅ Signup logged to Google Sheet');
+        } catch (sheetErr) {
+            console.error('⚠️ Sheet logging failed (continuing to WhatsApp):', sheetErr);
+        }
+    } else {
+        console.warn('APPS_SCRIPT_URL / APPS_SCRIPT_TOKEN not set — skipping Sheet logging');
     }
 
     // ── 2. Build WhatsApp message text ───────────────────────────────

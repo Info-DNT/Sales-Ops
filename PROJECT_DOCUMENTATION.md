@@ -286,7 +286,9 @@ WHAPI_API_TOKEN=your-whapi-token
 WHAPI_ACCOUNTS_PHONE=919876543210 # Accounts team destination phone number
 
 # Security Handshake
-WEBHOOK_SECRET=SALES_OPS_2026_SECURE
+# Generate a fresh random value, e.g.  openssl rand -hex 32
+# Never commit the real value. See .env.example for the full list.
+WEBHOOK_SECRET=<generate-a-random-secret>
 ```
 
 ### Local Dev Launch

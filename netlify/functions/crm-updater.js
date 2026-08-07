@@ -3,6 +3,11 @@
 // =====================================================
 // This function syncs lead updates from the web app back to Zoho CRM
 
+const { createClient } = require('@supabase/supabase-js');
+
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://lgedjkyafshufxhjywhk.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+
 const ZOHO_API_BASE = {
     'com': 'https://www.zohoapis.com',
     'eu': 'https://www.zohoapis.eu',
@@ -263,21 +268,39 @@ exports.handler = async (event) => {
     // DUAL-AUTH SECURITY CHECK
     // Accepts either a valid Supabase JWT (from the Web App)
     // OR a pre-shared API Key (from Postman / admin tools)
+    // Both paths fail closed when not configured.
     // =============================================
-    const isAuthenticated = (() => {
+    const isAuthenticated = await (async () => {
         // Path 1: API Key (for Postman & server-to-server calls)
         const apiKey = event.headers['x-api-key'];
         if (apiKey && process.env.CRM_API_KEY && apiKey === process.env.CRM_API_KEY) {
             return true;
         }
 
-        // Path 2: Supabase JWT Bearer token (for Web App users)
+        // Path 2: Supabase JWT Bearer token (for Web App users).
+        // The token is verified against the Supabase Auth server — a
+        // well-formed but unsigned/forged token is rejected.
         const authHeader = event.headers['authorization'] || event.headers['Authorization'];
         if (authHeader && authHeader.startsWith('Bearer ')) {
-            const token = authHeader.replace('Bearer ', '').trim();
-            // Validate: JWT must be a non-empty string with 3 base64 segments
-            if (token && token.split('.').length === 3) {
+            const token = authHeader.slice('Bearer '.length).trim();
+            if (!token) return false;
+
+            if (!SUPABASE_ANON_KEY) {
+                console.error('SUPABASE_ANON_KEY is not set — cannot verify JWT');
+                return false;
+            }
+
+            try {
+                const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                const { data, error } = await supabase.auth.getUser(token);
+                if (error || !data?.user) {
+                    console.warn('JWT verification failed:', error?.message || 'no user');
+                    return false;
+                }
                 return true;
+            } catch (err) {
+                console.error('JWT verification error:', err.message);
+                return false;
             }
         }
 

@@ -283,6 +283,7 @@ const DEFAULT_USER_PERMISSIONS = {
     leads: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
     medical_assessment: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
     quotation_control: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+    equipment_checklist: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
     cases: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
     vendors: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
     expenses: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false }

@@ -101,6 +101,7 @@ async function loginWithSupabase(email, password) {
         leads: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
         medical_assessment: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
         quotation_control: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
+        equipment_checklist: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
         cases: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
         vendors: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false },
         expenses: { enabled: true, view: true, create: true, edit: true, delete: false, viewTeam: false }
@@ -3821,6 +3822,245 @@ async function getAllQuotationControlsAdmin() {
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data || [];
+}
+
+// =============================================
+// EQUIPMENT CHECKLIST FUNCTIONS
+// =============================================
+
+async function getEquipmentChecklists(userId, filters = {}) {
+  const client = initSupabase();
+  const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+
+  let query = client.from('equipment_checklist')
+    .select('*')
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false });
+
+  const isAdmin = session.role === 'admin' || session.role === 'super_admin';
+  if (!isAdmin) {
+    if (session.permissions?.equipment_checklist?.viewTeam && session.teamId) {
+      try {
+        const teamUserIds = await getTeamUserIds();
+        const { data: teamLeads } = await client.from('leads').select('id').in('user_id', teamUserIds);
+        const leadIds = (teamLeads || []).map(l => l.id);
+        if (leadIds.length > 0) {
+          query = query.in('linked_lead_id', leadIds);
+        }
+      } catch (tErr) {}
+    } else {
+      const userIdent = session.name || session.email || '';
+      const leadQuery = userIdent
+        ? client.from('leads').select('id').or(`user_id.eq.${userId},owner.ilike.%${userIdent}%`)
+        : client.from('leads').select('id').eq('user_id', userId);
+      const { data: userLeads } = await leadQuery;
+      const leadIds = (userLeads || []).map(l => l.id);
+      if (leadIds.length > 0) {
+        query = query.in('linked_lead_id', leadIds);
+      }
+    }
+  }
+
+  if (filters.status) {
+    query = query.eq('equipment_status', filters.status);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  if (!isAdmin && (!data || data.length === 0)) {
+    const { data: fbEC } = await client.from('equipment_checklist')
+      .select('*')
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false });
+    return fbEC || [];
+  }
+  return data || [];
+}
+
+async function getEquipmentChecklistById(id) {
+  const client = initSupabase();
+  const { data, error } = await client.from('equipment_checklist')
+    .select('*, leads(*), quotation_control(*)')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function createEquipmentChecklist(ecData) {
+  const client = initSupabase();
+  const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+
+  const { data, error } = await client.from('equipment_checklist')
+    .insert({ ...ecData, is_deleted: false })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await logActivity('equipment_checklist', data.id, session.userId, 'CREATED', ecData);
+  return data;
+}
+
+async function updateEquipmentChecklist(id, updates) {
+  const client = initSupabase();
+  const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+
+  const { data, error } = await client.from('equipment_checklist')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await logActivity('equipment_checklist', id, session.userId, 'UPDATED', updates);
+  return data;
+}
+
+async function deleteEquipmentChecklist(id) {
+  const client = initSupabase();
+  const { error } = await client.from('equipment_checklist').update({ is_deleted: true }).eq('id', id);
+  if (error) throw error;
+  return true;
+}
+
+async function getAllEquipmentChecklistsAdmin() {
+  const client = initSupabase();
+  const { data, error } = await client.from('equipment_checklist')
+    .select('*, leads(name, contact, user_id, owner)')
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+// =============================================
+// CONVERT GATE 3 — SEND QUOTATION CONTROL FOR EQUIPMENT CHECKLIST
+// =============================================
+
+// Human-readable labels for the validation gate's pipe-separated message.
+// Keys match the equipment_checklist / quotation_control column names.
+const EQUIPMENT_FIELD_LABELS = {
+  oxygen_requirement: 'Oxygen Requirement',
+  oxygen_concentrator_requirement: 'Oxygen Concentrator Requirement',
+  oxygen_meter_requirement: 'Oxygen Meter Requirement',
+  ventilator_requirement: 'Ventilator Requirement',
+  cardiac_monitor_required: 'Cardiac Monitor Required',
+  infusion_pump_required: 'Infusion Pump Required',
+  aed_machine_requirement: 'AED Machine Requirement',
+  thermometer_requirement: 'Thermometer Requirement',
+  glucometer_requirement: 'Glucometer Requirement',
+  automatic_external_defibrillator: 'Automatic External Defibrillator',
+  electronic_bp_monitor: 'Electronic BP Monitor',
+  syringe_pump_requirement: 'Syringe Pump Requirement',
+  fetal_doppler_requirement: 'Fetal Doppler Requirement',
+  mesh_nebulizer_requirement: 'Mesh Nebulizer Requirement',
+  laryngoscope_set: 'Laryngoscope Set',
+  suction_required: 'Suction Required'
+};
+
+// The 16 of 19 equipment fields that are mandatory on the source QC before
+// Equipment Checklist can be created. The 3 free-text fields (oxygen_flow_rate,
+// ventilator_mode, special_medication_required) are intentionally excluded —
+// per the app-wide rule that "If applicable / If known" style free-text
+// fields are never mandatory in a gate.
+const EQUIPMENT_MANDATORY_FIELDS = Object.keys(EQUIPMENT_FIELD_LABELS);
+
+// All 19 equipment fields, for the copy step (mandatory + free-text).
+const EQUIPMENT_ALL_FIELDS = [
+  ...EQUIPMENT_MANDATORY_FIELDS,
+  'oxygen_flow_rate', 'ventilator_mode', 'special_medication_required'
+];
+
+async function sendQCToEquipmentChecklist(qcId) {
+  const client = initSupabase();
+
+  // 1. Fetch QC
+  const { data: qc, error: qcErr } = await client.from('quotation_control').select('*').eq('id', qcId).single();
+  if (qcErr || !qc) throw new Error('Quotation Control record not found');
+
+  // 2. Fetch linked Lead — quotation_control has no travel-date column of its
+  // own; expected_travel_date lives only on leads, so it must be fetched here
+  // for buildRecordName() to render a real date instead of "TBD".
+  let lead = null;
+  if (qc.linked_lead_id) {
+    const { data: leadData } = await client.from('leads').select('*').eq('id', qc.linked_lead_id).single();
+    lead = leadData;
+  }
+
+  // 3. VALIDATION GATE — collect ALL missing mandatory fields, block once,
+  // show pipe-separated (not one-at-a-time).
+  const missing = EQUIPMENT_MANDATORY_FIELDS
+    .filter(field => !qc[field])
+    .map(field => EQUIPMENT_FIELD_LABELS[field]);
+
+  if (missing.length > 0) {
+    throw new Error(`Missing required equipment fields: ${missing.join(' | ')}`);
+  }
+
+  const masterRefId = qc.master_reference_id;
+
+  // 4. Duplicate Check
+  const { data: existingEC } = await client.from('equipment_checklist')
+    .select('id')
+    .eq('master_reference_id', masterRefId)
+    .eq('is_deleted', false)
+    .maybeSingle();
+
+  if (existingEC) {
+    throw new Error('Equipment Checklist already exists for this reference — cannot create duplicate');
+  }
+
+  // 5. Build Record Name
+  const recName = buildRecordName({
+    currentCity: qc.current_city || lead?.current_city || lead?.source_location,
+    destCity: qc.destination_city || lead?.destination_city || lead?.destination_location,
+    serviceType: qc.service_type || qc.required_service,
+    patientName: qc.patient_client_name,
+    travelDate: lead?.expected_travel_date,
+    masterRefId: masterRefId
+  });
+
+  const session = JSON.parse(localStorage.getItem('salesAppSession') || '{}');
+
+  // Copy-if-present: only set a target field if the source has a value
+  // (global rule 6), and never write an empty string into a date column —
+  // omit the key instead (global rule 7). On INSERT, an omitted key and an
+  // explicit NULL are equivalent, so this one helper satisfies both rules.
+  const ecData = {
+    master_reference_id: masterRefId,
+    record_name: recName,
+    linked_qc_id: qc.id,
+    linked_lead_id: qc.linked_lead_id || null,
+    patient_name: qc.patient_client_name || null,
+    route: qc.route || null,
+    equipment_status: 'Pending'
+  };
+  EQUIPMENT_ALL_FIELDS.forEach(field => {
+    if (qc[field] !== undefined && qc[field] !== null && qc[field] !== '') {
+      ecData[field] = qc[field];
+    }
+  });
+
+  // 6. INSERT equipment_checklist row
+  const { data: newEC, error: ecErr } = await client.from('equipment_checklist').insert(ecData).select().single();
+  if (ecErr) throw ecErr;
+
+  // 7. UPDATE Lead status to 'Equipment Preparation'
+  if (qc.linked_lead_id) {
+    await client.from('leads').update({
+      lead_status: 'Equipment Preparation'
+    }).eq('id', qc.linked_lead_id);
+  }
+
+  // 8. Log Activity
+  await logActivity('quotation_control', qcId, session.userId, 'Sent to Equipment Checklist', {
+    equipment_checklist_id: newEC.id,
+    master_reference_id: masterRefId
+  });
+
+  return newEC;
 }
 
 async function uploadMedicalReportFile(file) {

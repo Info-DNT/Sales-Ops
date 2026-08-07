@@ -17,15 +17,47 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 // ===================================================================
 
 exports.handler = async (event) => {
+    // Server-to-server webhook (Zoho Flow) — no browser calls this, so no CORS grant.
     const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Webhook-Secret',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Content-Type': 'application/json'
     };
 
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 200, headers, body: '' };
+    }
+
+    if (event.httpMethod !== 'POST') {
+        return {
+            statusCode: 405,
+            headers,
+            body: JSON.stringify({ success: false, error: 'Method not allowed' })
+        };
+    }
+
+    // ─── Shared-secret auth ──────────────────────────────────────
+    // Fails closed: if CRM_WEBHOOK_SECRET is not configured, every
+    // request is rejected rather than silently accepted.
+    const expectedSecret = process.env.CRM_WEBHOOK_SECRET;
+    const providedSecret = event.headers['x-webhook-secret'] || event.headers['X-Webhook-Secret'];
+
+    if (!expectedSecret) {
+        console.error('CRM_WEBHOOK_SECRET is not set — rejecting request');
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ success: false, error: 'Service configuration error' })
+        };
+    }
+
+    if (providedSecret !== expectedSecret) {
+        console.warn('Unauthorized request to crm-receiver');
+        return {
+            statusCode: 401,
+            headers,
+            body: JSON.stringify({ success: false, error: 'Unauthorized' })
+        };
     }
 
     try {

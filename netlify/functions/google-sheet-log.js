@@ -19,12 +19,25 @@ exports.handler = async function (event) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Missing Serial No 2' }) };
         }
 
-        const appsScriptUrl = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbzp45h1TXpF-yX3QYarHnHgxCx25-nHOUxrrxkRqyM4hlS2xUaFjVVQ7e97hZQVdIko/exec';
-        const token = 'SALES_OPS_2026_SECURE';
+        const appsScriptUrl = process.env.APPS_SCRIPT_URL;
+        const token = process.env.APPS_SCRIPT_TOKEN;
+
+        if (!appsScriptUrl || !token) {
+            console.error('APPS_SCRIPT_URL / APPS_SCRIPT_TOKEN is not set');
+            return { statusCode: 500, body: JSON.stringify({ error: 'Sync service not configured' }) };
+        }
 
         console.log(`[PROXY] Forwarding quotation log for Serial No: ${serialNo2}`);
-        
-        const url = `${appsScriptUrl}?action=saveQuotation&serialNo2=${serialNo2}&name=${encodeURIComponent(name || 'Unknown')}&token=${token}`;
+
+        // Every interpolated value is encoded — an unencoded serialNo2 could
+        // inject extra parameters into this authenticated Apps Script call.
+        const params = new URLSearchParams({
+            action: 'saveQuotation',
+            serialNo2: String(serialNo2),
+            name: name || 'Unknown',
+            token: token
+        });
+        const url = `${appsScriptUrl}?${params.toString()}`;
         
         // This server-to-server request will NEVER be blocked by the browser!
         const response = await fetch(url);

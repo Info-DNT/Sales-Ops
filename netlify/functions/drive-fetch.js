@@ -68,14 +68,28 @@ exports.handler = async (event) => {
             };
         }
 
-        const docName = DOC_NAMES[docType] || 'File';
-        console.log(`🔍 Searching Drive for ${docName} using Quotation ID: ${quotationId}`);
+        // Quotation IDs are identifiers (e.g. "QUO-1002"). Reject anything else
+        // rather than stripping bad characters: a quote in this value would
+        // terminate the literal in the Drive query below and rewrite it, and
+        // silently stripping would search for a DIFFERENT id than the caller
+        // asked for — which `name contains` could match to someone else's file.
+        const safeQuotationId = String(quotationId).trim();
+        if (!/^[A-Za-z0-9._-]+$/.test(safeQuotationId)) {
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ success: false, error: 'Invalid Quotation ID format' })
+            };
+        }
 
-        // Construct search query: 
+        const docName = DOC_NAMES[docType] || 'File';
+        console.log(`🔍 Searching Drive for ${docName} using Quotation ID: ${safeQuotationId}`);
+
+        // Construct search query:
         // 1. Must be in the specific folder
         // 2. Name must contain the Quotation ID
         // 3. Not in trash
-        const query = `'${folderId}' in parents and name contains '${quotationId}' and trashed = false`;
+        const query = `'${folderId}' in parents and name contains '${safeQuotationId}' and trashed = false`;
         const apiUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType)&key=${apiKey}`;
 
         const response = await fetch(apiUrl);

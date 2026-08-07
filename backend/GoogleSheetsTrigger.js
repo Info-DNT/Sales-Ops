@@ -24,7 +24,19 @@
 
 // CONFIGURATION
 const NETLIFY_WEBHOOK_URL = 'https://YOUR_NETLIFY_APP_NAME.netlify.app/.netlify/functions/google-sheet-timeline-receiver';
-const WEBHOOK_SECRET = 'SALES_OPS_2026_SECURE';
+
+// The shared secret is read from Script Properties, NOT hardcoded here.
+// It used to be a literal in this file, which put it in source control.
+//
+// TO SET IT (one time):
+//   Apps Script editor → Project Settings (gear icon)
+//   → Script Properties → Add script property
+//   → Property: WEBHOOK_SECRET    Value: <the same value as Netlify's WEBHOOK_SECRET>
+//
+// This value MUST match the WEBHOOK_SECRET environment variable on Netlify,
+// which google-sheet-timeline-receiver.js checks. If they differ, this trigger
+// gets a 401 and timeline events stop syncing.
+const WEBHOOK_SECRET = PropertiesService.getScriptProperties().getProperty('WEBHOOK_SECRET');
 
 function handleSheetEdit(e) {
   try {

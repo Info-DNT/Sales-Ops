@@ -1,28 +1,25 @@
 // ========================================
-// GOOGLE SHEETS API LAYER
+// GOOGLE SHEETS API LAYER  —  ⚠️ LEGACY / UNUSED
 // ========================================
 //
-// This file handles all communication between
-// the frontend and Google Apps Script backend
+// This file predates the move to Supabase. It is NOT referenced by any HTML
+// page in this project and none of its functions are called anywhere; auth and
+// data access now go through assets/js/supabase-client.js.
 //
+// It previously declared a hardcoded shared secret here. Because this is
+// browser-delivered code, any secret placed in this file is public by
+// definition — it was also unused, so it has been removed rather than moved.
+// Server-side callers hold that token in the APPS_SCRIPT_TOKEN environment
+// variable (see .env.example and netlify/functions/google-sheet-log.js).
+//
+// Kept for reference only. Safe to delete once confirmed unneeded.
 // ========================================
 
 // ========================================
 // CONFIGURATION
 // ========================================
 
-// !!! IMPORTANT: Replace this URL after deploying your Apps Script !!!
-// 
-// Steps to get this URL:
-// 1. Open your Google Sheet
-// 2. Go to Extensions → Apps Script
-// 3. Paste Code.gs content
-// 4. Click Deploy → New deployment → Web app
-// 5. Copy the Web App URL here
-//
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbzp45h1TXpF-yX3QYarHnHgxCx25-nHOUxrrxkRqyM4hlS2xUaFjVVQ7e97hZQVdIko/exec';
-const SHEETS_API_TOKEN = 'SALES_OPS_2026_SECURE';
-// Example: 'https://script.google.com/macros/s/AKfycbw.../exec'
 
 // ========================================
 // AUTHENTICATION

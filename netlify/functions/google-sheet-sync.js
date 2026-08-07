@@ -91,19 +91,28 @@ exports.handler = async function (event) {
     // phone: fallback lookup method
     const { serialNo2, zohoLeadId, phone } = body;
 
-    const appsScriptUrl = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbzp45h1TXpF-yX3QYarHnHgxCx25-nHOUxrrxkRqyM4hlS2xUaFjVVQ7e97hZQVdIko/exec';
+    const appsScriptUrl = process.env.APPS_SCRIPT_URL;
+    if (!appsScriptUrl) {
+        console.error('APPS_SCRIPT_URL is not set');
+        return { statusCode: 500, body: JSON.stringify({ error: 'Sync service not configured' }) };
+    }
+
+    // Normalise lookup keys to digits only. These values are interpolated into a
+    // PostgREST .or() filter below; without this, a crafted value could inject
+    // extra filter clauses and match rows it should not.
+    const cleanSerial = serialNo2 ? String(serialNo2).replace(/[^\d]/g, '') : '';
+    const cleanPhone = phone ? String(phone).replace(/[^\d]/g, '') : '';
 
     try {
         let quo_id = null;
         let queryUrl = `${appsScriptUrl}?`;
 
-        if (serialNo2) {
-            console.log(`🔍 Syncing by Serial No. 2: ${serialNo2}`);
-            queryUrl += `action=getQuotationBySerial&serialNo2=${serialNo2}`;
-        } else if (phone) {
-            const cleanPhone = phone.replace(/[^\d]/g, '');
+        if (cleanSerial) {
+            console.log(`🔍 Syncing by Serial No. 2: ${cleanSerial}`);
+            queryUrl += `action=getQuotationBySerial&serialNo2=${encodeURIComponent(cleanSerial)}`;
+        } else if (cleanPhone) {
             console.log(`🔍 Syncing by Phone: ${cleanPhone}`);
-            queryUrl += `phone=${cleanPhone}`;
+            queryUrl += `phone=${encodeURIComponent(cleanPhone)}`;
         } else {
             return { statusCode: 400, body: JSON.stringify({ error: 'Missing lookup criteria (Serial No. 2 or Phone)' }) };
         }
@@ -129,25 +138,39 @@ exports.handler = async function (event) {
         const { createClient } = require('@supabase/supabase-js');
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-        // Try updating Leads
-        const { data: leadUpdate, error: leadErr } = await supabase
-            .from('leads')
-            .update({ quotation_id: quo_id })
-            .or(`serial_no_2.eq.${serialNo2 || ''},contact.eq.${phone || ''}`)
-            .select();
-        
-        if (leadUpdate && leadUpdate.length > 0) {
+        // Match with separate .eq() calls rather than one .or() string.
+        //
+        // .eq() values are sent as parameters, so no sanitising is needed and
+        // the RAW phone can be used — important, because `contact` is NOT stored
+        // digits-only (leads carry values like "+91 98765 43210"), so matching
+        // on the stripped form would silently stop finding rows.
+        const updateBoth = async (table, column, value) => {
+            if (!value) return [];
+            const { data, error } = await supabase
+                .from(table)
+                .update({ quotation_id: quo_id })
+                .eq(column, value)
+                .select();
+            if (error) {
+                console.error(`${table}.${column} update error:`, error.message);
+                return [];
+            }
+            return data || [];
+        };
+
+        const leadUpdate = [
+            ...await updateBoth('leads', 'serial_no_2', cleanSerial),
+            ...await updateBoth('leads', 'contact', phone)
+        ];
+        if (leadUpdate.length > 0) {
             console.log(`✅ Updated Supabase Lead(s) with Quo ID: ${quo_id}`);
         }
 
-        // Try updating Cases
-        const { data: caseUpdate, error: caseErr } = await supabase
-            .from('cases')
-            .update({ quotation_id: quo_id })
-            .or(`serial_no_2.eq.${serialNo2 || ''},contact.eq.${phone || ''}`)
-            .select();
-
-        if (caseUpdate && caseUpdate.length > 0) {
+        const caseUpdate = [
+            ...await updateBoth('cases', 'serial_no_2', cleanSerial),
+            ...await updateBoth('cases', 'contact', phone)
+        ];
+        if (caseUpdate.length > 0) {
             console.log(`✅ Updated Supabase Case(s) with Quo ID: ${quo_id}`);
         }
 

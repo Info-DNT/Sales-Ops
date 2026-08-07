@@ -49,24 +49,6 @@ async function readBody(req, limitBytes = 1_000_000) {
   });
 }
 
-// #region agent log
-function debugLog(hypothesisId, location, message, data) {
-  fetch('http://127.0.0.1:7244/ingest/949f1888-e64e-492e-bd26-b2cbf4deffcb', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: 'debug-session',
-      runId: 'pre-fix',
-      hypothesisId,
-      location,
-      message,
-      data,
-      timestamp: Date.now()
-    })
-  }).catch(() => { });
-}
-// #endregion agent log
-
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${req.headers.host}`);
 

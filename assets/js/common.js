@@ -120,6 +120,7 @@ function generateUserNav(currentPage) {
       dropdownItems: [
         { page: 'medical-assessment', icon: 'fa-stethoscope', label: 'Medical Assessment', module: 'medical_assessment' },
         { page: 'quotation-control', icon: 'fa-file-invoice-dollar', label: 'Quotation Control', module: 'quotation_control' },
+        { page: 'equipment-checklist', icon: 'fa-clipboard-check', label: 'Equipment Checklist', module: 'equipment_checklist' },
         { page: 'cases', icon: 'fa-briefcase', label: 'Cases', module: 'cases' },
         { page: 'calls', icon: 'fa-phone', label: 'Calls', module: 'calls' },
         { page: 'meetings', icon: 'fa-video', label: 'Meetings', module: 'meetings' },
@@ -168,7 +169,7 @@ function generateUserNav(currentPage) {
         ${filteredItems.map(item => {
     const hideClass = item.page === 'quotations' ? 'd-none-quotation' : '';
     if (item.hasDropdown) {
-      const isLeadsActive = currentPage === 'leads' || currentPage === 'medical-assessment' || currentPage === 'quotation-control' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings' || currentPage === 'expenses' || currentPage === 'vendors';
+      const isLeadsActive = currentPage === 'leads' || currentPage === 'medical-assessment' || currentPage === 'quotation-control' || currentPage === 'equipment-checklist' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings' || currentPage === 'expenses' || currentPage === 'vendors';
       return `
               <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''} ${hideClass}">
                 <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">
@@ -222,6 +223,7 @@ function generateAdminNav(currentPage) {
       dropdownItems: [
         { page: 'medical-assessment', icon: 'fa-stethoscope', label: 'Medical Assessment' },
         { page: 'quotation-control', icon: 'fa-file-invoice-dollar', label: 'Quotation Control' },
+        { page: 'equipment-checklist', icon: 'fa-clipboard-check', label: 'Equipment Checklist' },
         { page: 'cases', icon: 'fa-briefcase', label: 'Cases' },
         { page: 'calls', icon: 'fa-phone', label: 'Calls' },
         { page: 'meetings', icon: 'fa-video', label: 'Meetings' },
@@ -265,7 +267,7 @@ function generateAdminNav(currentPage) {
         ${navItems.map(item => {
     const hideClass = item.page === 'quotations' ? 'd-none-quotation' : '';
     if (item.hasDropdown) {
-      const isLeadsActive = currentPage === 'leads' || currentPage === 'medical-assessment' || currentPage === 'quotation-control' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings' || currentPage === 'expenses' || currentPage === 'vendors';
+      const isLeadsActive = currentPage === 'leads' || currentPage === 'medical-assessment' || currentPage === 'quotation-control' || currentPage === 'equipment-checklist' || currentPage === 'cases' || currentPage === 'calls' || currentPage === 'meetings' || currentPage === 'expenses' || currentPage === 'vendors';
       return `
               <li class="nav-item-dropdown ${isLeadsActive ? 'dropdown-active' : ''} ${hideClass}">
                 <a href="#" class="nav-link ${isLeadsActive ? 'active' : ''}" onclick="toggleDropdown(event, this)">
@@ -557,11 +559,11 @@ function exportToCSV(data, fileName, headers) {
  * @param {string} currentPage - e.g. 'dashboard', 'leads', 'cases'
  */
 function generateBottomNav(currentPage) {
-  const leadsPages = ['leads', 'medical-assessment', 'quotation-control', 'cases', 'calls', 'meetings', 'expenses', 'vendors']
+  const leadsPages = ['leads', 'medical-assessment', 'quotation-control', 'equipment-checklist', 'cases', 'calls', 'meetings', 'expenses', 'vendors']
   const isLeadsGroup = leadsPages.includes(currentPage)
 
   // Check if user has access to any module in the Leads group
-  const hasAnyLeadsAccess = canPerform('leads', 'view') || canPerform('medical_assessment', 'view') || canPerform('quotation_control', 'view') || canPerform('cases', 'view') || canPerform('calls', 'view') || canPerform('meetings', 'view') || canPerform('expenses', 'view') || canPerform('vendors', 'view')
+  const hasAnyLeadsAccess = canPerform('leads', 'view') || canPerform('medical_assessment', 'view') || canPerform('quotation_control', 'view') || canPerform('equipment_checklist', 'view') || canPerform('cases', 'view') || canPerform('calls', 'view') || canPerform('meetings', 'view') || canPerform('expenses', 'view') || canPerform('vendors', 'view')
 
   const html = `
     <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile navigation">
@@ -597,7 +599,7 @@ function generateBottomNav(currentPage) {
  * @param {string} currentPage - e.g. 'dashboard', 'leads', 'users', 'reports'
  */
 function generateAdminBottomNav(currentPage) {
-  const leadsPages = ['leads', 'medical-assessment', 'quotation-control', 'cases', 'calls', 'meetings', 'expenses', 'vendors']
+  const leadsPages = ['leads', 'medical-assessment', 'quotation-control', 'equipment-checklist', 'cases', 'calls', 'meetings', 'expenses', 'vendors']
   const isLeadsGroup = leadsPages.includes(currentPage)
 
   const html = `
@@ -641,6 +643,7 @@ function generateLeadsSubTabs(currentSubPage, basePath) {
     { id: 'leads',              icon: 'fa-list',                label: 'All Leads',   module: 'leads'              },
     { id: 'medical-assessment', icon: 'fa-stethoscope',         label: 'Medical',     module: 'medical_assessment' },
     { id: 'quotation-control',  icon: 'fa-file-invoice-dollar', label: 'Quotation',   module: 'quotation_control'  },
+    { id: 'equipment-checklist', icon: 'fa-clipboard-check',    label: 'Equipment',   module: 'equipment_checklist' },
     { id: 'cases',              icon: 'fa-briefcase',           label: 'Cases',       module: 'cases'              },
     { id: 'calls',              icon: 'fa-phone',               label: 'Calls',       module: 'calls'              },
     { id: 'meetings',           icon: 'fa-video',               label: 'Meetings',    module: 'meetings'           },

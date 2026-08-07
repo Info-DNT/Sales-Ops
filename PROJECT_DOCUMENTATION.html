@@ -272,7 +272,7 @@
 
 This document serves as both a **Business Pitch Deck** for stakeholders/investors and a **Technical Blueprint** for developers. It details the problem statement, business value proposition, system architecture, database schemas, and workflows of the **Air Medical 24x7 Sales Operations Management System (Sales Ops Dashboard)**.
 
----
+---      
 
 # PART I: EXECUTIVE PITCH & PRODUCT OVERVIEW
 
@@ -377,7 +377,7 @@ Tracks user profiles linked directly to Supabase Auth.
 *   \`contact\` (TEXT): Phone number.
 *   \`role\` (TEXT, Default: 'user'): Role level (\`admin\` or \`user\`).
 *   \`created_at\` (TIMESTAMPTZ): Signup timestamp.
-
+       
 #### 2. \`user_details\`
 Extended user metadata and personalization options.
 *   \`id\` (UUID, Primary Key): Unique row identifier.
@@ -555,7 +555,9 @@ WHAPI_API_TOKEN=your-whapi-token
 WHAPI_ACCOUNTS_PHONE=919876543210 # Accounts team destination phone number
 
 # Security Handshake
-WEBHOOK_SECRET=SALES_OPS_2026_SECURE
+# Generate a fresh random value, e.g.  openssl rand -hex 32
+# Never commit the real value. See .env.example for the full list.
+WEBHOOK_SECRET=<generate-a-random-secret>
 \`\`\`
 
 ### Local Dev Launch
